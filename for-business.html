@@ -1,0 +1,210 @@
+<!doctype html>
+<!-- Plugfolio — /for-business, built from wireframe F3.
+     A pitch, not the product. /collabs is the working surface and should be
+     reached after signing up — the old "For business" link dropped strangers
+     straight into a logged-out product screen. Doors here end at
+     /join?as=business. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For business — Plugfolio</title>
+<meta name="description" content="Post a brief or approach a creator directly, then agree terms in one thread. Plugfolio handles no money and takes no cut — payment settles off-platform.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* Two doors, side by side, because the product genuinely has two entrances
+   and a brand should pick before signing up rather than after. */
+.doors2 { display: grid; gap: 14px; margin-top: clamp(22px, 3vw, 32px); }
+@media (min-width: 780px) { .doors2 { grid-template-columns: 1fr 1fr; gap: 18px; } }
+.door2 { background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-card); padding: 24px 24px 26px; display: flex; flex-direction: column; }
+.door2 .micro { color: var(--ink-3); }
+.door2 b { display: block; font-family: Sora, system-ui, sans-serif; font-weight: 700;
+  font-size: var(--t-title); letter-spacing: -.02em; margin: 8px 0 8px; }
+.door2 p { margin: 0; font-size: var(--t-copy); color: var(--ink-2); line-height: 1.55; }
+.door2 .dgo { margin-top: auto; padding-top: 20px; }
+
+/* The brief, on paper stock — printed matter takes the paper radius, not a
+   card one. Budget stays free text: the product deliberately does not
+   validate a currency, and a "$" example would read wrong to an Indian brand. */
+.brief { background: var(--paper); border-radius: var(--r-paper); padding: 22px 24px;
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); transform: rotate(-1.2deg);
+  max-width: 420px; color: var(--on-white); }
+.brief .micro { color: var(--ink-3); }
+.brief b { display: block; font-family: Sora, system-ui, sans-serif; font-weight: 700;
+  font-size: var(--t-title); letter-spacing: -.02em; margin: 8px 0 8px; }
+.brief p { margin: 0; font-size: var(--t-copy); color: var(--ink-2); line-height: 1.55; }
+.brief-meta { display: flex; align-items: center; gap: 8px; margin-top: 18px; padding-top: 14px;
+  border-top: 1px solid var(--line); }
+.brief-meta .avatar { width: 26px; height: 26px; margin-right: -12px; border: 2px solid var(--paper); }
+.brief-meta .micro { margin-left: 20px; text-transform: none; letter-spacing: 0; }
+
+/* One thread. A shape, not a screenshot — it says "this is where it all
+   happens" without inventing a conversation. */
+.thread { display: grid; gap: 10px; margin-top: clamp(22px, 3vw, 32px); max-width: 520px; }
+.bub { border-radius: var(--r-tile); padding: 13px 17px; font-size: var(--t-copy);
+  line-height: 1.5; max-width: 82%; }
+.bub--them { background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); }
+.bub--you { background: var(--ink); color: var(--surface); justify-self: end; }
+.bub--deal { background: var(--lime); color: var(--on-white); justify-self: center;
+  max-width: none; font-weight: 700; text-align: center;
+  border-radius: var(--r-chip); padding: 11px 22px; }
+
+.excl { margin-top: clamp(24px, 3.5vw, 34px); border: 1px dashed var(--line);
+  border-radius: var(--r-tile); padding: 22px 24px; }
+.excl b { display: block; font-family: Sora, system-ui, sans-serif; font-weight: 700;
+  font-size: var(--t-label); letter-spacing: -.01em; }
+.excl ul { margin: 12px 0 0; padding-left: 20px; }
+.excl li { font-size: var(--t-copy); color: var(--ink-2); line-height: 1.6; }
+</style>
+</head>
+<body data-viewer="anon" data-role="shopper" data-page="business">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#doors">Skip to how it works</a>
+
+<div data-chrome="top"></div>
+
+<main class="inner">
+
+  <section class="mk-hero">
+    <p class="micro" style="color:var(--ink-2)">For business</p>
+    <h1 class="headline">Find creators to work with.</h1>
+    <p class="lede">Describe what you need and hear from creators who want it, or approach one
+      directly from their page. The whole negotiation lives in a single thread.</p>
+    <div class="mk-cta">
+      <a class="btn btn--primary" href="/join?as=business">Post your first brief</a>
+      <a class="btn btn--ghost" href="/explore">Browse creators first</a>
+    </div>
+  </section>
+
+  <section class="mk-band" id="doors">
+    <h2 class="title">Two ways in.</h2>
+    <p class="copy">Pick whichever suits the campaign. Most brands end up using both.</p>
+    <div class="doors2">
+      <div class="door2">
+        <p class="micro">Door one</p>
+        <b>Post a brief</b>
+        <p>Write what you need on the open board and let creators come to you. Good when you don't
+          have a shortlist yet.</p>
+        <span class="dgo">Creators reply to you →</span>
+      </div>
+      <div class="door2">
+        <p class="micro">Door two</p>
+        <b>Approach a creator</b>
+        <p>Found someone already? Request a collab straight from their page. Good when you know
+          exactly who you want.</p>
+        <span class="dgo">Starts the same thread →</span>
+      </div>
+    </div>
+
+    <div class="brief" style="margin-top:clamp(24px,3.5vw,34px)">
+      <p class="micro">Open brief</p>
+      <b>Skincare creators for a spring launch</b>
+      <p>Two posts, one story. Budget discussed in the thread.</p>
+      <span class="brief-meta">
+        <img class="avatar" src="images/avatars/maya.jpg" alt="" width="60" height="60">
+        <img class="avatar" src="images/avatars/nia.jpg" alt="" width="60" height="60">
+        <img class="avatar" src="images/avatars/rhea.jpg" alt="" width="60" height="60">
+        <span class="micro">creators replying</span>
+      </span>
+    </div>
+    <p class="copy" style="margin-top:16px">Budget is a free text field, deliberately. You work in
+      whichever currency you already work in, and nothing forces a format on you.</p>
+  </section>
+
+  <section class="mk-band">
+    <h2 class="title">One thread, start to agreed.</h2>
+    <p class="copy">Terms, revisions and the yes all happen in the same place, so there's no
+      hunting through email to find what was actually agreed.</p>
+    <div class="thread">
+      <span class="bub bub--them">Two posts and a story — is that within range?</span>
+      <span class="bub bub--you">It is. Can you cover the launch week?</span>
+      <span class="bub bub--them">Yes. Sending dates now.</span>
+      <span class="bub bub--deal">Terms agreed</span>
+    </div>
+  </section>
+
+  <section class="mk-band">
+    <h2 class="title">Said out loud, up front.</h2>
+    <div class="mk-facts">
+      <div class="mk-fact"><b>Payment settles off-platform</b>
+        <p>Plugfolio handles no money and takes no cut of your deal. You pay the creator the way
+          you'd pay any supplier.</p></div>
+      <div class="mk-fact"><b>Attribution is measured, not modelled</b>
+        <p>Tap counts on a creator's posts are directly recorded. Nothing is estimated, so what you
+          see is what happened.</p></div>
+    </div>
+
+    <div class="excl">
+      <b>What Plugfolio deliberately isn't</b>
+      <ul>
+        <li>No media kits or campaign suites — briefs and threads, nothing heavier.</li>
+        <li>No on-platform payments, escrow or invoicing.</li>
+        <li>No creator-to-creator collabs.</li>
+      </ul>
+      <p class="copy" style="margin-top:12px">If your team needs those, better to find out here than
+        after signing up.</p>
+    </div>
+  </section>
+
+  <section class="mk-doors">
+    <h2 class="title">Here for something else?</h2>
+    <div class="doors">
+      <a class="door door--how" href="/how-it-works">
+        <p class="micro">For shoppers</p><h3 class="title">How it works</h3>
+        <p class="copy">The whole loop, and what we can and can't measure.</p>
+        <span class="dgo">Read it →</span></a>
+      <a class="door door--creators" href="/for-creators">
+        <p class="micro">For creators</p><h3 class="title">Make your posts shoppable</h3>
+        <p class="copy">Tag what's in your content and see which post drove the taps.</p>
+        <span class="dgo">See how →</span></a>
+      <a class="door door--business" href="/for-business">
+        <p class="micro">For business</p><h3 class="title">Find creators to work with</h3>
+        <p class="copy">Post a brief or approach a creator directly.</p>
+        <span class="dgo">See how →</span></a>
+    </div>
+    <div class="mk-cta">
+      <a class="btn btn--primary" href="/join?as=business">Create your business</a>
+      <a class="btn btn--ghost" href="/explore">Browse creators</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/how-it-works">How it works</a>
+      <a class="foot-link" href="/for-creators">For creators</a>
+      <a class="foot-link" href="/for-business" aria-current="page">For business</a>
+      <a class="foot-link" href="/support">Help</a>
+    </div>
+  </div>
+</footer>
+
+<div data-chrome="tabs"></div>
+
+<script>
+window.CHROME = { nav: 'business', tab: null };
+window.PROTO = {
+  title: '/for-business',
+  groups: [{ label: 'Who is looking', options: [
+    { name: 'Signed out', note: 'The page this is written for', set: { viewer: 'anon' } },
+    { name: 'Signed in',  note: 'Chrome swaps, content does not', set: { viewer: 'shopper' } }
+  ]}]
+};
+</script>
+<script src="chrome.js" defer></script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

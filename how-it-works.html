@@ -1,0 +1,257 @@
+<!doctype html>
+<!-- Plugfolio — /how-it-works, built from wireframe F1.
+     Shopper-facing. Its real job is answering the question someone arriving
+     from a bio link actually has, which is whether this is safe — so it
+     shows the mechanism rather than describing it, and names the thing it
+     cannot measure. Chrome and the cross-link band are shared. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works — Plugfolio</title>
+<meta name="description" content="A creator tags what's in their post, you tap the tag, you land on the retailer. No account, no cart, no checkout — and we never see your card.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* The loop, shown with the real component. A diagram of a tag would be a
+   drawing of the product; this is the product. */
+.loop { display: grid; gap: 16px; margin-top: clamp(22px, 3vw, 34px); }
+@media (min-width: 860px) { .loop { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+.loop .post { transform: rotate(var(--mt, 0deg)); }
+.loop > :nth-child(1) .post { --mt: -1.6deg; }
+.loop > :nth-child(2) .post { --mt: 1.4deg; }
+.loop > :nth-child(3) .post { --mt: -1deg; }
+.loop .post:hover { transform: rotate(0deg) translateY(-6px); }
+.loop .shot img { border-radius: var(--r-image); width: 100%; aspect-ratio: 4/3;
+  height: auto; object-fit: cover; }
+.loop .tag { left: var(--x); top: var(--y); }
+.tag-dot--plain { background: var(--ink-3); }
+.loop-cap { display: flex; gap: 10px; align-items: baseline; padding: 12px 6px 2px; }
+.loop-cap b { font-family: Sora, system-ui, sans-serif; font-weight: 700;
+  font-size: var(--t-label); letter-spacing: -.01em; }
+.loop-cap p { margin: 4px 0 0; font-size: var(--t-copy); color: var(--ink-2); line-height: 1.5; }
+.loop-n { display: grid; place-items: center; width: 26px; height: 26px; flex: none;
+  border-radius: 50%; background: var(--ink); color: var(--surface);
+  font-size: var(--t-micro); font-weight: 700; }
+/* The retailer step is deliberately not a Plugfolio surface — the card goes
+   plain to show where the product's job ends. */
+.loop-out { display: grid; place-items: center; aspect-ratio: 4/3;
+  border: 1px dashed var(--line); border-radius: var(--r-image); background: var(--canvas);
+  text-align: center; padding: 20px; }
+.loop-out span { font-size: var(--t-copy); color: var(--ink-2); line-height: 1.5; }
+
+.faq { margin-top: clamp(20px, 3vw, 30px); border-top: 1px solid var(--line); }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq summary { cursor: pointer; list-style: none; padding: 18px 2px; min-height: 56px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  font-family: Sora, system-ui, sans-serif; font-weight: 700; font-size: var(--t-label);
+  letter-spacing: -.01em; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-family: Manrope, system-ui, sans-serif;
+  font-size: var(--t-title); color: var(--ink-2); line-height: 1; }
+.faq details[open] summary::after { content: "–"; }
+.faq p { margin: 0 2px 20px; font-size: var(--t-copy); color: var(--ink-2); line-height: 1.6;
+  max-width: 62ch; }
+</style>
+</head>
+<body data-viewer="anon" data-role="shopper" data-page="how">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#loop">Skip to how it works</a>
+
+<div data-chrome="top"></div>
+
+<main class="inner">
+
+  <section class="mk-hero">
+    <p class="micro" style="color:var(--ink-2)">How it works</p>
+    <h1 class="headline">Buy what your favourites post.</h1>
+    <p class="lede">A creator tags what's in their post. You tap the tag. You land on the shop that
+      sells it. That's the whole thing — and none of it asks you to sign up.</p>
+    <div class="mk-cta">
+      <a class="btn btn--primary" href="/explore">Start exploring</a>
+      <a class="btn btn--ghost" href="/for-creators">I make content</a>
+    </div>
+  </section>
+
+  <section class="mk-band" id="loop">
+    <h2 class="title">Three taps, start to finish.</h2>
+    <p class="copy">Nothing below is a mock-up of a feature. The pinned price tag is the actual
+      control you'll tap.</p>
+
+    <div class="loop">
+      <div>
+        <article class="post tile-lavender">
+          <div class="shot">
+            <img src="images/posts/skincare.jpg" alt="A creator's post with two products tagged on it" width="900" height="675">
+            <span class="tag" style="--x:9%; --y:26%">
+              <span class="tag-dot tag-dot--offer"></span>
+              <span class="tag-name">Serum</span><span class="tag-price">₹1,299</span></span>
+            <span class="tag" style="--x:40%; --y:64%">
+              <span class="tag-dot tag-dot--plain"></span>
+              <span class="tag-name">Balm</span><span class="tag-price">₹640</span></span>
+          </div>
+        </article>
+        <div class="loop-cap"><span class="loop-n">1</span>
+          <span><b>A creator tags their post</b>
+            <p>They paste the product's link and pin it to the photo, at the spot the thing
+              actually is.</p></span></div>
+      </div>
+
+      <div>
+        <article class="post tile-sky">
+          <div class="shot">
+            <img src="images/products/serum.jpg" alt="The tagged product, shown large" width="900" height="675">
+            <span class="tag" style="--x:12%; --y:60%">
+              <span class="tag-dot tag-dot--offer"></span>
+              <span class="tag-name">Serum</span><span class="tag-price">₹1,299</span></span>
+          </div>
+        </article>
+        <div class="loop-cap"><span class="loop-n">2</span>
+          <span><b>You tap the tag</b>
+            <p>The price and the shop it opens are both on the tag before you tap, so nothing is
+              a surprise.</p></span></div>
+      </div>
+
+      <div>
+        <div class="loop-out">
+          <span><b>The retailer's own site</b><br>Amazon, Nykaa, Myntra, a brand's own store —
+            wherever the creator's link points.</span>
+        </div>
+        <div class="loop-cap"><span class="loop-n">3</span>
+          <span><b>You buy there, not here</b>
+            <p>Plugfolio's job ends at the handoff. You're a normal customer of a normal shop.</p></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mk-band">
+    <h2 class="title">What we don't ask you for.</h2>
+    <p class="copy">These aren't settings or a plan tier. They're rules the product is built
+      around.</p>
+    <div class="mk-facts">
+      <div class="mk-fact"><b>No account, ever, to buy</b>
+        <p>No wall, no modal, no "sign up to continue" between you and the shop. An account exists
+          only if you want to follow a creator or leave a comment.</p></div>
+      <div class="mk-fact"><b>No cart and no checkout</b>
+        <p>Plugfolio doesn't sell you anything. There's nothing to add up, so there's no total and
+          no basket.</p></div>
+      <div class="mk-fact"><b>We never see your card</b>
+        <p>Payment happens on the retailer's site, under their terms. Your card details never touch
+          us because we're never in that step.</p></div>
+      <div class="mk-fact"><b>Nothing is estimated</b>
+        <p>Every number a creator sees is directly measured. Where something can't be measured, we
+          say so instead of guessing.</p></div>
+    </div>
+  </section>
+
+  <section class="mk-band">
+    <h2 class="title">What we can and can't see.</h2>
+    <p class="copy">A creator earns from these links, so it's fair to know what gets counted. This
+      is the full list.</p>
+    <div class="mk-track">
+      <div class="mk-track-r"><span>You tapped out to a shop</span>
+        <span class="mk-flag mk-flag--yes">Tracked</span></div>
+      <div class="mk-track-r"><span>You copied a discount code</span>
+        <span class="mk-flag mk-flag--yes">Tracked</span></div>
+      <div class="mk-track-r"><span>Whether you actually bought anything</span>
+        <span class="mk-flag mk-flag--no">Not tracked</span></div>
+      <div class="mk-track-r"><span>An in-store code you used at a till</span>
+        <span class="mk-flag mk-flag--no">Not tracked</span></div>
+    </div>
+    <p class="copy" style="margin-top:16px">The last two are the honest part. We could guess at
+      them; other tools do. We'd rather a creator trust the numbers we do show.</p>
+  </section>
+
+  <section class="mk-band">
+    <h2 class="title">Questions people actually ask.</h2>
+    <div class="faq">
+      <details open>
+        <summary>Do I need an account to buy something?</summary>
+        <p>No. Shopping never needs an account on Plugfolio — that's a rule, not a default you can
+          lose. An account only exists so you can follow creators and leave comments as yourself.</p>
+      </details>
+      <details>
+        <summary>Does it cost more than buying direct?</summary>
+        <p>No. You land on the retailer's normal page at their normal price. If the creator has a
+          discount code, you get it cheaper.</p>
+      </details>
+      <details>
+        <summary>Does the creator earn from this?</summary>
+        <p>Usually yes — most links are affiliate links, and some products are the creator's own.
+          Products a creator sells themselves are marked, so you always know which is which.</p>
+      </details>
+      <details>
+        <summary>Where do returns and delivery go?</summary>
+        <p>To the retailer you bought from. Plugfolio isn't part of the sale, so it can't help with
+          an order — the shop's own support can.</p>
+      </details>
+      <details>
+        <summary>What happens to my data?</summary>
+        <p>Taps are counted so creators know which post worked. If you never make an account, there's
+          no name attached to it.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="mk-doors">
+    <h2 class="title">Here for something else?</h2>
+    <div class="doors">
+      <a class="door door--how" href="/how-it-works">
+        <p class="micro">For shoppers</p><h3 class="title">How it works</h3>
+        <p class="copy">The whole loop, and what we can and can't measure.</p>
+        <span class="dgo">Read it →</span></a>
+      <a class="door door--creators" href="/for-creators">
+        <p class="micro">For creators</p><h3 class="title">Make your posts shoppable</h3>
+        <p class="copy">Tag what's in your content, pin your own links, and see which post drove
+          the taps.</p>
+        <span class="dgo">See how →</span></a>
+      <a class="door door--business" href="/for-business">
+        <p class="micro">For business</p><h3 class="title">Find creators to work with</h3>
+        <p class="copy">Post a brief or approach a creator directly, then agree terms in one
+          thread.</p>
+        <span class="dgo">See how →</span></a>
+    </div>
+    <div class="mk-cta">
+      <a class="btn btn--primary" href="/join">Create an account</a>
+      <a class="btn btn--ghost" href="/explore">Or just start shopping</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/how-it-works" aria-current="page">How it works</a>
+      <a class="foot-link" href="/for-creators">For creators</a>
+      <a class="foot-link" href="/for-business">For business</a>
+      <a class="foot-link" href="/support">Help</a>
+    </div>
+  </div>
+</footer>
+
+<div data-chrome="tabs"></div>
+
+<script>
+window.CHROME = { nav: 'how', tab: null };
+window.PROTO = {
+  title: '/how-it-works',
+  groups: [{ label: 'Who is looking', options: [
+    { name: 'Signed out', note: 'The page this is written for', set: { viewer: 'anon' } },
+    { name: 'Signed in',  note: 'Chrome swaps, content does not', set: { viewer: 'shopper' } }
+  ]}]
+};
+</script>
+<script src="chrome.js" defer></script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

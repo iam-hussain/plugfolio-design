@@ -160,8 +160,6 @@ Six content hues that colour the tiles photographs sit in, and the step and door
 
 One email is shopper, creator and business at once, so a colour can never describe the *person*. It describes the **surface they are currently standing on**. Four modes, each carrying one hue:
 
-| Mode | Hue | Deep (text) | Wash (field) |
-|---|---|---|---|
 | Mode | Solid | OKLCH | Deep (text) | Wash (field) |
 |---|---|---|---|---|
 | **Shopper / public** | Lavender `#C9B6FF` | L .818 · C .103 · H 296 | Violet Deep `#5B21B6` | Violet Wash `#EFEAFB` |
@@ -263,7 +261,7 @@ Soft and diffuse. Objects sit slightly above the canvas on wide, low-opacity sha
 
 ## Shapes
 
-Generously rounded throughout — this system's warmth lives in its corners. The one exception is **paper** (3px): photo prints, tape and pinned notes are cut near-square, so any surface standing in for a physical print uses that step rather than a card radius. Radii climb with the size of the object: images 16px, tiles 20px, cards 26px, large bays 34px, and anything interactive that carries a label is a full pill (999px). Buttons, chips, tags, and nav pills are all pills; nothing interactive is a rectangle.
+Generously rounded throughout — this system's warmth lives in its corners. The one exception is **paper** (3px, `--r-paper`, on **Paper** `#FFFDF6` — warmer than Surface, so a note or a brief reads as stock rather than another white card): photo prints, tape and pinned notes are cut near-square, so any surface standing in for a physical print uses that step rather than a card radius. Radii climb with the size of the object: images 16px, tiles 20px, cards 26px, large bays 34px, and anything interactive that carries a label is a full pill (999px). Buttons, chips, tags, and nav pills are all pills; nothing interactive is a rectangle.
 
 Borders are 1px in Line (#E9E4F0), used on white cards sitting on canvas where the shadow alone is not enough separation. There are no thick or coloured left-borders anywhere.
 

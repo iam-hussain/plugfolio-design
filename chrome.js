@@ -44,8 +44,12 @@
           '<a class="mark" href="/" aria-label="Plugfolio home">' + MARK + '</a>' +
           '<div class="nav-mid">' +
             '<a class="nav-link" href="/explore"' + cur('explore') + '>Explore</a>' +
-            '<a class="nav-link v-anon" href="/#how"' + cur('how') + '>How it works</a>' +
-            '<a class="nav-link v-anon" href="/collabs"' + cur('collabs') + '>For business</a>' +
+            /* These point at the real marketing pages now. They used to go to
+               a landing anchor and to /collabs — the logged-out product
+               surface — which dropped a stranger into an app screen. */
+            '<a class="nav-link v-anon" href="/how-it-works"' + cur('how') + '>How it works</a>' +
+            '<a class="nav-link v-anon" href="/for-creators"' + cur('creators') + '>For creators</a>' +
+            '<a class="nav-link v-anon" href="/for-business"' + cur('business') + '>For business</a>' +
             '<a class="nav-link v-signedin" href="/following"' + cur('following') + '>Following</a>' +
           '</div>' +
           '<div class="nav-end">' +

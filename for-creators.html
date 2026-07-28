@@ -1,0 +1,218 @@
+<!doctype html>
+<!-- Plugfolio — /for-creators, built from wireframe F2.
+     Written for someone who does NOT have an account yet, which is exactly
+     why the old "For creators" link pointing at /signin was wrong. Every
+     door on this page ends at /join?as=creator. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For creators — Plugfolio</title>
+<meta name="description" content="Tag the products in what you already post, pin your own links, and see which post drove the taps. Free to start — and Plugfolio never handles your money.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* Hero: the argument on the left, the artefact on the right. Showing the
+   page they'd get beats describing it. */
+.cr-hero { display: grid; gap: clamp(24px, 4vw, 44px); align-items: center; }
+@media (min-width: 900px) { .cr-hero { grid-template-columns: minmax(0,1fr) 300px; } }
+.cr-art .post { transform: rotate(-1.8deg); }
+.cr-art .post:hover { transform: rotate(0deg) translateY(-6px); }
+.cr-art .shot img { border-radius: var(--r-image); width: 100%; aspect-ratio: 4/5;
+  height: auto; object-fit: cover; }
+.cr-art .tag { left: var(--x); top: var(--y); }
+.tag-dot--plain { background: var(--ink-3); }
+
+/* The handle claim. Scarcity here is real — a handle is proved by a
+   connected social — so it is stated, not dramatised. */
+.hclaim { display: flex; align-items: center; gap: 2px; margin-top: clamp(20px, 3vw, 28px);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-chip);
+  padding: 6px 8px 6px 20px; max-width: 460px; min-height: 62px; }
+.hclaim-p { font-size: var(--t-copy); color: var(--ink-3); white-space: nowrap; }
+.hclaim-h { font-size: var(--t-copy); font-weight: 700; color: var(--ink); }
+.hclaim .btn { margin-left: auto; white-space: nowrap; }
+
+/* Attribution: one post, one measured number, one honesty label. */
+.proof { display: flex; gap: 16px; align-items: center; margin-top: clamp(20px, 3vw, 28px);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-tile);
+  padding: 14px 18px 14px 14px; max-width: 460px; }
+.proof img { width: 64px; height: 64px; border-radius: var(--r-image); object-fit: cover; flex: none; }
+.proof b { display: block; font-family: Sora, system-ui, sans-serif; font-weight: 700;
+  font-size: var(--t-title); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.proof .micro { display: block; margin-top: 2px; }
+.proof-flag { margin-left: auto; background: var(--lime); color: var(--on-white);
+  border-radius: var(--r-chip); padding: 5px 11px;
+  font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+
+/* The limit gets a panel of its own. Creators have been burned by platforms
+   that hold funds; saying this first is a differentiator, not fine print. */
+.limit { margin-top: clamp(24px, 3.5vw, 34px); background: var(--violet-wash);
+  border-radius: var(--r-tile); padding: 22px 24px; }
+.limit b { display: block; font-family: Sora, system-ui, sans-serif; font-weight: 700;
+  font-size: var(--t-title); letter-spacing: -.02em; color: var(--violet-deep); }
+.limit p { margin: 8px 0 0; font-size: var(--t-copy); color: var(--ink-2); line-height: 1.55;
+  max-width: 56ch; }
+</style>
+</head>
+<body data-viewer="anon" data-role="shopper" data-page="creators">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#how">Skip to how it works</a>
+
+<div data-chrome="top"></div>
+
+<main class="inner">
+
+  <section class="mk-hero cr-hero">
+    <div>
+      <p class="micro" style="color:var(--ink-2)">For creators</p>
+      <h1 class="headline">Turn your content into commerce.</h1>
+      <p class="lede">Tag the products in what you already post, pin your own affiliate or store
+        links, and find out which post actually drove the taps.</p>
+      <div class="mk-cta">
+        <a class="btn btn--primary" href="/join?as=creator">Create your page</a>
+        <a class="btn btn--ghost" href="/explore">See a real one first</a>
+      </div>
+      <p class="micro" style="margin-top:18px;color:var(--ink-2)">Free to start · no card needed</p>
+    </div>
+    <div class="cr-art">
+      <article class="post tile-butter">
+        <div class="shot">
+          <img src="images/posts/skincare.jpg" alt="A creator's post with two products tagged on it" width="900" height="1125">
+          <span class="tag" style="--x:8%; --y:24%">
+            <span class="tag-dot tag-dot--offer"></span>
+            <span class="tag-name">Serum</span><span class="tag-price">₹1,299</span></span>
+          <span class="tag" style="--x:36%; --y:64%">
+            <span class="tag-dot tag-dot--plain"></span>
+            <span class="tag-name">Balm</span><span class="tag-price">₹640</span></span>
+        </div>
+        <span class="creator">
+          <img class="avatar" src="images/avatars/maya.jpg" alt="" width="60" height="60">
+          <span class="handle">@yourhandle</span>
+          <span class="count">2 things</span>
+        </span>
+      </article>
+    </div>
+  </section>
+
+  <section class="mk-band" id="how">
+    <h2 class="title">Three steps, then it's live.</h2>
+    <p class="copy">There's no store to build and no theme to pick. You're tagging content you've
+      already made.</p>
+    <ol class="mk-steps">
+      <li class="mk-step"><span class="mk-step-n">1</span>
+        <b>Add the post</b>
+        <p>Paste the image link and a caption. Your page is live from the first one.</p></li>
+      <li class="mk-step"><span class="mk-step-n">2</span>
+        <b>Paste the product's URL</b>
+        <p>We pull the title, image and price. Then you pin your own affiliate link — or your own
+          store's — over the top.</p></li>
+      <li class="mk-step"><span class="mk-step-n">3</span>
+        <b>Share the one link</b>
+        <p>It goes in your bio. Every post behind it is shoppable, and nobody needs an account to
+          buy.</p></li>
+    </ol>
+  </section>
+
+  <section class="mk-band">
+    <h2 class="title">Claim your handle before someone else does.</h2>
+    <p class="copy">You can only claim a name you can prove you own, by connecting the social it
+      belongs to. That's what stops anyone squatting yours.</p>
+    <div class="hclaim">
+      <span class="hclaim-p">plugfolio.com/</span>
+      <span class="hclaim-h">yourhandle</span>
+      <a class="btn btn--primary" href="/join?as=creator">Claim it</a>
+    </div>
+    <p class="copy" style="margin-top:14px">Your page works immediately with a temporary name, so
+      nothing waits on this.</p>
+  </section>
+
+  <section class="mk-band">
+    <h2 class="title">Point at one post and say "that one worked".</h2>
+    <p class="copy">Every outbound tap is counted against the post and the product it came from.
+      Nothing is estimated, inferred or modelled.</p>
+    <div class="proof">
+      <img src="images/posts/gym.jpg" alt="" width="300" height="300">
+      <span><b>128</b><span class="micro">taps from this post</span></span>
+      <span class="proof-flag">Tracked</span>
+    </div>
+    <p class="copy" style="margin-top:16px">Where something genuinely can't be measured — someone
+      using an in-store code at a till — it says so rather than guessing. You should be able to
+      trust the numbers you act on.</p>
+    <div class="mk-facts">
+      <div class="mk-fact"><b>Up to 5 profiles on one account</b>
+        <p>Separate pages for separate audiences, all under one login.</p></div>
+      <div class="mk-fact"><b>Up to 3 managers per profile</b>
+        <p>Hand tagging to someone else without handing over your account.</p></div>
+    </div>
+  </section>
+
+  <section class="mk-band">
+    <div class="limit">
+      <b>Plugfolio never handles your money.</b>
+      <p>No payouts to wait for, no balance to withdraw, no cut taken from your deal. Buyers go to
+        the retailer on your own link, and you get paid the way you already do. We're the shop
+        window, not the till.</p>
+    </div>
+  </section>
+
+  <section class="mk-doors">
+    <h2 class="title">Here for something else?</h2>
+    <div class="doors">
+      <a class="door door--how" href="/how-it-works">
+        <p class="micro">For shoppers</p><h3 class="title">How it works</h3>
+        <p class="copy">The whole loop, and what we can and can't measure.</p>
+        <span class="dgo">Read it →</span></a>
+      <a class="door door--creators" href="/for-creators">
+        <p class="micro">For creators</p><h3 class="title">Make your posts shoppable</h3>
+        <p class="copy">Tag what's in your content and see which post drove the taps.</p>
+        <span class="dgo">See how →</span></a>
+      <a class="door door--business" href="/for-business">
+        <p class="micro">For business</p><h3 class="title">Find creators to work with</h3>
+        <p class="copy">Post a brief or approach a creator directly, then agree terms in one
+          thread.</p>
+        <span class="dgo">See how →</span></a>
+    </div>
+    <div class="mk-cta">
+      <a class="btn btn--primary" href="/join?as=creator">Create your page</a>
+      <a class="btn btn--ghost" href="/explore">Explore creators</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/how-it-works">How it works</a>
+      <a class="foot-link" href="/for-creators" aria-current="page">For creators</a>
+      <a class="foot-link" href="/for-business">For business</a>
+      <a class="foot-link" href="/support">Help</a>
+    </div>
+  </div>
+</footer>
+
+<div data-chrome="tabs"></div>
+
+<script>
+window.CHROME = { nav: 'creators', tab: null };
+window.PROTO = {
+  title: '/for-creators',
+  groups: [{ label: 'Who is looking', options: [
+    { name: 'Signed out', note: 'The page this is written for', set: { viewer: 'anon' } },
+    { name: 'Signed in',  note: 'Chrome swaps, content does not', set: { viewer: 'shopper' } }
+  ]}]
+};
+</script>
+<script src="chrome.js" defer></script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>
