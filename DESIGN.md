@@ -165,9 +165,11 @@ One email is shopper, creator and business at once, so a colour can never descri
 | Mode | Solid | OKLCH | Deep (text) | Wash (field) |
 |---|---|---|---|---|
 | **Shopper / public** | Lavender `#C9B6FF` | L .818 · C .103 · H 296 | Violet Deep `#5B21B6` | Violet Wash `#EFEAFB` |
-| **Creator** | Sand `#E5C787` | L .840 · C .088 · H 85 | `#654B07` | `#FFF5E1` |
-| **Business** | Sky `#A9D8FF` | L .863 · C .073 · H 244 | `#14507A` | `#E5F1FC` |
+| **Creator** | Sky `#A9D8FF` | L .863 · C .073 · H 244 | `#14507A` | `#E5F1FC` |
+| **Business** | Mint `#9CDCB2` | L .840 · C .088 · H 155 | `#215D3B` | `#E8FCEE` |
 | **Operator (admin)** | Ink `#12101C` | — | Ink | Line `#E9E4F0` |
+
+The three hues are separated by **89° or more** — mint sits 141° from lavender and 89° from sky, which is the widest spacing available once two of the three are fixed. Teal was rejected for business at 54° from sky: too close to tell apart at rail size.
 
 Shopper stays in the violet family because the public surface most people see should wear the brand's own colour, not a third-party hue. Creator runs warm and business runs cool, which is the positioning line — *cool and credible to creators, professional and trustworthy to brands* — made visible.
 
@@ -184,8 +186,10 @@ Auth is the one surface with no content of its own to look at, so it gets a full
 | Mode | Gradient from → to | White on lightest stop | White on deepest stop |
 |---|---|---|---|
 | **Shopper** | `#7C3AED` → `#5D01C0` | 5.70 | 9.41 |
-| **Creator** | `#8C6901` → `#644A02` | 5.08 | 8.33 |
-| **Business** | `#0375B6` → `#015383` | 4.97 | 8.18 |
+| **Creator** | `#0375B6` → `#015383` | 4.97 | 8.18 |
+| **Business** | `#047A45` → `#01552E` | 5.42 | 8.97 |
+
+Mint opens one lightness step deeper than the shared match would give. At the same lightness as the others its opening stop measured **4.71** — over the 4.5 minimum but under the 4.97 the set holds — because green's gamut runs out of chroma sooner. Deepening it one step restores the band.
 
 The pane **does not theme** — identical in light and dark — so the mode reads the same in both. Cards lifted onto it stay true white with ink text.
 

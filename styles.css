@@ -470,26 +470,31 @@ body[data-claim="open"] .claim { display: block; }
    cannot help. Before this they were pasted literals appearing three times
    each, which is how a palette quietly forks. */
 :root {
-  --role-shopper:  #C9B6FF;
-  --role-creator:  #E5C787;
-  --role-business: #A9D8FF;
+  --role-shopper:  #C9B6FF;   /* lavender · H 296 */
+  --role-creator:  #A9D8FF;   /* sky      · H 244 */
+  --role-business: #9CDCB2;   /* mint     · H 155 */
   --role-admin:    #12101C;
 }
 body,
 body[data-role="shopper"] { --role-solid: var(--role-shopper); --role-deep: var(--violet-deep); --role-wash: var(--violet-wash);
                             --role-grad-a: #7C3AED; --role-grad-b: #5D01C0; }
-body[data-role="creator"]  { --role-solid: var(--role-creator); --role-deep: #654B07; --role-wash: #FFF5E1;
-                            --role-grad-a: #8C6901; --role-grad-b: #644A02; }
-body[data-role="business"] { --role-solid: var(--role-business); --role-deep: #14507A; --role-wash: #E5F1FC;
+body[data-role="creator"]  { --role-solid: var(--role-creator); --role-deep: #14507A; --role-wash: #E5F1FC;
                             --role-grad-a: #0375B6; --role-grad-b: #015383; }
+/* Mint opens one step deeper than the hue's natural match: at the shared
+   lightness its lightest stop measured 4.71 against white, under the 4.97
+   the other two hold. Green's gamut is the reason, not an oversight. */
+body[data-role="business"] { --role-solid: var(--role-business); --role-deep: #215D3B; --role-wash: #E8FCEE;
+                            --role-grad-a: #047A45; --role-grad-b: #01552E; }
 body[data-role="admin"]    { --role-solid: var(--role-admin); --role-deep: var(--ink); --role-wash: var(--line);
                             --role-grad-a: #2C2740; --role-grad-b: #100E18; }
 
 @media (prefers-color-scheme: dark) {
-  body[data-role="creator"]  { --role-deep: #EECD87; --role-wash: #3A2B07; }
-  body[data-role="business"] { --role-deep: #9FCDF0; --role-wash: #14304A; }
+  body[data-role="creator"]  { --role-deep: #9FCDF0; --role-wash: #14304A; }
+  body[data-role="business"] { --role-deep: #9EE4B6; --role-wash: #133621; }
   body[data-role="admin"]    { --role-deep: var(--ink); --role-wash: var(--line); }
 }
+:root[data-appearance="dark"] body[data-role="creator"]  { --role-deep: #9FCDF0; --role-wash: #14304A; }
+:root[data-appearance="dark"] body[data-role="business"] { --role-deep: #9EE4B6; --role-wash: #133621; }
 
 /* The rail: a band of the role hue pinned to the top of every page.
    Fixed rather than in-flow, so it is the one constant across all four
