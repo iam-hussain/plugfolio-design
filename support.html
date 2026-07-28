@@ -1,0 +1,269 @@
+<!doctype html>
+<!-- Plugfolio — /support, the account-free help inflow (§5.12).
+     The load-bearing constraint: this page has to work for someone locked
+     OUT of their account email. So it never asks them to sign in, and the
+     reply address is a plain editable field rather than something read from
+     the session — the account address may be the broken one.
+
+     Replies go by email. There are no in-app support threads in v1, and the
+     page says so rather than implying a thread will appear somewhere. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Help — Plugfolio</title>
+<meta name="description" content="Reach the Plugfolio team about an account problem. No account needed — a person reads every ticket and replies by email.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.sup { max-width: 620px; margin-inline: auto; padding-block: clamp(24px, 4vw, 44px) clamp(48px, 7vw, 88px); }
+.sup-eyebrow { color: var(--ink-2); }
+.sup h1 { margin: 10px 0 0; }
+.sup > .lede { margin-top: 12px; max-width: 52ch; }
+
+/* Who we know you are. Both variants are honest statements, and neither is
+   a gate — a locked-out visitor must never be pushed at a sign-in wall. */
+.sup-who { display: inline-flex; align-items: center; gap: 9px; margin-top: 18px;
+  background: var(--violet-wash); color: var(--violet-deep);
+  border-radius: var(--r-chip); padding: 9px 16px;
+  font-size: var(--t-micro); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.sup-who svg { width: 15px; height: 15px; flex: none; }
+body:not([data-viewer="anon"]) .who-anon,
+body[data-viewer="anon"] .who-in { display: none; }
+
+.field { display: block; margin-top: 26px; }
+.field-l { display: block; font-family: Sora, system-ui, sans-serif; font-weight: 700;
+  font-size: var(--t-title); letter-spacing: -.02em; margin-bottom: 10px; }
+.field-in, .field select, .field textarea, .field input {
+  width: 100%; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-radius: var(--r-image);
+  padding: 14px 16px; min-height: 56px; font: inherit; font-size: var(--t-copy); }
+.field select { appearance: none; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 22px center, right 16px center;
+  background-size: 6px 6px, 6px 6px; background-repeat: no-repeat;
+  padding-right: 44px; }
+.field textarea { min-height: 160px; resize: vertical; line-height: 1.55; }
+.field :is(select, textarea, input):focus-visible {
+  outline: 0; border-color: var(--violet); box-shadow: 0 0 0 3px rgb(124 58 237 / .18); }
+.field ::placeholder { color: var(--ink-3); }
+
+/* The hint swaps with the category. It carries the one thing that makes a
+   ticket answerable, so it sits under the picker rather than in a tooltip. */
+.hint { margin: 10px 2px 0; font-size: var(--t-copy); color: var(--ink-2); line-height: 1.5; }
+
+.sup .btn { width: 100%; margin-top: 28px; }
+.sup-foot { margin-top: 14px; font-size: var(--t-micro); color: var(--ink-2);
+  text-align: center; line-height: 1.6; }
+
+/* Success. The ticket is gone and there is nothing more to do here, so the
+   form is replaced rather than left sitting under a banner. */
+.done { text-align: center; padding-block: clamp(20px, 4vw, 40px); }
+.done .stamp { width: 64px; height: 64px; margin: 0 auto 20px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--violet-wash); color: var(--violet-deep); }
+.done .stamp svg { width: 28px; height: 28px; }
+.done .copy { margin: 12px auto 0; max-width: 42ch; }
+.done .btn { width: auto; }
+
+.notice { display: flex; gap: 11px; align-items: flex-start; margin-top: 22px;
+  border-radius: var(--r-image); padding: 14px 16px; font-size: var(--t-copy); line-height: 1.5;
+  background: rgb(255 138 115 / .16); border: 1px solid rgb(255 138 115 / .5); color: var(--ink); }
+.notice svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+.notice b { display: block; }
+
+body:not([data-state="sent"])  .done,
+body:not([data-state="error"]) .notice,
+body[data-state="sent"] .supform { display: none; }
+</style>
+</head>
+<body data-viewer="anon" data-role="shopper" data-state="default">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#supform">Skip to the form</a>
+
+<header class="inner">
+  <nav class="nav" aria-label="Primary">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="nav-mid">
+      <a class="nav-link" href="/explore">Explore</a>
+      <a class="nav-link v-anon" href="/#how">How it works</a>
+      <a class="nav-link v-signedin" href="/following">Following</a>
+    </div>
+    <div class="nav-end">
+      <a class="btn btn--ghost v-anon" href="/signin">Log in</a>
+      <a class="btn btn--primary v-anon" href="/join?as=creator">Create your page</a>
+      <a class="roleslot v-signedin" href="/account">
+        <span class="roleslot-dot" aria-hidden="true"></span>Shopping</a>
+    </div>
+  </nav>
+</header>
+
+<main class="inner sup" id="supform">
+
+  <p class="micro sup-eyebrow">Help</p>
+  <h1 class="headline">What can we help with?</h1>
+  <p class="lede">Pick the closest issue — a person reads every ticket and replies by email.</p>
+
+  <p class="sup-who who-anon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+    No account needed
+  </p>
+  <p class="sup-who who-in">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+    Signed in as @niaeveryday
+  </p>
+
+  <div class="notice" role="alert">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>
+    <span><b>That didn't send.</b>Nothing was lost — try again, and if it keeps failing email
+      help@plugfolio.com directly.</span>
+  </div>
+
+  <form class="supform" data-busy="Sending…">
+    <label class="field">
+      <span class="field-l">What's it about?</span>
+      <!-- ?category= preselects this; the sign-in page's lost-email door
+           deep-links straight to the first option. -->
+      <select name="category" id="category">
+        <option value="lost_email_access" selected>I can't access my account email</option>
+        <option value="change_email">Change my account email</option>
+        <option value="merge_accounts">Merge my accounts</option>
+        <option value="password_trouble">Password or sign-in trouble</option>
+        <option value="username_conflict">Username or impersonation issue</option>
+        <option value="connection_trouble">Google / Meta connection trouble</option>
+        <option value="collab_dispute">Collab dispute</option>
+        <option value="delete_account">Delete my account and data</option>
+        <option value="other">Something else</option>
+      </select>
+      <span class="hint" id="hint" aria-live="polite">Give the email you can still reach — we reply
+        there — plus the account email you lost.</span>
+    </label>
+
+    <label class="field">
+      <span class="field-l">What happened?</span>
+      <textarea name="detail" placeholder="What you tried, and what happened instead." required></textarea>
+    </label>
+
+    <label class="field">
+      <span class="field-l">Where do we reply?</span>
+      <!-- Editable, always. Prefilled from the session when there is one,
+           but the account address may be exactly what is broken. -->
+      <input type="email" name="reply" placeholder="an inbox you can open today"
+             autocomplete="email" required>
+    </label>
+
+    <button class="btn btn--primary" type="submit">Send to support</button>
+    <p class="sup-foot">We reply by email — Plugfolio has no in-app support threads.<br>
+      Usually within one working day.</p>
+  </form>
+
+  <div class="done">
+    <span class="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
+    <h2 class="headline">Got it — we're on it.</h2>
+    <p class="copy">We'll reply to <b>you@email.com</b>. A person reads every ticket, so it may take
+      a working day.</p>
+    <a class="btn btn--ghost" href="/explore">Back to shopping</a>
+  </div>
+
+</main>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/join?as=creator">For creators</a>
+      <a class="foot-link" href="/collabs">For business</a>
+      <a class="foot-link" href="/support" aria-current="page">Help</a>
+    </div>
+  </div>
+</footer>
+
+<nav class="tabs" aria-label="Sections">
+  <a class="tab" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V21H3z"/></svg>Home</a>
+  <a class="tab" href="/explore"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Shop</a>
+  <a class="tab" href="/following"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.3a5 5 0 0 0 0-7.1z"/></svg>Following</a>
+  <a class="tab" href="/account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>Account</a>
+</nav>
+
+<script>
+/* Category hints, straight from the backend's CATEGORIES list so the two
+   cannot drift. Each one names the single fact that makes that kind of
+   ticket answerable on the first reply instead of the third. */
+(function () {
+  var HINTS = {
+    lost_email_access:  "Give the email you can still reach — we reply there — plus the account email you lost.",
+    change_email:       "Tell us the current account email and the new one.",
+    merge_accounts:     "Registered twice? Tell us both emails and which one should survive.",
+    password_trouble:   "Tried the reset link on the sign-in page? Tell us what happens when you try.",
+    username_conflict:  "Which page (plugfolio.com/…) and why it's yours.",
+    connection_trouble: "Which platform, and what the connect screen shows.",
+    collab_dispute:     "Link or describe the thread — we can see both sides of it.",
+    delete_account:     "Tell us the account email; we'll confirm before anything is removed.",
+    other:              "Describe it — a human reads every ticket."
+  };
+  var sel = document.getElementById('category');
+  var hint = document.getElementById('hint');
+
+  function sync() { hint.textContent = HINTS[sel.value] || HINTS.other; }
+  sel.addEventListener('change', sync);
+
+  /* ?category= preselects — the sign-in page's lost-email door lands here. */
+  var want = new URLSearchParams(location.search).get('category');
+  if (want && HINTS[want]) { sel.value = want; }
+  sync();
+
+  /* Busy state on submit: in-app browsers double-fire taps, and a support
+     form that files two tickets is a support form that wastes a reply. */
+  var form = document.querySelector('.supform');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn.getAttribute('aria-disabled') === 'true') return;
+    var was = btn.textContent;
+    btn.setAttribute('aria-disabled', 'true');
+    btn.textContent = form.dataset.busy;
+    setTimeout(function () {
+      btn.removeAttribute('aria-disabled');
+      btn.textContent = was;
+      var to = form.querySelector('[name="reply"]').value.trim();
+      if (to) document.querySelector('.done b').textContent = to;
+      document.body.dataset.state = 'sent';
+      window.scrollTo(0, 0);
+    }, 900);
+  });
+})();
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: '/support',
+  groups: [
+    { label: 'Form state', options: [
+      { name: 'Default',  note: 'Ready to fill',                    set: { state: 'default' } },
+      { name: 'Sent',     note: 'Form replaced by the confirmation', set: { state: 'sent'    } },
+      { name: 'Failed',   note: 'Inline error, nothing lost',        set: { state: 'error'   } }
+    ]},
+    { label: 'Who is asking', options: [
+      { name: 'Anonymous', note: 'No account needed — the default', set: { viewer: 'anon'    } },
+      { name: 'Signed in',  note: 'Stamped with their @handle',     set: { viewer: 'shopper' } }
+    ]}
+  ]
+};
+</script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

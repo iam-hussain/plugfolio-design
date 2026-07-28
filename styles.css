@@ -612,6 +612,14 @@ body { padding-top: 5px; }
 .roleslot-sub { font-weight: 600; opacity: .72; }
 @media (max-width: 560px) { .roleslot-sub { display: none; } }
 
+/* Viewer visibility for the shared chrome. This lived in explore.html, so
+   any new page carrying the same nav showed the signed-out buttons AND the
+   signed-in mode slot at once. It is chrome, so it belongs with the chrome.
+   Hide-By-Exclusion, per DESIGN.md: exclude the matching state rather than
+   hiding flat and re-showing, so each element keeps its own display. */
+body:not([data-viewer="anon"]) .v-anon,
+body[data-viewer="anon"] .v-signedin { display: none; }
+
 /* ── the account menu ──────────────────────────────────────
    One control, not two. The mode slot and the avatar both pointed at
    /account and neither opened anything, so signing out, switching profile

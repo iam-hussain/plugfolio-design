@@ -289,8 +289,8 @@ body[data-state="q-empty"]       .wall,
 body[data-state="cold"]          .wall,
 body[data-state="q-empty"]       .wallhead,
 body[data-state="cold"]          .wallhead,
-body:not([data-viewer="anon"])   .v-anon,
-body[data-viewer="anon"]         .v-signedin { display: none; }
+/* .v-anon / .v-signedin now live in styles.css — every page with the shared
+   chrome needs them, not just this one. */
 
 .acct { display: inline-flex; width: 44px; height: 44px; border-radius: 50%; overflow: hidden;
   border: 1px solid var(--line); }
