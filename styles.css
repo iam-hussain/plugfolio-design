@@ -39,6 +39,14 @@
   --coral:       #FF8A73;
   --line:        #E9E4F0;
 
+  /* Bare triplets for the colours that need alpha variants. Without these,
+     every translucent violet or coral is a hand-pasted "124 58 237" that no
+     longer tracks --violet if it ever moves — the same way the role hues
+     quietly forked before they were tokenised. Pattern follows
+     --shadow-ink, which already worked this way. */
+  --violet-rgb: 124 58 237;
+  --coral-rgb:  255 138 115;
+
   --shadow-ink: 18 16 28;
   --card-edge: transparent;   /* becomes a hairline in dark, where shadow reads as nothing */
   --sh-rest:  0 12px 30px -12px rgb(var(--shadow-ink) / .16);
