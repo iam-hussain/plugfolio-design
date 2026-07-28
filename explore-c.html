@@ -1,0 +1,352 @@
+<!doctype html>
+<!-- Plugfolio — /explore VARIANT C: "Feed".
+     One post at a time, large, with the things in it listed underneath and
+     buyable in place. The bet: the wall and the shelves both ask a shopper
+     to tap into a post before they can buy anything, which adds a screen to
+     every purchase. Here the outbound tap is on the first screen.
+
+     Costs you can see: far fewer posts per scroll, and it leans hardest on
+     photography quality. Compare with explore.html (wall) and
+     explore-b.html (shelves). -->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explore · Feed — Plugfolio</title>
+<meta name="description" content="Scroll the posts. Everything in them is tagged, priced and one tap from the retailer.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.vswitch { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 0 0; }
+.vswitch a { text-decoration: none; border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink-2); border-radius: var(--r-chip); padding: 9px 15px; min-height: 44px;
+  display: inline-flex; align-items: center; font-size: var(--t-label); font-weight: 600; }
+.vswitch a[aria-current="page"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+
+/* The whole page is one column, capped at a reading measure. Wider than
+   this and the photograph stops being something you look at. */
+.feedwrap { max-width: 620px; margin-inline: auto; }
+.ex-head { padding-block: clamp(18px, 2.4vw, 28px) 0; }
+.ex-head .headline { max-width: 15ch; }
+.ex-head .lede { margin-top: 10px; }
+.guestnote { display: inline-flex; align-items: center; gap: 9px; margin-top: 18px;
+  background: var(--violet-wash); color: var(--violet-deep); border: 1px solid transparent;
+  border-radius: var(--r-chip); padding: 9px 16px;
+  font-size: var(--t-micro); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.guestnote svg { width: 15px; height: 15px; flex: none; }
+
+.sform { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.sfield { flex: 1 1 200px; display: flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-chip); padding: 0 8px 0 18px; min-height: 54px; }
+.sfield:focus-within { border-color: var(--violet); box-shadow: 0 0 0 3px rgb(var(--violet-rgb) / .16); }
+.sfield svg { width: 19px; height: 19px; flex: none; color: var(--ink-3); }
+.sfield input { flex: 1; border: 0; background: none; font: inherit; font-size: var(--t-copy);
+  min-height: 44px; color: var(--ink); }
+.sfield input::placeholder { color: var(--ink-3); }
+.sfield input:focus { outline: 0; }
+.sform .btn { min-height: 54px; }
+
+.shelves { display: flex; gap: 8px; margin-top: 16px; overflow-x: auto; scrollbar-width: none;
+  padding-bottom: 4px; scroll-snap-type: x proximity; }
+.shelves::-webkit-scrollbar { display: none; }
+.shelf { flex: none; scroll-snap-align: start; text-decoration: none;
+  background: var(--surface); border: 1px solid var(--line); color: var(--ink-2);
+  border-radius: var(--r-chip); padding: 11px 18px; min-height: 44px;
+  display: inline-flex; align-items: center; font-size: var(--t-label); font-weight: 600;
+  white-space: nowrap; }
+.shelf[aria-current="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+
+/* ── one post ──────────────────────────────────────────────
+   No tilt here. A feed is a column you scan straight down, and a card that
+   leans breaks the vertical edge your eye is following — the tilt earns its
+   place in a wall, not in a list. */
+.fpost { padding-top: clamp(28px, 4vw, 44px); }
+.fpost-by { display: flex; align-items: center; gap: 11px; padding-bottom: 12px;
+  text-decoration: none; color: inherit; }
+.fpost-by .avatar { width: 38px; height: 38px; }
+.fpost-by b { font-size: var(--t-label); font-weight: 700; }
+.fpost-by .micro { display: block; color: var(--ink-3); margin-top: 1px; }
+.fpost-by .follow { margin-left: auto; border: 1px solid var(--line); border-radius: var(--r-chip);
+  padding: 9px 16px; min-height: 44px; display: inline-flex; align-items: center;
+  font-size: var(--t-label); font-weight: 700; color: var(--ink); }
+
+.fpost .shot img { border-radius: var(--r-card); width: 100%; height: auto;
+  aspect-ratio: 4/5; object-fit: cover; }
+.fpost .tag { left: var(--x); top: var(--y); }
+.tag-dot--plain { background: var(--ink-3); }
+.fpost-cap { margin: 14px 2px 0; font-size: var(--t-copy); color: var(--ink-2); line-height: 1.55; }
+
+/* The list under the photo is the variant's whole argument: the outbound
+   tap happens here, on the first screen, instead of one screen deeper. */
+.things { margin-top: 14px; border: 1px solid var(--line); border-radius: var(--r-tile);
+  background: var(--surface); overflow: hidden; }
+.things-h { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.thing { display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+  text-decoration: none; color: inherit; }
+.thing + .thing { border-top: 1px solid var(--line); }
+.thing img { width: 52px; height: 52px; border-radius: var(--r-image); object-fit: cover; flex: none; }
+.thing b { display: block; font-size: var(--t-label); font-weight: 700; }
+.thing .micro { display: block; color: var(--ink-3); margin-top: 2px; text-transform: none;
+  letter-spacing: 0; }
+.thing-price { margin-left: auto; text-align: right; }
+.thing-price .price { display: block; }
+.thing-buy { border-radius: var(--r-chip); background: var(--ink); color: var(--surface);
+  padding: 9px 16px; min-height: 44px; display: inline-flex; align-items: center;
+  font-size: var(--t-label); font-weight: 700; white-space: nowrap; }
+.thing-buy--own { background: var(--violet); }
+@media (max-width: 460px) { .thing-price { display: none; } }
+
+.adslot { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r-tile);
+  padding: 14px 16px; margin-top: clamp(28px,4vw,44px); display: grid; gap: 10px; }
+.adslot-l { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  color: var(--ink-2); }
+.adslot-why { border: 0; background: none; padding: 8px 2px; min-height: 44px; font: inherit;
+  font-size: var(--t-micro); font-weight: 600; color: var(--ink-2);
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.adslot-body { display: flex; gap: 14px; align-items: center; text-decoration: none; color: inherit; }
+.adslot-body img { width: 68px; height: 68px; border-radius: var(--r-image); object-fit: cover; flex: none; }
+.adslot-t { font-family: Sora, system-ui, sans-serif; font-weight: 700; font-size: var(--t-label); }
+.adslot-d { font-size: var(--t-micro); color: var(--ink-2); margin-top: 3px; }
+body:not([data-plan="free"]) .adslot { display: none; }
+
+.wallend { display: grid; justify-items: center; gap: 10px;
+  padding: clamp(30px,4vw,44px) 0 clamp(30px,5vw,56px); text-align: center; }
+.wallend .btn { min-width: 220px; }
+.wallend-note { color: var(--ink-2); }
+body:not([data-more="yes"]) .wallend-more,
+body[data-more="yes"] .wallend-done { display: none; }
+
+.empty { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r-bay);
+  padding: clamp(34px, 6vw, 64px) 28px; text-align: center; margin: 30px 0 40px; }
+.empty .title { max-width: 26ch; margin: 0 auto; }
+.empty .copy { margin: 12px auto 0; max-width: 44ch; }
+.empty .btn { margin-top: 24px; }
+
+body:not([data-state="q-empty"]) .empty--q,
+body:not([data-state="cold"])    .empty--cold,
+body[data-state="q-empty"] :is(.feed, .adslot, .wallend),
+body[data-state="cold"]    :is(.feed, .adslot, .wallend, .shelves) { display: none; }
+
+.foot-note .micro { text-transform: none; }
+</style>
+</head>
+<body data-viewer="anon" data-role="shopper" data-state="full" data-plan="free" data-more="yes">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#feed">Skip to the feed</a>
+
+<div data-chrome="top"></div>
+
+<main class="inner">
+ <div class="feedwrap">
+
+  <nav class="vswitch" aria-label="Explore variants">
+    <a href="/explore.html">A · Wall</a>
+    <a href="/explore-b.html">B · Shelves</a>
+    <a href="/explore-c.html" aria-current="page">C · Feed</a>
+  </nav>
+
+  <div class="ex-head">
+    <h1 class="headline">Everything your favourites post.</h1>
+    <p class="lede">Scroll. Everything in a post is listed underneath it, priced, and one tap from
+      the shop that sells it.</p>
+    <p class="guestnote">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      Browsing as a guest — no login needed
+    </p>
+    <form class="sform" action="/explore" method="get" role="search">
+      <label class="sfield">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <span class="skip">Search posts, people and things</span>
+        <input type="search" name="q" maxlength="80" placeholder="Search posts, people, things…" autocomplete="off">
+      </label>
+      <button class="btn btn--primary" type="submit">Search</button>
+    </form>
+    <nav class="shelves" aria-label="Shelves">
+      <a class="shelf" href="/explore-c.html" aria-current="true">All</a>
+      <a class="shelf" href="/explore?shelf=skincare">Skincare</a>
+      <a class="shelf" href="/explore?shelf=desk">Desk setup</a>
+      <a class="shelf" href="/explore?shelf=fitness">Fitness</a>
+      <a class="shelf" href="/explore?shelf=home">Home</a>
+    </nav>
+  </div>
+
+  <div class="feed" id="feed">
+
+    <article class="fpost">
+      <a class="fpost-by" href="/mayamoves">
+        <img class="avatar" src="images/avatars/maya.jpg" alt="" width="60" height="60">
+        <span><b>@mayamoves</b><span class="micro">18 posts · 42 things</span></span>
+        <span class="follow">Follow</span>
+      </a>
+      <div class="shot">
+        <img src="images/posts/skincare.jpg" alt="A shelf of skincare bottles in morning light" width="900" height="1125">
+        <a class="tag" href="#" style="--x:9%; --y:24%"><span class="tag-dot tag-dot--offer"></span>
+          <span class="tag-name">Serum</span><span class="tag-price">₹1,299</span></a>
+        <a class="tag" href="#" style="--x:38%; --y:64%"><span class="tag-dot tag-dot--plain"></span>
+          <span class="tag-name">Balm</span><span class="tag-price">₹640</span></a>
+      </div>
+      <p class="fpost-cap">The two things I actually reach for every morning.</p>
+      <div class="things">
+        <div class="things-h"><span class="micro">2 things in this post</span>
+          <span class="micro" style="color:var(--ink-3)">tap once to the shop</span></div>
+        <a class="thing" href="#">
+          <img src="images/products/serum.jpg" alt="" width="200" height="200" loading="lazy">
+          <span><b>Brightening serum</b><span class="micro">affiliate pick · opens Nykaa</span></span>
+          <span class="thing-price"><span class="price">₹1,299</span></span>
+          <span class="thing-buy">Buy</span>
+        </a>
+        <a class="thing" href="#">
+          <img src="images/products/bottle.jpg" alt="" width="200" height="200" loading="lazy">
+          <span><b>Repair balm</b><span class="micro">their own product · opens their store</span></span>
+          <span class="thing-price"><span class="price">₹640</span></span>
+          <span class="thing-buy thing-buy--own">Shop</span>
+        </a>
+      </div>
+    </article>
+
+    <article class="fpost">
+      <a class="fpost-by" href="/arjunbuilds">
+        <img class="avatar" src="images/avatars/arjun.jpg" alt="" width="60" height="60">
+        <span><b>@arjunbuilds</b><span class="micro">24 posts · 51 things</span></span>
+        <span class="follow">Follow</span>
+      </a>
+      <div class="shot">
+        <img src="images/posts/desk.jpg" alt="A tidy desk with a mechanical keyboard and lamp" width="900" height="1125">
+        <a class="tag" href="#" style="--x:11%; --y:58%"><span class="tag-dot tag-dot--plain"></span>
+          <span class="tag-name">Lamp</span><span class="tag-price">$48.00</span></a>
+      </div>
+      <p class="fpost-cap">Finally got the lighting right.</p>
+      <div class="things">
+        <div class="things-h"><span class="micro">1 thing in this post</span>
+          <span class="micro" style="color:var(--ink-3)">tap once to the shop</span></div>
+        <a class="thing" href="#">
+          <img src="images/products/lamp.jpg" alt="" width="200" height="200" loading="lazy">
+          <span><b>Desk lamp</b><span class="micro">affiliate pick · opens Amazon</span></span>
+          <span class="thing-price"><span class="price">$48.00</span></span>
+          <span class="thing-buy">Buy</span>
+        </a>
+      </div>
+    </article>
+
+    <aside class="adslot" aria-label="Advertisement">
+      <p class="micro adslot-l"><span>Ad · Plugfolio</span>
+        <button class="adslot-why" type="button">Why this ad?</button></p>
+      <a class="adslot-body" href="#" rel="nofollow sponsored">
+        <img src="images/products/keyboard.jpg" alt="" width="300" height="300" loading="lazy">
+        <span><span class="adslot-t">Placeholder advertiser</span>
+          <span class="adslot-d">Sponsored placement — not a creator's pick, and not tracked as one.</span></span></a>
+    </aside>
+
+    <article class="fpost">
+      <a class="fpost-by" href="/niaeveryday">
+        <img class="avatar" src="images/avatars/nia.jpg" alt="" width="60" height="60">
+        <span><b>@niaeveryday</b><span class="micro">6 posts · 9 things</span></span>
+        <span class="follow">Follow</span>
+      </a>
+      <div class="shot">
+        <img src="images/posts/gym.jpg" alt="Gym kit laid out on a bench" width="900" height="1125">
+        <a class="tag" href="#" style="--x:8%; --y:22%"><span class="tag-dot"></span>
+          <span class="tag-name">Mat</span><span class="tag-price">$32.00</span></a>
+        <a class="tag" href="#" style="--x:42%; --y:68%"><span class="tag-dot tag-dot--plain"></span>
+          <span class="tag-name">Bottle</span><span class="tag-price">₹890</span></a>
+      </div>
+      <p class="fpost-cap">Everything in my gym bag this month.</p>
+      <div class="things">
+        <div class="things-h"><span class="micro">2 things in this post</span>
+          <span class="micro" style="color:var(--ink-3)">tap once to the shop</span></div>
+        <a class="thing" href="#">
+          <img src="images/products/sneakers.jpg" alt="" width="200" height="200" loading="lazy">
+          <span><b>Training mat</b><span class="micro">their own product · opens their store</span></span>
+          <span class="thing-price"><span class="price">$32.00</span></span>
+          <span class="thing-buy thing-buy--own">Shop</span>
+        </a>
+        <a class="thing" href="#">
+          <img src="images/products/bottle.jpg" alt="" width="200" height="200" loading="lazy">
+          <span><b>Steel bottle</b><span class="micro">affiliate pick · opens Myntra</span></span>
+          <span class="thing-price"><span class="price">₹890</span></span>
+          <span class="thing-buy">Buy</span>
+        </a>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="wallend">
+    <div class="wallend-more">
+      <a class="btn btn--ghost" href="/explore-c.html?page=2" rel="next">Load more</a>
+      <p class="micro wallend-note" style="margin:10px 0 0">Showing 3 of 240</p>
+    </div>
+    <div class="wallend-done">
+      <p class="micro wallend-note">That's everything for now. Try a shelf to see something different.</p>
+    </div>
+  </div>
+
+  <div class="empty empty--q">
+    <h2 class="title">Nothing matches that search — try widening it.</h2>
+    <p class="copy">Search looks at post captions, creator handles and the things tagged in them.</p>
+    <a class="btn btn--ghost" href="/explore-c.html">Clear search</a>
+  </div>
+
+  <div class="empty empty--cold">
+    <h2 class="title">Nothing here yet — creators are on their way.</h2>
+    <p class="copy">This is the only screen in Plugfolio where there is genuinely nothing to shop.</p>
+    <a class="btn btn--primary" href="/join?as=creator">Create your page</a>
+  </div>
+
+ </div>
+</main>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg><span class="mark-name">plugfolio</span></a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/how-it-works">How it works</a>
+      <a class="foot-link" href="/for-creators">For creators</a>
+      <a class="foot-link" href="/support">Help</a>
+    </div>
+  </div>
+  <div class="inner foot-note">
+    <p class="micro">Plugfolio never takes a payment. Every Buy hands you to the retailer, and what
+      happens there is between you and them. Shopping never needs an account.</p>
+  </div>
+</footer>
+
+<div data-chrome="tabs"></div>
+
+<script>
+window.CHROME = { nav: 'explore', tab: 'shop' };
+window.PROTO = {
+  title: 'C · Feed',
+  groups: [
+    { label: 'Content state', options: [
+      { name: 'Browsing',    note: 'Posts with their things listed', set: { state: 'full'    } },
+      { name: 'No match',    note: 'A query that finds nothing',     set: { state: 'q-empty' } },
+      { name: 'Nothing yet', note: 'No content at all',              set: { state: 'cold'    } }
+    ]},
+    { label: 'Who is looking', options: [
+      { name: 'Guest',     note: 'No account', set: { viewer: 'anon'    } },
+      { name: 'Signed in', note: 'Mode slot',  set: { viewer: 'shopper' } }
+    ]},
+    { label: 'End of the feed', options: [
+      { name: 'More to load',      note: 'Load more link', set: { more: 'yes' } },
+      { name: 'That is everything', note: 'Honest end',    set: { more: 'no'  } }
+    ]},
+    { label: 'Plan', options: [
+      { name: 'Free', note: 'One ad in the feed', set: { plan: 'free' } },
+      { name: 'Pro',  note: 'No ad',              set: { plan: 'pro'  } }
+    ]}
+  ]
+};
+</script>
+<script src="chrome.js" defer></script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

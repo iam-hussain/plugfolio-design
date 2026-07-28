@@ -32,6 +32,11 @@
 /* No max-width on .ex-head itself — it also carries .inner, whose auto
    margins would centre the whole head and knock it out of alignment with
    the content below. Cap the individual blocks instead. */
+.vswitch { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 0 0; }
+.vswitch a { text-decoration: none; border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink-2); border-radius: var(--r-chip); padding: 9px 15px; min-height: 44px;
+  display: inline-flex; align-items: center; font-size: var(--t-label); font-weight: 600; }
+.vswitch a[aria-current="page"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 .ex-head { padding-block: clamp(18px, 2.4vw, 28px) 0; }
 .ex-head .headline { max-width: 15ch; }
 .ex-head .lede { margin-top: 10px; max-width: 54ch; }
@@ -280,15 +285,20 @@ body[data-more="yes"] .wallend-done { display: none; }
 
 /* ── Hide-By-Exclusion (DESIGN.md): swap visibility by excluding the
    matching state, never a flat hide plus a guessed re-show. ── */
+/* This rule was silently dead: an earlier edit replaced its last two
+   selectors with a comment, leaving a dangling comma and no declaration
+   block, so the whole list was invalid and NOTHING was ever hidden. That is
+   why both empty states rendered at once, squeezed into wall grid cells,
+   while the populated wall and Load more stayed on screen underneath them.
+
+   An empty state must also take the ad and the load-more with it — there is
+   nothing to load and nothing to sell against. */
 body:not([data-state="q-empty"]) .empty--q,
 body:not([data-state="cold"])    .empty--cold,
-body:not([data-state="cold"])    .cold-note,
-body[data-state="cold"]          .fanhead,
-body[data-state="cold"]          .fan,
-body[data-state="q-empty"]       .wall,
-body[data-state="cold"]          .wall,
-body[data-state="q-empty"]       .wallhead,
-body[data-state="cold"]          .wallhead,
+body[data-state="q-empty"] :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adslot),
+body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adslot, .shelves)
+  { display: none; }
+
 /* .v-anon / .v-signedin now live in styles.css — every page with the shared
    chrome needs them, not just this one. */
 
@@ -313,6 +323,12 @@ body[data-state="cold"]          .wallhead,
 <!-- The gradient hero, shared with auth and (later) the dashboard. Its colour
      follows the viewer's current MODE, never the page's content. -->
 <div class="rolehero">
+  <nav class="vswitch inner" aria-label="Explore variants">
+    <a href="/explore.html" aria-current="page">A · Wall</a>
+    <a href="/explore-b.html">B · Shelves</a>
+    <a href="/explore-c.html">C · Feed</a>
+  </nav>
+
   <div class="inner ex-head">
    <div class="ex-say">
     <h1 class="headline">Everything your favourites post.</h1>
