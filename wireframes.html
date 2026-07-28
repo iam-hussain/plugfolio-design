@@ -203,6 +203,9 @@ body{ margin:0; background:var(--page); color:var(--ink); font:14px/1.5 var(--sa
     <li><a href="#ch-layouts">E2 · Post layouts</a></li>
     <li><a href="#ch-new">E3 · Two layouts worth adding</a></li>
     <li><a href="#ads"><b>E4 · Ad slots</b></a></li>
+    <li><a href="#how-it-works">F1 · /how-it-works</a></li>
+    <li><a href="#for-creators">F2 · /for-creators</a></li>
+    <li><a href="#for-business">F3 · /for-business</a></li>
   </ol>
 </nav>
 
@@ -2175,6 +2178,293 @@ body{ margin:0; background:var(--page); color:var(--ink); font:14px/1.5 var(--sa
           the "no money in v1" rule, but that has to be a stated decision, not an assumption.</li>
       <li>An ad on a creator's page spends the creator's audience. Whether creators can opt out
           without paying — and what that does to the model — is a policy question, not a layout one.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GROUP F — THE THREE MARKETING PAGES
+     ═══════════════════════════════════════════════════════ -->
+<div class="group">
+  <h2>Group F — How it works · For creators · For business</h2>
+  <p>Three dedicated routes, each owning one audience and one search surface. Two of the three links
+     are currently broken as destinations: <b>For creators points at <code>/signin</code></b>, which
+     is a form for people who already have an account, and <b>For business points at
+     <code>/collabs</code></b>, which drops a stranger into a logged-out product surface. These pages
+     replace both.</p>
+  <p style="margin-top:8px"><b>The cost to plan for:</b> §5.2 puts this content on the landing page.
+     With real pages the landing sections become short teasers that link out, so each argument is
+     written once. If both carry the full pitch they will drift, and the FAQ structured data will end
+     up contradicting itself across two URLs.</p>
+</div>
+
+<!-- F1 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="how-it-works">
+  <div class="sh"><h3>F1 · /how-it-works</h3><span class="tag">shopper-facing</span><span class="tag">carries the FAQ structured data</span></div>
+  <p>The only one of the three with genuinely explanatory content. Its real job is answering the
+     question a shopper arriving from a bio link actually has, which is whether this is safe.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><span class="lbl">explore · log in</span></div>
+        <div class="line hh w90"></div><div class="line hh w60"></div>
+        <span class="lbl">"How shopping here works"</span>
+        <div class="line w90"></div>
+
+        <span class="lbl">THE LOOP — the mechanism, shown not described</span>
+        <div class="box tilt-a" style="padding:5px; gap:5px">
+          <div class="shot"><div class="img sq"></div>
+            <div class="pin" style="top:36%; left:12%">Serum · ₹1,299</div></div>
+        </div>
+        <div class="col" style="gap:6px">
+          <div class="row"><span class="lbl">1</span><div class="line w75"></div></div>
+          <div class="row"><span class="lbl">2</span><div class="line w90"></div></div>
+          <div class="row"><span class="lbl">3</span><div class="line w60"></div></div>
+        </div>
+        <span class="lbl">a creator tags what's in the post → you tap the tag → you land on
+          the retailer</span>
+
+        <div class="rule"></div>
+        <span class="lbl">THE THREE RULES — plain statements, not features</span>
+        <div class="box" style="border-style:solid; gap:6px">
+          <div class="txt" style="font-size:11px"><b>No account.</b> Ever, to buy.</div>
+          <div class="txt" style="font-size:11px"><b>No cart, no checkout.</b> Buying happens at the shop.</div>
+          <div class="txt" style="font-size:11px"><b>We never see your card.</b></div>
+        </div>
+
+        <div class="rule"></div>
+        <span class="lbl">WHAT IS AND ISN'T TRACKED — the trust argument</span>
+        <div class="box"><div class="row between"><span class="txt" style="font-size:11px">Taps out to a shop</span>
+          <span class="lbl">tracked</span></div>
+          <div class="row between"><span class="txt" style="font-size:11px">In-store coupon use</span>
+            <span class="lbl">not tracked</span></div></div>
+        <span class="lbl">stating the second one is the whole point — it is why the first
+          is believable</span>
+
+        <div class="box later" style="padding:6px"><span class="lbl">FAQ — the answers here and the
+          visible copy above must say the same thing (SEO/AEO)</span></div>
+        <div class="btn" style="text-align:center">Start exploring</div>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><span class="lbl">explore · log in · create your page</span></div>
+        <div class="col" style="align-items:center; padding:12px 0"><div class="line hh w45"></div>
+          <div class="line w60"></div></div>
+        <span class="lbl">the loop runs across, one card per step, tags visible at rest</span>
+        <div class="grid g3" style="align-items:start">
+          <div class="box tilt-a" style="padding:5px"><div class="shot"><div class="img r43"></div>
+            <div class="pin" style="top:34%; left:10%">Serum · ₹1,299</div></div>
+            <div class="line w75" style="margin-top:6px"></div></div>
+          <div class="box tilt-b" style="padding:5px"><div class="shot"><div class="img r43"></div>
+            <div class="pin" style="top:40%; left:14%">tap</div></div>
+            <div class="line w60" style="margin-top:6px"></div></div>
+          <div class="box tilt-c" style="padding:5px"><div class="img r43"></div>
+            <div class="line w75" style="margin-top:6px"></div>
+            <span class="lbl">the retailer — Plugfolio's job ends here</span></div>
+        </div>
+        <div class="rule" style="margin:10px 0"></div>
+        <div class="grid g2" style="align-items:start">
+          <div class="box" style="border-style:solid"><span class="lbl">the three rules</span>
+            <div class="line w90"></div><div class="line w75"></div><div class="line w60"></div></div>
+          <div class="box"><span class="lbl">tracked / not tracked</span>
+            <div class="row between"><div class="line w45"></div><span class="lbl">tracked</span></div>
+            <div class="row between"><div class="line w60"></div><span class="lbl">not tracked</span></div></div>
+        </div>
+        <div class="box later" style="padding:6px"><span class="lbl">FAQ</span></div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Content, all of it already true</h4>
+    <ul>
+      <li>Nothing here is a claim that needs inventing. The loop, the three rules and the
+          tracked/not-tracked split are all in PRODUCT.md, which is why this page can be written
+          without a single fabricated number.</li>
+      <li><b>Naming the unmeasured thing is the argument.</b> A page that only lists what it tracks
+          reads like every other affiliate tool. Saying in-store redemption is <i>not</i> tracked is
+          what makes the tracked figures credible.</li>
+      <li>The FAQ answers and the visible copy have to stay identical — the spec requires the
+          structured data to restate what is on screen.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- F2 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="for-creators">
+  <div class="sh"><h3>F2 · /for-creators</h3><span class="tag">replaces the link to /signin</span></div>
+  <p>Aimed at someone who does not have an account yet, which is exactly why pointing this at the
+     sign-in form was wrong. Ends at <code>/join?as=creator</code>.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><span class="lbl">explore · log in</span></div>
+        <div class="line hh w90"></div><div class="line hh w75"></div>
+        <span class="lbl">"Turn your content into commerce" — the brand's own tagline</span>
+        <div class="chip">Free to start · no card</div>
+
+        <span class="lbl">THE MECHANISM, in the creator's own terms</span>
+        <div class="col" style="gap:6px">
+          <div class="box row" style="padding:6px; gap:8px"><span class="lbl">1</span>
+            <div class="col grow"><div class="line w75"></div><span class="lbl">paste a product URL</span></div></div>
+          <div class="box row" style="padding:6px; gap:8px"><span class="lbl">2</span>
+            <div class="col grow"><div class="line w60"></div><span class="lbl">pin your own affiliate or store link</span></div></div>
+          <div class="box row" style="padding:6px; gap:8px"><span class="lbl">3</span>
+            <div class="col grow"><div class="line w90"></div><span class="lbl">your post is shoppable</span></div></div>
+        </div>
+
+        <div class="rule"></div>
+        <span class="lbl">THE HANDLE — scarcity that is real, not manufactured</span>
+        <div class="box" style="border-style:solid">
+          <div class="field">plugfolio.com/yourhandle</div>
+          <div class="txt" style="font-size:11px">Proved by a connected social, so nobody can take
+            a name that isn't theirs.</div>
+        </div>
+
+        <div class="rule"></div>
+        <span class="lbl">ATTRIBUTION — the thing no competitor states this plainly</span>
+        <div class="box"><div class="row"><div class="img sq" style="width:40px"></div>
+          <div class="col grow"><div class="line w75"></div>
+            <span class="lbl">this post drove 128 taps · tracked</span></div></div></div>
+        <span class="lbl">point at one post and say "that one worked"</span>
+
+        <div class="box" style="border-style:solid"><span class="lbl">THE HONEST LIMIT</span>
+          <div class="txt" style="font-size:11px">Plugfolio never handles your money. Your link,
+            your payout, your relationship with the retailer.</div></div>
+
+        <div class="btn" style="text-align:center">Create your page</div>
+        <span class="lbl">→ /join?as=creator, never /signin</span>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop</figcaption>
+      <div class="vp">
+        <div class="row" style="gap:20px; align-items:flex-start">
+          <div class="col grow"><div class="line hh w75"></div><div class="line hh w60"></div>
+            <div class="line w90"></div><div class="chip">Free to start · no card</div>
+            <div class="btn" style="align-self:flex-start">Create your page</div></div>
+          <div class="col" style="width:210px; flex:none">
+            <div class="box tilt-b" style="padding:5px"><div class="shot"><div class="img r43"></div>
+              <div class="pin" style="top:36%; left:12%">Serum · ₹1,299</div></div>
+              <div class="row" style="margin-top:6px"><div class="av sm"></div><div class="line w60"></div></div></div>
+            <span class="lbl">their page, as it will look</span></div>
+        </div>
+        <div class="rule" style="margin:12px 0"></div>
+        <div class="grid g3" style="align-items:start">
+          <div class="box"><span class="lbl">mechanism</span><div class="line w90"></div><div class="line w60"></div></div>
+          <div class="box"><span class="lbl">claim your handle</span><div class="field">plugfolio.com/…</div></div>
+          <div class="box"><span class="lbl">tracked per post</span>
+            <div class="row between"><div class="line w45"></div><span class="lbl">128 taps</span></div></div>
+        </div>
+        <div class="box" style="border-style:solid; margin-top:10px"><span class="lbl">the honest limit —
+          Plugfolio never handles the money</span></div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Why the limit gets its own block</h4>
+    <ul>
+      <li>Creators have been burned by platforms that hold funds. Stating up front that money never
+          touches Plugfolio removes the question before it is asked, and it is a real differentiator
+          rather than a disclaimer.</li>
+      <li>Every figure shown carries the <b>tracked</b> label. A creator-facing page that shows an
+          untagged number teaches creators to distrust the dashboard.</li>
+      <li>The 5-profile and 3-manager caps belong here too, stated as facts. Someone planning to run
+          ten brands should find that out now.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- F3 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="for-business">
+  <div class="sh"><h3>F3 · /for-business</h3><span class="tag">replaces the link to /collabs</span></div>
+  <p>A pitch, not the product. <code>/collabs</code> is the working surface and should be reached
+     after signing up, not before.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><span class="lbl">explore · log in</span></div>
+        <div class="line hh w90"></div><div class="line hh w60"></div>
+        <span class="lbl">"Find creators to work with"</span>
+        <div class="line w90"></div>
+
+        <span class="lbl">TWO DOORS — the actual product shape</span>
+        <div class="grid g2" style="gap:8px">
+          <div class="box" style="border-style:solid"><span class="lbl">post a brief</span>
+            <div class="line w90"></div><div class="line w60"></div>
+            <span class="lbl">creators come to you</span></div>
+          <div class="box" style="border-style:solid"><span class="lbl">approach directly</span>
+            <div class="line w75"></div><div class="line w60"></div>
+            <span class="lbl">from any creator's page</span></div>
+        </div>
+
+        <div class="rule"></div>
+        <span class="lbl">ONE THREAD to agreed terms</span>
+        <div class="box"><div class="row" style="gap:8px"><div class="av sm"></div><div class="line w75"></div></div>
+          <div class="row" style="gap:8px; justify-content:flex-end"><div class="line w60"></div><div class="av sm"></div></div>
+          <div class="row" style="gap:8px"><div class="av sm"></div><div class="line w45"></div></div>
+          <div class="box" style="border-style:solid; padding:6px"><span class="lbl">terms agreed</span></div></div>
+
+        <div class="box" style="border-style:solid"><span class="lbl">SAID OUT LOUD</span>
+          <div class="txt" style="font-size:11px"><b>Payment settles off-platform.</b>
+            Plugfolio handles no money and takes no cut of your deal.</div></div>
+
+        <div class="box later" style="padding:6px"><span class="lbl">NOT IN V1, stated on purpose:
+          no media kits, no campaign suites, no creator-to-creator collabs. A brand that needs those
+          should learn it here rather than after signing up.</span></div>
+
+        <div class="btn" style="text-align:center">Post your first brief</div>
+        <span class="lbl">→ /join?as=business</span>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop</figcaption>
+      <div class="vp">
+        <div class="col" style="align-items:center; padding:10px 0"><div class="line hh w45"></div>
+          <div class="line w60"></div><div class="btn">Post your first brief</div></div>
+        <div class="grid g2" style="gap:14px; align-items:start">
+          <div class="box" style="border-style:solid"><span class="lbl">door one — post a brief</span>
+            <div class="line w90"></div><div class="line w60"></div></div>
+          <div class="box" style="border-style:solid"><span class="lbl">door two — approach a creator</span>
+            <div class="line w75"></div><div class="line w60"></div></div>
+        </div>
+        <div class="rule" style="margin:10px 0"></div>
+        <div class="grid g2" style="gap:14px; align-items:start">
+          <div class="box"><span class="lbl">one thread</span>
+            <div class="row"><div class="av sm"></div><div class="line w60"></div></div>
+            <div class="row" style="justify-content:flex-end"><div class="line w45"></div><div class="av sm"></div></div></div>
+          <div class="box" style="border-style:solid"><span class="lbl">payment settles off-platform</span>
+            <div class="line w75"></div>
+            <div class="box later" style="padding:5px; margin-top:6px"><span class="lbl">not in v1: media
+              kits, campaign suites</span></div></div>
+        </div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Notes</h4>
+    <ul>
+      <li><b>Naming the exclusions is a filter, not a weakness.</b> A brand expecting media kits and
+          campaign reporting will churn on day two; telling them here costs one sign-up and saves a
+          support thread.</li>
+      <li>Budgets stay free text everywhere, including any example on this page — the product
+          deliberately does not validate a currency, and an example showing "$" would imply otherwise
+          to an Indian brand.</li>
+      <li>No customer names, logos or testimonials: none exist, and PRODUCT.md treats inventing them
+          as a correctness failure rather than a content shortcut.</li>
     </ul>
   </div>
 </section>
