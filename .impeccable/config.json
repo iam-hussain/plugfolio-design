@@ -1,0 +1,10 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [
+      "variants/tweaks.js",
+      "tweaks.js"
+    ],
+    "ignoreValues": []
+  }
+}

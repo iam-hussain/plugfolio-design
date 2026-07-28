@@ -1,0 +1,2214 @@
+<!doctype html>
+<!-- Plugfolio layout wireframes.
+     Grey-box only: no brand colour, no photography, no type scale. Boxes, labels,
+     and real copy wherever the copy is a product decision (honesty labels, error
+     text, empty states). Batch 1 = auth group + explore group.
+     Routes and behaviours trace design-handoff.md §5.1, §5.3, §5.13. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plugfolio — layout wireframes</title>
+<style>
+*,*::before,*::after { box-sizing: border-box; }
+:root{
+  --ink:#1c1c22; --mid:#6b6b76; --soft:#9a9aa4; --hair:#c9c9d1;
+  --fill:#ececef; --fill-2:#e2e2e7; --page:#f7f7f9; --paper:#fff;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: ui-sans-serif, system-ui, sans-serif;
+}
+body{ margin:0; background:var(--page); color:var(--ink); font:14px/1.5 var(--sans); }
+
+/* ── page furniture ───────────────────────────────────────── */
+.wrap{ max-width:1440px; margin:0 auto; padding:32px 24px 120px; }
+.masthead{ border-bottom:2px solid var(--ink); padding-bottom:20px; margin-bottom:28px; }
+.masthead h1{ font-size:24px; margin:0 0 6px; letter-spacing:-.02em; }
+.masthead p{ margin:0; color:var(--mid); max-width:70ch; }
+
+.legend{ display:flex; flex-wrap:wrap; gap:18px; margin:20px 0 40px; padding:16px;
+         background:var(--paper); border:1px solid var(--hair); }
+.legend div{ display:flex; align-items:center; gap:8px; font:11px/1 var(--mono);
+             text-transform:uppercase; letter-spacing:.08em; color:var(--mid); }
+.legend i{ width:26px; height:16px; display:block; }
+.lg-box{ border:1px dashed var(--hair); background:var(--paper); }
+.lg-fill{ background:var(--fill-2); }
+.lg-img{ background:var(--fill); }
+.lg-line{ background:var(--hair); height:6px !important; }
+.lg-later{ border:1px dashed var(--hair); background:repeating-linear-gradient(45deg,transparent 0 4px,var(--fill) 4px 8px); }
+
+.toc{ margin:0 0 48px; padding:16px 18px; background:var(--paper); border:1px solid var(--hair); }
+.toc h2{ font:11px/1 var(--mono); text-transform:uppercase; letter-spacing:.1em;
+         color:var(--mid); margin:0 0 12px; }
+.toc ol{ margin:0; padding:0; list-style:none; display:grid; gap:6px 24px;
+         grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); }
+.toc a{ color:var(--ink); text-decoration:none; font-family:var(--mono); font-size:12px; }
+.toc a:hover{ text-decoration:underline; }
+.toc li.todo a{ color:var(--soft); }
+
+.group{ margin:0 0 12px; padding:10px 0; border-top:2px solid var(--ink); }
+.group h2{ font-size:18px; margin:0; letter-spacing:-.01em; }
+.group p{ margin:4px 0 0; color:var(--mid); font-size:13px; max-width:80ch; }
+
+/* ── one screen ───────────────────────────────────────────── */
+.screen{ margin:0 0 56px; padding:22px; background:var(--paper); border:1px solid var(--hair); }
+.sh{ display:flex; flex-wrap:wrap; gap:6px 14px; align-items:baseline; margin-bottom:4px; }
+.sh h3{ margin:0; font:14px/1.2 var(--mono); }
+.sh .tag{ font:10px/1 var(--mono); text-transform:uppercase; letter-spacing:.1em;
+          color:var(--mid); border:1px solid var(--hair); padding:4px 7px; }
+.sh + p{ margin:0 0 20px; color:var(--mid); font-size:13px; max-width:80ch; }
+
+.frames{ display:flex; gap:20px; overflow-x:auto; padding-bottom:12px; align-items:flex-start; }
+.fr{ margin:0; flex:none; }
+.fr figcaption{ font:10px/1 var(--mono); text-transform:uppercase; letter-spacing:.08em;
+                color:var(--mid); margin-bottom:8px; }
+.vp{ background:var(--paper); border:1px solid var(--ink); padding:10px;
+     display:flex; flex-direction:column; gap:10px; }
+.ph .vp{ width:320px; min-height:600px; }
+.dk .vp{ width:760px; min-height:520px; }
+.sheet .vp{ width:320px; min-height:420px; }
+
+/* ── wireframe primitives ─────────────────────────────────── */
+.box{ border:1px dashed var(--hair); background:var(--paper); padding:10px;
+      display:flex; flex-direction:column; gap:8px; }
+.box > .lbl:first-child{ margin-top:-2px; }
+.lbl{ font:10px/1.3 var(--mono); text-transform:uppercase; letter-spacing:.08em; color:var(--soft); }
+.txt{ font-size:12px; color:var(--mid); }
+.txt b{ color:var(--ink); font-weight:600; }
+
+.line{ height:8px; background:var(--fill-2); }
+.line.h{ height:14px; }        /* heading weight */
+.line.hh{ height:22px; }       /* display weight */
+.w90{width:90%} .w75{width:75%} .w60{width:60%} .w45{width:45%} .w30{width:30%} .w20{width:20%}
+
+.img{ background:
+        linear-gradient(to top right, transparent calc(50% - .5px), var(--hair) 50%, transparent calc(50% + .5px)),
+        linear-gradient(to bottom right, transparent calc(50% - .5px), var(--hair) 50%, transparent calc(50% + .5px)),
+        var(--fill);
+      border:1px solid var(--hair); }
+.sq{ aspect-ratio:1/1; } .r43{ aspect-ratio:4/3; }
+.av{ width:34px; height:34px; border-radius:50%; background:var(--fill-2); flex:none; }
+.av.sm{ width:24px; height:24px; }
+
+.field{ border:1px solid var(--hair); background:var(--paper); padding:9px 10px;
+        font:11px/1.2 var(--mono); color:var(--soft); display:flex;
+        justify-content:space-between; align-items:center; gap:8px; }
+.field.err{ border-color:var(--ink); border-width:2px; }
+.btn{ background:var(--ink); color:var(--paper); border-radius:999px; padding:10px 16px;
+      font:11px/1.2 var(--mono); text-align:center; text-transform:uppercase; letter-spacing:.06em; }
+.btn.ghost{ background:var(--paper); color:var(--ink); border:1px solid var(--ink); }
+.btn.off{ background:var(--fill-2); color:var(--soft); }
+.chip{ border:1px solid var(--hair); border-radius:999px; padding:5px 10px;
+       font:10px/1.2 var(--mono); color:var(--mid); background:var(--paper); }
+.chip.on{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+.row{ display:flex; gap:8px; align-items:center; }
+.row.between{ justify-content:space-between; }
+.row.center{ justify-content:center; }
+.col{ display:flex; flex-direction:column; gap:8px; }
+.grid{ display:grid; gap:8px; }
+.g2{ grid-template-columns:repeat(2,1fr); }
+.g3{ grid-template-columns:repeat(3,1fr); }
+.g4{ grid-template-columns:repeat(4,1fr); }
+.grow{ flex:1; } .pad{ padding:14px; } .mt{ margin-top:auto; }
+
+.later{ background:repeating-linear-gradient(45deg,transparent 0 4px,var(--fill) 4px 8px); }
+.rule{ height:1px; background:var(--hair); }
+
+/* chrome pieces reused across screens */
+.topbar{ border:1px dashed var(--hair); padding:8px 10px; display:flex;
+         justify-content:space-between; align-items:center; gap:10px; }
+.tabbar{ border:1px dashed var(--hair); display:grid; grid-template-columns:repeat(4,1fr);
+         text-align:center; margin-top:auto; }
+.tabbar span{ padding:9px 2px; font:9px/1.2 var(--mono); color:var(--soft);
+              text-transform:uppercase; letter-spacing:.06em; }
+.tabbar span.on{ color:var(--ink); font-weight:700; border-top:2px solid var(--ink); }
+
+.scrim{ position:relative; }
+.scrim::after{ content:""; position:absolute; inset:0; background:rgba(28,28,34,.22); }
+.overlay{ position:relative; z-index:1; margin-top:-140px; }
+
+/* ── notes ────────────────────────────────────────────────── */
+.notes{ margin:18px 0 0; padding:14px 16px; background:var(--page); border-left:3px solid var(--ink);
+        font-size:12.5px; color:var(--mid); }
+.notes h4{ margin:0 0 8px; font:10px/1 var(--mono); text-transform:uppercase;
+           letter-spacing:.1em; color:var(--ink); }
+.notes ul{ margin:0; padding-left:18px; }
+.notes li{ margin-bottom:5px; }
+.notes li:last-child{ margin-bottom:0; }
+.notes b{ color:var(--ink); }
+.notes code{ font-family:var(--mono); font-size:11.5px; background:var(--fill); padding:1px 4px; }
+
+/* ── alternates: the tagged-feed vocabulary ───────────────── */
+.tilt-a{ transform:rotate(-1.6deg) } .tilt-b{ transform:rotate(1.8deg) }
+.tilt-c{ transform:rotate(-1deg) }   .tilt-d{ transform:rotate(1.2deg) }
+
+.shot{ position:relative; }
+.pin{ position:absolute; background:var(--paper); border:1px solid var(--ink);
+      border-radius:999px; padding:3px 7px; font:9px/1.2 var(--mono); white-space:nowrap;
+      box-shadow:0 3px 8px rgba(28,28,34,.28); }
+.pin::after{ content:""; position:absolute; width:6px; height:6px; border-radius:50%;
+             background:var(--ink); bottom:-11px; left:11px; }
+.pin.up::after{ bottom:auto; top:-11px; }
+
+.wall{ columns:2; column-gap:8px; }
+.wall > *{ break-inside:avoid; margin-bottom:12px; display:block; }
+
+.fanrail{ display:flex; gap:0; overflow-x:auto; padding:8px 0 12px; }
+.fanrail > *{ flex:none; width:88px; margin-right:-10px; background:var(--paper);
+              border:1px solid var(--hair); padding:5px; }
+
+.queue{ padding:22px; background:var(--paper); border:1px dashed var(--hair); }
+.queue h3{ margin:0 0 10px; font-size:15px; }
+.queue ul{ margin:0; padding-left:18px; color:var(--mid); font-size:13px; columns:2; column-gap:36px; }
+.queue li{ margin-bottom:4px; break-inside:avoid; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <h1>Plugfolio — layout wireframes</h1>
+  <p>Grey boxes only. No brand colour, no photography, no type scale — the point is where things sit
+     and in what order, not what they look like. Real copy appears wherever the wording is a product
+     decision (honesty labels, error text, empty states). Every screen shows mobile first, because
+     the in-app browser on a phone is the real usage scene.</p>
+</header>
+
+<div class="legend">
+  <div><i class="lg-box"></i> container / region</div>
+  <div><i class="lg-fill"></i> control or filled element</div>
+  <div><i class="lg-img"></i> image or media</div>
+  <div><i class="lg-line"></i> text line</div>
+  <div><i class="lg-later"></i> [LATER] — leave room, don't build</div>
+</div>
+
+<nav class="toc">
+  <h2>Batch 1 — auth + explore</h2>
+  <ol>
+    <li><a href="#auth-shell">A0 · Auth shell (shared layout)</a></li>
+    <li><a href="#join">A1 · /join — register</a></li>
+    <li><a href="#signin">A2 · /signin — log in</a></li>
+    <li><a href="#verify">A3 · /verify</a></li>
+    <li><a href="#forgot">A4 · /forgot</a></li>
+    <li><a href="#reset">A5 · /reset (+ manager invite)</a></li>
+    <li><a href="#claim">A6 · Inline claim sheet</a></li>
+    <li><a href="#chrome">B0 · Global shopper chrome</a></li>
+    <li><a href="#explore">B1 · /explore — discovery</a></li>
+    <li><a href="#explore-states">B2 · /explore — empty states</a></li>
+    <li><a href="#chromes">C0 · The three chromes</a></li>
+    <li><a href="#account">C1 · /account — role switchboard</a></li>
+    <li><a href="#viewers">C2 · One page, four viewers</a></li>
+    <li><a href="#alt-explore"><b>D1 · /explore — the tagged wall</b></a></li>
+    <li><a href="#alt-auth"><b>D2 · Auth — proof instead of pitch</b></a></li>
+    <li><a href="#ch-headers">E1 · Header treatments</a></li>
+    <li><a href="#ch-layouts">E2 · Post layouts</a></li>
+    <li><a href="#ch-new">E3 · Two layouts worth adding</a></li>
+    <li><a href="#ads"><b>E4 · Ad slots</b></a></li>
+  </ol>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GROUP A — AUTH
+     ═══════════════════════════════════════════════════════ -->
+<div class="group">
+  <h2>Group A — Auth</h2>
+  <p>One minimal system for all roles. Register with email + password, verify once, then every login
+     is a single step with no email round-trip. No handle ever appears in auth. Auth never appears on
+     a shopping path — so these screens carry <b>no shopper chrome and no bottom tab bar</b>.</p>
+</div>
+
+<!-- A0 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="auth-shell">
+  <div class="sh"><h3>A0 · Auth shell</h3><span class="tag">shared layout</span><span class="tag">/join /signin /verify /forgot /reset</span></div>
+  <p>The frame all five auth routes fill. A single centred column, one job per screen, nothing to
+     click except the one thing the screen is for. Deliberately dead-ended: no nav, no explore link,
+     no way to wander into a shopping surface mid-auth.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile — the shell</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <span class="lbl" style="text-align:center">brand mark → / (only exit)</span>
+        <div class="box grow" style="justify-content:center">
+          <span class="lbl">slot: heading</span>
+          <div class="line h w90"></div>
+          <span class="lbl">slot: sub / rule line</span>
+          <div class="line w75"></div>
+          <div class="rule" style="margin:6px 0"></div>
+          <span class="lbl">slot: form (1–2 fields)</span>
+          <div class="field">field <span>·</span></div>
+          <div class="field">field <span>show</span></div>
+          <span class="lbl">slot: primary action</span>
+          <div class="btn">action</div>
+          <span class="lbl">slot: consequence line</span>
+          <div class="line w75"></div>
+          <div class="rule" style="margin:6px 0"></div>
+          <span class="lbl">slot: secondary row (links)</span>
+          <div class="row between"><div class="line w30"></div><div class="line w30"></div></div>
+        </div>
+        <div class="txt" style="text-align:center; color:var(--soft)">no bottom tab bar here</div>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop — two panes: role panel + form column</figcaption>
+      <div class="vp" style="padding:0; flex-direction:row; gap:0">
+        <div class="col" style="width:44%; background:var(--fill); padding:20px; gap:12px">
+          <span class="lbl">ROLE PANEL — the differentiator</span>
+          <div class="line hh w75" style="background:var(--hair)"></div>
+          <div class="line hh w60" style="background:var(--hair)"></div>
+          <span class="lbl">two-line headline, line 2 in the accent</span>
+          <div class="line w90" style="background:var(--hair)"></div>
+          <div class="line w75" style="background:var(--hair)"></div>
+          <div class="col" style="gap:6px; margin-top:6px">
+            <div class="row"><div class="box" style="width:16px;height:16px;padding:0"></div><div class="line w75" style="background:var(--hair)"></div></div>
+            <div class="row"><div class="box" style="width:16px;height:16px;padding:0"></div><div class="line w60" style="background:var(--hair)"></div></div>
+            <div class="row"><div class="box" style="width:16px;height:16px;padding:0"></div><div class="line w75" style="background:var(--hair)"></div></div>
+          </div>
+          <span class="lbl mt">foot line — one promise per role</span>
+        </div>
+        <div class="col grow" style="padding:20px">
+          <div class="row" style="justify-content:flex-end"><div class="line w20" style="height:14px"></div></div>
+          <div class="col grow" style="justify-content:center; max-width:340px; margin:0 auto; width:100%">
+            <span class="lbl">slot: role tabs — /join ONLY</span>
+            <div class="row"><div class="chip on">Creator</div><div class="chip">Shopper</div><div class="chip">Business</div></div>
+            <div class="line h w90" style="margin-top:6px"></div>
+            <div class="line w60"></div>
+            <div class="rule" style="margin:4px 0"></div>
+            <div class="field">field <span>·</span></div>
+            <div class="field">field <span>show</span></div>
+            <div class="btn">action</div>
+            <div class="line w75"></div>
+            <div class="rule" style="margin:4px 0"></div>
+            <div class="row between"><div class="line w30"></div><div class="line w30"></div></div>
+          </div>
+        </div>
+      </div>
+      <figcaption style="margin:8px 0 0">the panel swaps per role · the form never does</figcaption>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Layout decisions to discuss</h4>
+    <ul>
+      <li><b>Two panes on desktop, one column on phone.</b> The left panel is not decoration — it is
+          where the three audiences get told apart. Creator, shopper and business each get their own
+          headline, description and three bullets; the form beside it is byte-identical for all three.
+          On a phone the panel collapses to a single blurb line under the tabs, because there is no
+          room to sell and fill in a form at once.</li>
+      <li><b>The tabs belong to <code>/join</code>, not to the shell.</b> On register they are a real
+          declaration of intent that changes where verification lands you. On every other auth route
+          they would be a control that does nothing — see A2.</li>
+      <li><b>The brand mark is the only exit.</b> Auth must never appear on a shopping path — so the
+          shell offers no Explore link and no tab bar. Getting out means going home.</li>
+      <li>Password fields always carry a <b>show/hide</b> toggle. The password rule is stated
+          <b>up front</b>, above the field, not revealed as an error after the fact.</li>
+      <li>Every submit button has a <b>busy state</b> — disabled, label changes. In-app browsers
+          double-fire taps; this is a correctness requirement, not polish.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- A1 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="join">
+  <div class="sh"><h3>A1 · /join</h3><span class="tag">register</span><span class="tag">the one screen where role is a real choice</span></div>
+  <p>Email + password, one verification email follows. Arrives from the landing page's three doors or
+     as an upgrade from the claim sheet. <b>The role tabs are load-bearing here</b> — they set the
+     panel, the heading, the button label, and above all <b>where the verification link lands you</b>.
+     They do not create three kinds of account: every account created here is the same account.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile — creator selected</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow">
+          <span class="lbl">I'M A…</span>
+          <div class="row"><div class="chip on">Creator</div><div class="chip">Shopper</div><div class="chip">Business</div></div>
+          <span class="lbl">carried as ?as= · default from the door they came through</span>
+          <div class="txt"><b>Create your account</b></div>
+          <div class="txt" style="font-size:11.5px">Creators turn their content into a shoppable page —
+            tag the products in your posts and earn from what you already recommend.</div>
+          <span class="lbl">on phone the desktop panel collapses to this ONE blurb — no bullets,
+            no second headline. There is no room to sell and fill in a form at once.</span>
+          <div class="rule"></div>
+          <span class="lbl">email</span>
+          <div class="field">you@example.com</div>
+          <span class="lbl">password + show/hide</span>
+          <div class="field">••••••••<span>show</span></div>
+          <div class="txt" style="font-size:11px">At least 8 characters.</div>
+          <span class="lbl">rule stated up front, live-validated</span>
+          <div class="btn">Create account</div>
+          <div class="txt" style="font-size:11px">We'll send one verification email.</div>
+          <div class="rule"></div>
+          <div class="row between"><span class="txt">Already have an account?</span><span class="txt"><b>Sign in</b></span></div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>State — submitting</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow">
+          <div class="txt"><b>Create your account</b></div>
+          <div class="line w75"></div>
+          <div class="rule"></div>
+          <div class="field" style="color:var(--soft)">you@example.com</div>
+          <div class="field" style="color:var(--soft)">••••••••<span>show</span></div>
+          <div class="btn off">Creating…</div>
+          <span class="lbl">disabled + label change; fields locked</span>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>State — check your email</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow" style="justify-content:center">
+          <div class="box sq" style="width:52px; align-self:center; align-items:center; justify-content:center">
+            <span class="lbl">icon</span></div>
+          <div class="txt" style="text-align:center"><b>Check your email</b></div>
+          <div class="txt" style="text-align:center">We sent a verification link to<br><b>you@example.com</b></div>
+          <div class="rule"></div>
+          <span class="lbl">two recoveries, always both present</span>
+          <div class="btn ghost">Resend email</div>
+          <div class="btn ghost">Change email</div>
+          <div class="rule"></div>
+          <div class="txt" style="font-size:11px; text-align:center">The link works once and expires.</div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>States — errors (field-level)</figcaption>
+      <div class="vp">
+        <div class="box">
+          <span class="lbl">email already registered</span>
+          <div class="field err">you@example.com</div>
+          <div class="txt" style="font-size:11px"><b>That email already has an account.</b>
+            <span style="text-decoration:underline">Sign in</span> ·
+            <span style="text-decoration:underline">Forgot password?</span></div>
+          <span class="lbl">an existing-account hint is fine on register — /forgot is where the oracle rule bites</span>
+        </div>
+        <div class="box">
+          <span class="lbl">weak password — inline, live, before submit</span>
+          <div class="field err">•••••<span>hide</span></div>
+          <div class="txt" style="font-size:11px">Too short — use at least 8 characters.</div>
+        </div>
+        <div class="box">
+          <span class="lbl">rate-limited — banner above the form</span>
+          <div class="box" style="border-style:solid">
+            <div class="txt" style="font-size:11px">Too many attempts. Try again in a few minutes.</div>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Behaviour</h4>
+    <ul>
+      <li>Submit replaces the form with <b>check-your-email</b> in place — it is a state of this screen,
+          not a new route, so Resend and Change email keep the entered address in hand.</li>
+      <li><b>What the role tab actually buys you</b> — it is the only thing on the screen that changes
+          behaviour, and it changes it <i>after</i> verification:
+        <ul style="margin-top:5px">
+          <li><b>Creator</b> → Connect Socials → create a profile. Connecting is what makes a handle
+              un-squattable, so a creator cannot skip it.</li>
+          <li><b>Business</b> → business basics → <code>/collabs</code>.</li>
+          <li><b>Shopper</b> → back to the follow or comment they were attempting. Nowhere new.</li>
+        </ul>
+      </li>
+      <li><b>Picking a tab does not create a kind of account.</b> Same table, same credentials, same
+          capabilities. A creator who later wants to hire someone gets a business by making one — not
+          by registering again. This is the single most important thing the wireframe must not imply
+          otherwise.</li>
+      <li>No handle, no username, no display name here. Email is the only login identifier the
+          product has, and the public handle is never a login.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- A2 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="signin">
+  <div class="sh"><h3>A2 · /signin</h3><span class="tag">log in</span><span class="tag">NO role tabs</span><span class="tag">honors ?callbackUrl</span></div>
+  <p>One step, no email round-trip, ever. Two of its states are security requirements rather than
+     tone choices, and the wireframe has to hold that line. <b>The role tabs are deliberately absent
+     here</b> — see the note below; the role panel stays and is driven by <code>?as=</code>.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile — default</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow">
+          <div class="box later" style="padding:6px"><span class="lbl">no "I'm a…" tabs.
+            The account already holds whatever hats it holds.</span></div>
+          <div class="txt"><b>Welcome back</b></div>
+          <div class="line w60"></div>
+          <div class="rule"></div>
+          <span class="lbl">email</span>
+          <div class="field">you@example.com</div>
+          <span class="lbl">password + show/hide</span>
+          <div class="field">••••••••<span>show</span></div>
+          <div class="btn">Sign in</div>
+          <div class="rule"></div>
+          <div class="row between">
+            <span class="txt"><b>Forgot password?</b></span>
+            <span class="txt"><b>Create account</b></span>
+          </div>
+          <span class="lbl">secondary row — one recovery, one alternative</span>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>State — wrong email or password</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow">
+          <div class="txt"><b>Welcome back</b></div>
+          <div class="box" style="border-style:solid; border-width:2px">
+            <div class="txt" style="font-size:11.5px"><b>Email or password is incorrect.</b></div>
+          </div>
+          <span class="lbl">ONE generic message above the form. Never says which field.
+            Neither field gets an error ring — a ring on email alone is an existence oracle.</span>
+          <div class="rule"></div>
+          <div class="field">you@example.com</div>
+          <div class="field">••••••••<span>show</span></div>
+          <div class="btn">Sign in</div>
+          <div class="row between"><span class="txt"><b>Forgot password?</b></span><span class="txt"><b>Create account</b></span></div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>State — unverified email (distinct)</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow">
+          <div class="txt"><b>Welcome back</b></div>
+          <div class="box" style="border-style:solid">
+            <div class="txt" style="font-size:11.5px"><b>Verify your email to sign in.</b>
+              We sent a link when you registered.</div>
+            <div class="btn ghost">Resend verification email</div>
+          </div>
+          <span class="lbl">separate from the generic failure — the credentials were RIGHT,
+            so telling the user is not a leak</span>
+          <div class="rule"></div>
+          <div class="field">you@example.com</div>
+          <div class="field">••••••••<span>show</span></div>
+          <div class="btn">Sign in</div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop — default</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:8px 0"><div class="line w20" style="height:16px"></div></div>
+        <div class="row center grow">
+          <div class="box" style="width:400px; padding:24px">
+            <div class="txt"><b>Welcome back</b></div>
+            <div class="line w60"></div>
+            <div class="rule"></div>
+            <div class="field">you@example.com</div>
+            <div class="field">••••••••<span>show</span></div>
+            <div class="btn">Sign in</div>
+            <div class="rule"></div>
+            <div class="row between"><span class="txt"><b>Forgot password?</b></span><span class="txt"><b>Create account</b></span></div>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Why no role tabs here — the one open argument</h4>
+    <ul>
+      <li>On <code>/join</code> the tab is a <b>question we can't answer</b> — the account doesn't
+          exist, so only the user knows what they came to do. On <code>/signin</code> it is a
+          <b>question we can already answer better</b>: the moment the password checks out we know
+          every hat that email holds. Asking is worse than looking.</li>
+      <li>A tab that changes nothing is bad; a tab that changes something is worse. If picking
+          "Business" routed to <code>/collabs</code> and the account has no business, the user gets
+          bounced. If it routes nowhere, the control is a lie. There is no third option.</li>
+      <li><b>One of the current sublines is factually false.</b> "Sign in to your business account"
+          asserts a separate business account exists. It doesn't — one email, many hats. Copy that
+          contradicts the account model is a correctness bug, not a tone preference.</li>
+      <li><b>Keep the panel, drop the tabs.</b> The role panel still renders, driven by
+          <code>?as=</code> carried from whichever door they arrived through (default: creator).
+          "Create an account" still forwards that role to <code>/join?as=</code>. Nothing visible
+          promises anything untrue, and the screen still feels like the door it was entered from.</li>
+      <li><b>Where multi-hat accounts get sorted out is <code>/account</code></b>, which the sitemap
+          already defines as "links to any roles this email holds". That is the role switchboard —
+          see C1. Sign-in doesn't need to ask, because the next screen already answers.</li>
+    </ul>
+    <h4 style="margin-top:12px">Rules this layout enforces</h4>
+    <ul>
+      <li><b>The generic-failure message is a layout constraint, not just copy.</b> It sits above the
+          form as one banner. If it were rendered per-field, the position of the error would reveal
+          whether the email exists.</li>
+      <li><b>Unverified is a different shape</b> — a banner that carries its own action (resend).
+          Users stuck here need a way out that isn't retyping their password.</li>
+      <li><code>?callbackUrl</code> returns the user where they were. With no callback, sign-in lands
+          on <code>/account</code> for a multi-hat account and straight into the single surface when
+          the account has only one.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- A3 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="verify">
+  <div class="sh"><h3>A3 · /verify</h3><span class="tag">consumes the token on load</span></div>
+  <p>Not really a page — a landing pad with three outcomes. It has no form and nothing to fill in, so
+     the whole screen is one status block and at most one action.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>State — working / success</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow" style="justify-content:center; align-items:center">
+          <div class="box sq" style="width:48px; align-items:center; justify-content:center"><span class="lbl">✓</span></div>
+          <div class="txt"><b>Email verified</b></div>
+          <div class="txt" style="text-align:center">Taking you to the next step…</div>
+          <span class="lbl" style="text-align:center">auto-forwards by role: creator → connect socials ·
+            business → business basics · shopper → back to what they were doing</span>
+          <div class="btn ghost">Continue</div>
+          <span class="lbl">manual fallback if the redirect doesn't fire</span>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>State — expired or already used</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow" style="justify-content:center; align-items:center">
+          <div class="box sq" style="width:48px; align-items:center; justify-content:center"><span class="lbl">!</span></div>
+          <div class="txt"><b>This link has expired</b></div>
+          <div class="txt" style="text-align:center">Links work once. We can send you a fresh one.</div>
+          <div class="field" style="width:100%">you@example.com</div>
+          <div class="btn">Send a new link</div>
+          <span class="lbl">never a dead end</span>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>State — different device</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow" style="justify-content:center; align-items:center">
+          <div class="box sq" style="width:48px; align-items:center; justify-content:center"><span class="lbl">✓</span></div>
+          <div class="txt"><b>You're verified</b></div>
+          <div class="txt" style="text-align:center">Sign in here to continue on this device.</div>
+          <div class="btn">Sign in</div>
+          <span class="lbl">opening the link on another device verifies, then asks them
+            to sign in WHERE THEY ARE — not back on the original device</span>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<!-- A4 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="forgot">
+  <div class="sh"><h3>A4 · /forgot</h3><span class="tag">request a reset link</span></div>
+  <p>One field, one outcome. The outcome is <b>always</b> "check your email", whether or not the
+     account exists — the screen must never become a way to test which emails are registered.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile — default</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow">
+          <div class="txt"><b>Reset your password</b></div>
+          <div class="txt">Enter your email and we'll send a reset link.</div>
+          <div class="rule"></div>
+          <div class="field">you@example.com</div>
+          <div class="btn">Send reset link</div>
+          <div class="rule"></div>
+          <div class="row between"><span class="txt"><b>Back to sign in</b></span><span class="txt"><b>Create account</b></span></div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>State — link sent (the only outcome)</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow" style="justify-content:center; align-items:center">
+          <div class="box sq" style="width:48px; align-items:center; justify-content:center"><span class="lbl">✉</span></div>
+          <div class="txt"><b>Check your email</b></div>
+          <div class="txt" style="text-align:center">If an account exists for <b>you@example.com</b>,
+            a reset link is on its way.</div>
+          <span class="lbl" style="text-align:center">"if an account exists" is load-bearing —
+            same screen, same words, same timing for a real and a fake address</span>
+          <div class="btn ghost">Back to sign in</div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<!-- A5 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="reset">
+  <div class="sh"><h3>A5 · /reset</h3><span class="tag">new password</span><span class="tag">doubles as manager set-password</span></div>
+  <p>Reached from an emailed link. One form, two arrival contexts — a user resetting a forgotten
+     password, and an <b>invited Manager who has never had one</b>. Only the heading and the success
+     destination differ; the form is identical.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile — new password</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow">
+          <div class="txt"><b>Set a new password</b></div>
+          <div class="rule"></div>
+          <span class="lbl">new password</span>
+          <div class="field">••••••••<span>show</span></div>
+          <div class="txt" style="font-size:11px">At least 8 characters.</div>
+          <span class="lbl">confirm</span>
+          <div class="field">••••••••<span>show</span></div>
+          <div class="btn">Save password</div>
+          <div class="txt" style="font-size:11px">You'll be signed in straight away.</div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Variant — invited manager</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow">
+          <div class="txt"><b>Set your password</b></div>
+          <div class="box" style="border-style:solid">
+            <div class="row"><div class="av sm"></div>
+              <div class="txt" style="font-size:11.5px">You've been added as a Manager on
+                <b>@handle</b>.</div></div>
+          </div>
+          <span class="lbl">only difference: this context band + where success lands</span>
+          <div class="rule"></div>
+          <div class="field">••••••••<span>show</span></div>
+          <div class="field">••••••••<span>show</span></div>
+          <div class="btn">Save password</div>
+          <div class="txt" style="font-size:11px">This verifies your email and signs you in.</div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>State — expired link</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box grow" style="justify-content:center; align-items:center">
+          <div class="box sq" style="width:48px; align-items:center; justify-content:center"><span class="lbl">!</span></div>
+          <div class="txt"><b>This reset link has expired</b></div>
+          <div class="txt" style="text-align:center">Request a fresh one — it takes a moment.</div>
+          <div class="btn">Request a new link</div>
+        </div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Note</h4>
+    <ul>
+      <li>Success <b>signs the user in</b> — neither context bounces back to <code>/signin</code>.
+          A manager landing here is verified and signed straight into the managed profile.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- A6 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="claim">
+  <div class="sh"><h3>A6 · Inline claim sheet</h3><span class="tag">component, not a route</span><span class="tag">opens over the current page</span></div>
+  <p>The one place an anonymous shopper is ever asked for an account — and it is never a wall. It
+     opens <b>over</b> the creator page when they tap Follow or the comment band, and dismissing it
+     leaves them exactly where they were, still able to shop.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Over a creator page — default</figcaption>
+      <div class="vp" style="justify-content:flex-end; gap:0">
+        <div class="col scrim" style="gap:10px; flex:1">
+          <div class="topbar"><span class="lbl">brand</span><span class="lbl">search · account</span></div>
+          <div class="row"><div class="av"></div><div class="col grow"><div class="line w60"></div><div class="line w30"></div></div>
+            <div class="btn" style="padding:7px 12px">Follow</div></div>
+          <div class="grid g3"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+          <span class="lbl">page keeps working underneath — nothing is blocked</span>
+        </div>
+        <div class="box overlay" style="border-style:solid; border-width:2px; background:var(--paper)">
+          <div class="row center"><div class="line w20" style="height:4px; border-radius:9px"></div></div>
+          <div class="txt"><b>Create an account to follow</b></div>
+          <div class="txt" style="font-size:11.5px">Shopping never needs one — this is just so
+            follows and comments are yours.</div>
+          <div class="field">you@example.com</div>
+          <div class="field">••••••••<span>show</span></div>
+          <div class="btn">Create account</div>
+          <div class="row between"><span class="txt" style="font-size:11px">Already have one?</span>
+            <span class="txt" style="font-size:11px"><b>Sign in</b></span></div>
+          <span class="lbl">sign-in happens INSIDE the sheet — it never navigates to /signin</span>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr sheet">
+      <figcaption>Sheet — check your email</figcaption>
+      <div class="vp" style="justify-content:center">
+        <div class="box" style="border-style:solid; border-width:2px">
+          <div class="row center"><div class="line w20" style="height:4px; border-radius:9px"></div></div>
+          <div class="txt"><b>Check your email</b></div>
+          <div class="txt" style="font-size:11.5px">We sent a link to <b>you@example.com</b>.
+            Verify, then tap Follow again.</div>
+          <span class="lbl">[LATER] the pending action doesn't auto-resume — say so plainly
+            rather than implying it will</span>
+          <div class="btn ghost">Resend</div>
+          <div class="btn ghost">Close</div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr sheet">
+      <figcaption>Sheet — sign in (inside)</figcaption>
+      <div class="vp" style="justify-content:center">
+        <div class="box" style="border-style:solid; border-width:2px">
+          <div class="row center"><div class="line w20" style="height:4px; border-radius:9px"></div></div>
+          <div class="txt"><b>Sign in to follow</b></div>
+          <div class="field">you@example.com</div>
+          <div class="field">••••••••<span>show</span></div>
+          <div class="btn">Sign in</div>
+          <div class="row between"><span class="txt" style="font-size:11px"><b>Forgot password?</b></span>
+            <span class="txt" style="font-size:11px"><b>Create account</b></span></div>
+          <span class="lbl">Forgot IS a real navigation away — the only one. Everything
+            else stays in the sheet.</span>
+        </div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>The rule this component exists to protect</h4>
+    <ul>
+      <li><b>Shopping never requires an account.</b> This sheet may only ever appear behind
+          <b>Follow</b>, <b>Comment</b> or <b>Reply</b>. It must never appear on Buy, on a coupon copy,
+          on a product page load, or on any path toward the retailer.</li>
+      <li>Dismiss is always available and always cheap — the attempted action simply doesn't persist.
+          No "are you sure", no second ask.</li>
+      <li>It opens over the page rather than routing, so a shopper who declines is still on the post
+          they came for, one tap from the retailer.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GROUP B — EXPLORE
+     ═══════════════════════════════════════════════════════ -->
+<div class="group">
+  <h2>Group B — Explore</h2>
+  <p>The first screen wrapped in the global shopper chrome, so the chrome is wireframed here as its
+     own screen. Explore is the discovery door for shoppers who <i>didn't</i> arrive via a bio link.
+     No login anywhere on it.</p>
+</div>
+
+<!-- B0 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="chrome">
+  <div class="sh"><h3>B0 · Global shopper chrome</h3><span class="tag">wraps every public + shopper-account screen</span></div>
+  <p>Top bar everywhere, four-tab bottom bar on mobile. It is a way to get home, discover and reach
+     an account — and nothing in it may ever interrupt a buy.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile — signed out</figcaption>
+      <div class="vp">
+        <div class="topbar">
+          <span class="lbl">brand → /</span>
+          <div class="row"><span class="lbl">🔍 explore</span><div class="chip">Log in</div></div>
+        </div>
+        <span class="lbl">signed-out account slot = log in + "create your page" (→ /join?as=creator)</span>
+        <div class="box grow" style="align-items:center; justify-content:center">
+          <span class="lbl">page content</span></div>
+        <div class="tabbar">
+          <span>Home</span><span class="on">Shop</span><span>Following</span><span>Account</span>
+        </div>
+        <span class="lbl">SHOP is active across /explore AND every creator surface —
+          /[handle], post, product. All of that is "shopping".</span>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Mobile — signed in</figcaption>
+      <div class="vp">
+        <div class="topbar">
+          <span class="lbl">brand → /</span>
+          <div class="row"><span class="lbl">🔍 explore</span><div class="av sm"></div></div>
+        </div>
+        <span class="lbl">signed-in account slot = avatar → /account, with a fallback when no picture</span>
+        <div class="box grow" style="align-items:center; justify-content:center">
+          <span class="lbl">page content</span></div>
+        <div class="tabbar">
+          <span>Home</span><span>Shop</span><span>Following</span><span class="on">Account</span>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop — top bar only, no tab bar</figcaption>
+      <div class="vp">
+        <div class="topbar">
+          <span class="lbl">brand → /</span>
+          <div class="row grow" style="justify-content:center">
+            <div class="field grow" style="max-width:320px">Search creators and products</div>
+          </div>
+          <div class="row"><div class="chip">Log in</div><div class="btn" style="padding:7px 14px">Create your page</div></div>
+        </div>
+        <span class="lbl">on desktop the search affordance can expand inline in the bar;
+          on mobile it stays an icon that routes to /explore</span>
+        <div class="box grow" style="align-items:center; justify-content:center">
+          <span class="lbl">page content — no bottom bar at this width</span></div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Behaviour</h4>
+    <ul>
+      <li>Active tab is set programmatically via <code>aria-current</code>. Reserved top-level routes
+          must not wrongly light SHOP.</li>
+      <li>HOME is active only on exact <code>/</code>. ACCOUNT is also active on <code>/signin</code>.</li>
+      <li>The landing page uses its own nav and footer — <b>not</b> this chrome.</li>
+      <li>Nothing here ever walls the buy path. The account slot is an entrance, never a gate.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- B1 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="explore">
+  <div class="sh"><h3>B1 · /explore</h3><span class="tag">discovery</span><span class="tag">?tab= ?q=</span><span class="tag">server-rendered</span></div>
+  <p>Search plus browse, across creators and products. Server-rendered and works without JS — the
+     search box is a plain form. One page of results, no pagination yet.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile — creators tab (guest)</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span>
+          <div class="row"><span class="lbl">🔍</span><div class="chip">Log in</div></div></div>
+
+        <div class="col">
+          <div class="line h w75"></div>
+          <span class="lbl">heading — "Find your people"</span>
+          <div class="line w90"></div>
+          <span class="lbl">subline</span>
+        </div>
+
+        <div class="box" style="border-style:solid; padding:8px 10px">
+          <div class="txt" style="font-size:11.5px">Browsing as a guest — search and shop freely,
+            no login needed.</div>
+        </div>
+        <span class="lbl">viewer note — differs signed-in: "Follow creators to save them."</span>
+
+        <div class="row"><div class="chip on">Creators</div><div class="chip">Products</div></div>
+        <span class="lbl">tab switch, carried in ?tab= — a real link, not JS state</span>
+
+        <div class="row"><div class="field grow">Search creators…</div><div class="btn" style="padding:9px 14px">Go</div></div>
+        <div class="box later" style="padding:7px"><span class="lbl">[LATER] filter row — region ·
+          following-size · verified · niche chips. Leave the room, don't build it.</span></div>
+
+        <div class="txt" style="font-size:11px">12 creators</div>
+        <span class="lbl">result-count line</span>
+
+        <div class="grid g2">
+          <div class="box" style="padding:6px; gap:6px">
+            <div class="img r43"></div>
+            <div class="line w75"></div><div class="line w45"></div>
+            <div class="txt" style="font-size:10px">18 posts · 42 products</div>
+            <div class="row between"><span class="txt" style="font-size:10px">2.4k followers</span>
+              <span class="txt" style="font-size:10px"><b>View</b></span></div>
+          </div>
+          <div class="box" style="padding:6px; gap:6px">
+            <div class="img r43"></div>
+            <div class="line w60"></div><div class="line w45"></div>
+            <div class="txt" style="font-size:10px">6 posts · 9 products</div>
+            <div class="row between"><span class="txt" style="font-size:10px">310 followers</span>
+              <span class="txt" style="font-size:10px"><b>View</b></span></div>
+          </div>
+          <div class="box" style="padding:6px; gap:6px">
+            <div class="img r43"></div><div class="line w75"></div><div class="line w30"></div>
+            <div class="txt" style="font-size:10px">24 posts · 51 products</div>
+            <div class="row between"><span class="txt" style="font-size:10px">8.1k followers</span>
+              <span class="txt" style="font-size:10px"><b>View</b></span></div>
+          </div>
+          <div class="box" style="padding:6px; gap:6px">
+            <div class="img r43"></div><div class="line w60"></div><div class="line w45"></div>
+            <div class="txt" style="font-size:10px">3 posts · 4 products</div>
+            <div class="row between"><span class="txt" style="font-size:10px">88 followers</span>
+              <span class="txt" style="font-size:10px"><b>View</b></span></div>
+          </div>
+        </div>
+        <span class="lbl">whole card → /[handle]</span>
+
+        <div class="tabbar"><span>Home</span><span class="on">Shop</span><span>Following</span><span>Account</span></div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Mobile — products tab</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span>
+          <div class="row"><span class="lbl">🔍</span><div class="av sm"></div></div></div>
+        <div class="line h w75"></div>
+        <div class="box" style="border-style:solid; padding:8px 10px">
+          <div class="txt" style="font-size:11.5px">Follow creators to save them.</div></div>
+        <span class="lbl">signed-in viewer note</span>
+        <div class="row"><div class="chip">Creators</div><div class="chip on">Products</div></div>
+        <div class="row"><div class="field grow">Search products…</div><div class="btn" style="padding:9px 14px">Go</div></div>
+        <div class="txt" style="font-size:11px">36 products</div>
+
+        <div class="grid g2">
+          <!-- variant: coupon + affiliate -->
+          <div class="box" style="padding:6px; gap:5px">
+            <div style="position:relative"><div class="img sq"></div>
+              <div class="chip" style="position:absolute; top:5px; left:5px; border-style:solid; background:var(--paper)">SAVE10</div></div>
+            <div class="line w90"></div>
+            <div class="txt" style="font-size:10px">by @creator</div>
+            <div class="row between"><span class="txt" style="font-size:11px"><b>₹1,299</b></span>
+              <span class="txt" style="font-size:10px"><b>Buy</b></span></div>
+          </div>
+          <!-- variant: own store -->
+          <div class="box" style="padding:6px; gap:5px">
+            <div style="position:relative"><div class="img sq"></div>
+              <div class="chip" style="position:absolute; top:5px; left:5px; border-style:solid; background:var(--paper)">Own store</div></div>
+            <div class="line w75"></div>
+            <div class="txt" style="font-size:10px">by @creator</div>
+            <div class="row between"><span class="txt" style="font-size:11px"><b>$48.00</b></span>
+              <span class="txt" style="font-size:10px"><b>Shop</b></span></div>
+          </div>
+          <!-- variant: unknown price -->
+          <div class="box" style="padding:6px; gap:5px">
+            <div class="img sq"></div>
+            <div class="line w90"></div>
+            <div class="txt" style="font-size:10px">by @creator</div>
+            <div class="row between"><span class="lbl">price line absent — never "$0"</span>
+              <span class="txt" style="font-size:10px"><b>Buy</b></span></div>
+          </div>
+          <!-- variant: plain -->
+          <div class="box" style="padding:6px; gap:5px">
+            <div class="img sq"></div>
+            <div class="line w60"></div>
+            <div class="txt" style="font-size:10px">by @creator</div>
+            <div class="row between"><span class="txt" style="font-size:11px"><b>£22.00</b></span>
+              <span class="txt" style="font-size:10px"><b>Buy</b></span></div>
+          </div>
+        </div>
+        <span class="lbl">whole card → the PRODUCT PAGE. The card never taps out to the
+          retailer — the outbound tap happens one screen later.</span>
+
+        <div class="tabbar"><span>Home</span><span class="on">Shop</span><span>Following</span><span>Account</span></div>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop — creators tab</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span>
+          <div class="row grow" style="justify-content:center"><div class="field grow" style="max-width:320px">Search</div></div>
+          <div class="row"><div class="chip">Log in</div><div class="btn" style="padding:7px 14px">Create your page</div></div></div>
+
+        <div class="col" style="align-items:center; padding:14px 0 4px">
+          <div class="line hh w45"></div>
+          <div class="line w60"></div>
+        </div>
+        <span class="lbl" style="text-align:center">heading + subline centred; everything below is left-aligned grid</span>
+
+        <div class="row between">
+          <div class="row"><div class="chip on">Creators</div><div class="chip">Products</div></div>
+          <div class="box" style="border-style:solid; padding:6px 10px">
+            <div class="txt" style="font-size:11px">Browsing as a guest — no login needed.</div></div>
+        </div>
+        <span class="lbl">on desktop the tab switch and the viewer note share a row</span>
+
+        <div class="row"><div class="field grow">Search creators…</div><div class="btn">Search</div></div>
+        <div class="box later" style="padding:6px"><span class="lbl">[LATER] filter row</span></div>
+        <div class="txt" style="font-size:11px">12 creators</div>
+
+        <div class="grid g4">
+          <div class="box" style="padding:6px; gap:5px"><div class="img r43"></div><div class="line w75"></div>
+            <div class="line w45"></div><div class="txt" style="font-size:10px">18 posts · 42 products</div></div>
+          <div class="box" style="padding:6px; gap:5px"><div class="img r43"></div><div class="line w60"></div>
+            <div class="line w45"></div><div class="txt" style="font-size:10px">6 posts · 9 products</div></div>
+          <div class="box" style="padding:6px; gap:5px"><div class="img r43"></div><div class="line w90"></div>
+            <div class="line w30"></div><div class="txt" style="font-size:10px">24 posts · 51 products</div></div>
+          <div class="box" style="padding:6px; gap:5px"><div class="img r43"></div><div class="line w60"></div>
+            <div class="line w45"></div><div class="txt" style="font-size:10px">3 posts · 4 products</div></div>
+        </div>
+        <span class="lbl">2 cols on phone → 3 at tablet → 4 on desktop. Products use the same grid,
+          square media instead of 4:3.</span>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Layout decisions to discuss</h4>
+    <ul>
+      <li><b>Order is fixed:</b> heading → viewer note → tab switch → search → [LATER] filter row →
+          result count → grid. The viewer note sits <i>above</i> the search box because it's a promise
+          about the whole screen, not a hint about the field.</li>
+      <li><b>The tab switch is above the search box</b>, not beside it — searching creators and
+          searching products are different searches, and the scope has to be visible before you type.</li>
+      <li><b>Two card types, one grid.</b> Creator cards use 4:3 media, product cards square. Same
+          columns, same gaps, so a tab switch doesn't reflow the page shape.</li>
+      <li>Product cards carry up to two markers at top-left — an <b>active coupon chip showing the
+          code</b>, and an <b>own-store marker</b>. Only one appears per card in practice; if a product
+          is both, the coupon wins the corner and the own-store marker moves to the meta line.
+          <i>Worth a decision.</i></li>
+      <li><b>No loading state exists</b> — the page is server-rendered. Skeletons here would be a lie.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- B2 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="explore-states">
+  <div class="sh"><h3>B2 · /explore — empty states</h3><span class="tag">two distinct empties</span></div>
+  <p>The two empties mean different things and must not share copy. One is "your search was too
+     narrow"; the other is "the platform is new".</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Empty — with a query</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><div class="row"><span class="lbl">🔍</span><div class="chip">Log in</div></div></div>
+        <div class="line h w75"></div>
+        <div class="row"><div class="chip on">Creators</div><div class="chip">Products</div></div>
+        <div class="row"><div class="field grow">skincare routine 2026</div><div class="btn" style="padding:9px 14px">Go</div></div>
+        <div class="txt" style="font-size:11px">0 creators</div>
+        <div class="box grow" style="align-items:center; justify-content:center; border-style:solid">
+          <div class="txt" style="text-align:center"><b>Nothing matches that search — try widening it.</b></div>
+          <div class="btn ghost">Clear search</div>
+          <span class="lbl" style="text-align:center">query stays in the field so it can be edited,
+            not retyped</span>
+        </div>
+        <div class="tabbar"><span>Home</span><span class="on">Shop</span><span>Following</span><span>Account</span></div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Empty — no query, nothing exists</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><div class="row"><span class="lbl">🔍</span><div class="chip">Log in</div></div></div>
+        <div class="line h w75"></div>
+        <div class="row"><div class="chip on">Creators</div><div class="chip">Products</div></div>
+        <div class="row"><div class="field grow">Search creators…</div><div class="btn" style="padding:9px 14px">Go</div></div>
+        <div class="box grow" style="align-items:center; justify-content:center; border-style:solid">
+          <div class="txt" style="text-align:center"><b>Nothing here yet — creators are on their way.</b></div>
+          <div class="btn ghost">Create your page</div>
+          <span class="lbl" style="text-align:center">the only screen where an empty state
+            legitimately points at /join — there is nothing to shop</span>
+        </div>
+        <div class="tabbar"><span>Home</span><span class="on">Shop</span><span>Following</span><span>Account</span></div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Behaviour</h4>
+    <ul>
+      <li>The query is trimmed and length-capped; matching is case-insensitive on creator username
+          and product title.</li>
+      <li>The result-count line stays visible at zero ("0 creators") — it confirms the search ran.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GROUP C — ROLE DIFFERENTIATION
+     ═══════════════════════════════════════════════════════ -->
+<div class="group">
+  <h2>Group C — Which role is in play</h2>
+  <p><b>Role is a mode, not an identity.</b> One email is shopper, creator and business at once —
+     roles are capabilities layered on one account, never separate logins. So "which user is this?"
+     has no answer; the answerable question is <b>"which hat is on right now, and does the frame say
+     so?"</b> That gets handled at three separate moments, three different ways.</p>
+</div>
+
+<!-- C0 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="chromes">
+  <div class="sh"><h3>C0 · The three chromes</h3><span class="tag">the primary role signal</span></div>
+  <p>Once someone is inside, <b>the chrome tells them which mode they're in</b> — not a badge on their
+     avatar, not a colour on their name. Three surfaces already exist in the spec; what's missing is
+     that they share one slot in the same position that names the mode and switches it.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Shopper chrome — public + /account, /following</figcaption>
+      <div class="vp">
+        <div class="topbar" style="border-style:solid">
+          <span class="lbl">brand</span>
+          <div class="row"><span class="lbl">🔍</span>
+            <div class="chip" style="border-style:solid">◯ Shopping ▾</div></div>
+        </div>
+        <span class="lbl">MODE SLOT — top right, every chrome, same position</span>
+        <div class="box grow" style="align-items:center; justify-content:center">
+          <span class="lbl">content leads · chrome recedes</span></div>
+        <div class="tabbar"><span>Home</span><span class="on">Shop</span><span>Following</span><span>Account</span></div>
+        <span class="lbl">4-tab bottom bar = you are shopping. No other chrome has one.</span>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Creator shell — /dashboard/*</figcaption>
+      <div class="vp">
+        <div class="topbar" style="border-style:solid">
+          <span class="lbl">brand</span>
+          <div class="chip" style="border-style:solid">◆ Creator · @handle ▾</div>
+        </div>
+        <span class="lbl">same slot — now naming the mode AND the active profile</span>
+        <div class="row" style="overflow:hidden; gap:5px">
+          <div class="chip on" style="font-size:9px">Home</div><div class="chip" style="font-size:9px">Posts</div>
+          <div class="chip" style="font-size:9px">Products</div><div class="chip" style="font-size:9px">···</div>
+        </div>
+        <span class="lbl">section-tab row = you are working. Carries ?profile= through every URL.</span>
+        <div class="box grow" style="align-items:center; justify-content:center">
+          <span class="lbl">denser than the shopper surface — this is a tool</span></div>
+        <span class="lbl">no bottom tab bar — its absence is itself the signal</span>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Business chrome — /collabs/*</figcaption>
+      <div class="vp">
+        <div class="topbar" style="border-style:solid">
+          <span class="lbl">brand</span>
+          <div class="chip" style="border-style:solid">▣ Business · Acme ▾</div>
+        </div>
+        <span class="lbl">same slot again</span>
+        <div class="box grow" style="align-items:center; justify-content:center">
+          <span class="lbl">lightest chrome of the three — no tabs, no switcher row</span></div>
+        <span class="lbl">no bottom bar, no section tabs</span>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>The mode slot, opened — one component, three surfaces</figcaption>
+      <div class="vp">
+        <div class="topbar" style="border-style:solid"><span class="lbl">brand</span>
+          <div class="chip on">◆ Creator · @handle ▾</div></div>
+        <div class="box" style="border-style:solid">
+          <span class="lbl">this account's hats — only the ones it actually holds</span>
+          <div class="row between" style="padding:5px 0"><span class="txt">◯ Shopping</span><span class="txt" style="font-size:10px">→ /</span></div>
+          <div class="rule"></div>
+          <span class="lbl">creator · 2 of 5 profiles</span>
+          <div class="row between" style="padding:4px 0"><div class="row"><div class="av sm"></div><span class="txt"><b>@handle</b></span></div><span class="txt" style="font-size:10px">active</span></div>
+          <div class="row between" style="padding:4px 0"><div class="row"><div class="av sm"></div><span class="txt">@other</span></div><span class="txt" style="font-size:10px">switch</span></div>
+          <div class="txt" style="font-size:10px">+ New profile</div>
+          <div class="rule"></div>
+          <div class="row between" style="padding:5px 0"><span class="txt">▣ Acme</span><span class="txt" style="font-size:10px">→ /collabs</span></div>
+          <div class="rule"></div>
+          <div class="row between" style="padding:5px 0"><span class="txt">Sign out</span></div>
+        </div>
+        <span class="lbl">an account with no business shows no business row — never a greyed-out
+          "upgrade" teaser. Absent means absent.</span>
+        <div class="box grow later" style="align-items:center; justify-content:center">
+          <span class="lbl">page dimmed behind</span></div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Why this and not the obvious alternatives</h4>
+    <ul>
+      <li><b>Not a colour per role.</b> Tempting — creator violet, business slate, shopper neutral —
+          but it burns the one colour system the brand has on a distinction most users never make,
+          and it breaks on <code>/[handle]</code>, which all three roles look at simultaneously.
+          Structure carries the mode; colour stays the brand's.</li>
+      <li><b>Not a badge on the avatar.</b> A badge describes the person. The person is all three.
+          What varies is the surface, so the surface should say it.</li>
+      <li><b>The three chromes already differ structurally</b> — bottom tab bar / section tabs /
+          neither. That difference is doing most of the work already; the mode slot just names it
+          out loud and makes it switchable, so a creator who lands in the wrong world has one tap out.</li>
+      <li><b>Managers are not a fourth mode.</b> A Manager lives in the creator shell on someone
+          else's profile. The switcher lists it under Creator with the owner's handle; what changes
+          is which controls are disabled inside Settings, not the chrome.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- C1 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="account">
+  <div class="sh"><h3>C1 · /account</h3><span class="tag">the role switchboard</span><span class="tag">shopper chrome</span></div>
+  <p>Already in the sitemap as "member handle + links to any roles this email holds + sign out" — which
+     makes it the one screen whose entire job is answering <i>which hats do I have</i>. It is where
+     sign-in lands when there's no callback, and it is the full-page version of the mode slot.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile — an account wearing all three hats</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><div class="row"><span class="lbl">🔍</span><div class="av sm"></div></div></div>
+        <div class="row"><div class="av"></div>
+          <div class="col grow"><div class="line w60"></div>
+            <div class="txt" style="font-size:10px">@member-handle · you@example.com</div></div></div>
+        <span class="lbl">the MEMBER handle — the name on comments. Never an email, never a
+          creator username.</span>
+        <div class="rule"></div>
+        <span class="lbl">what this email can do</span>
+        <div class="box"><div class="row between"><div class="col"><span class="txt"><b>◯ Shopping</b></span>
+          <span class="txt" style="font-size:10px">Follow creators, comment</span></div>
+          <span class="txt" style="font-size:10px">Following →</span></div></div>
+        <div class="box"><div class="row between"><div class="col"><span class="txt"><b>◆ Creator</b></span>
+          <span class="txt" style="font-size:10px">2 profiles · @handle, @other</span></div>
+          <span class="txt" style="font-size:10px">Dashboard →</span></div></div>
+        <div class="box"><div class="row between"><div class="col"><span class="txt"><b>▣ Business</b></span>
+          <span class="txt" style="font-size:10px">Acme · 3 open threads</span></div>
+          <span class="txt" style="font-size:10px">Collabs →</span></div></div>
+        <div class="rule"></div>
+        <div class="btn ghost">Sign out</div>
+        <div class="tabbar"><span>Home</span><span>Shop</span><span>Following</span><span class="on">Account</span></div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Mobile — shopper only (the common case)</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><div class="row"><span class="lbl">🔍</span><div class="av sm"></div></div></div>
+        <div class="row"><div class="av"></div><div class="col grow"><div class="line w60"></div>
+          <div class="txt" style="font-size:10px">@member-handle · you@example.com</div></div></div>
+        <div class="rule"></div>
+        <div class="box"><div class="row between"><div class="col"><span class="txt"><b>◯ Shopping</b></span>
+          <span class="txt" style="font-size:10px">Follow creators, comment</span></div>
+          <span class="txt" style="font-size:10px">Following →</span></div></div>
+        <div class="box" style="border-style:solid">
+          <span class="txt" style="font-size:11.5px"><b>Make your own page</b></span>
+          <span class="txt" style="font-size:10.5px">Turn your posts into a shop. Free to start.</span>
+          <div class="btn">Become a creator</div></div>
+        <span class="lbl">the ONLY upsell in the product, and it lives here — on the account
+          screen, never on a shopping surface</span>
+        <div class="rule"></div>
+        <div class="btn ghost">Sign out</div>
+        <div class="tabbar"><span>Home</span><span>Shop</span><span>Following</span><span class="on">Account</span></div>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop — same rows, wider</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span>
+          <div class="row grow" style="justify-content:center"><div class="field grow" style="max-width:320px">Search</div></div>
+          <div class="av sm"></div></div>
+        <div class="row" style="max-width:640px; margin:14px auto 0; width:100%">
+          <div class="av" style="width:48px;height:48px"></div>
+          <div class="col grow"><div class="line h w45"></div>
+            <div class="txt" style="font-size:11px">@member-handle · you@example.com</div></div>
+          <div class="chip">Edit handle</div>
+        </div>
+        <div class="col" style="max-width:640px; margin:0 auto; width:100%; gap:8px">
+          <div class="rule" style="margin:10px 0 4px"></div>
+          <div class="grid g3">
+            <div class="box"><span class="txt"><b>◯ Shopping</b></span>
+              <span class="txt" style="font-size:10px">Follow, comment</span>
+              <div class="chip mt">Following</div></div>
+            <div class="box"><span class="txt"><b>◆ Creator</b></span>
+              <span class="txt" style="font-size:10px">2 profiles</span>
+              <div class="chip mt">Dashboard</div></div>
+            <div class="box"><span class="txt"><b>▣ Business</b></span>
+              <span class="txt" style="font-size:10px">Acme</span>
+              <div class="chip mt">Collabs</div></div>
+          </div>
+          <span class="lbl">three cards on desktop, stacked rows on phone — same content, same order</span>
+        </div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Rules</h4>
+    <ul>
+      <li><b>A hat this account doesn't hold does not appear as a locked card.</b> One exception,
+          deliberate: the "become a creator" block on a shopper-only account, because that is the
+          product's actual growth path and this is the one screen where selling it isn't a wall.
+          No equivalent business upsell — a business is created when someone needs one.</li>
+      <li>The <b>member handle</b> shown here is the comment identity. It is not any creator
+          username and it never appears in auth.</li>
+      <li>This screen is inside the <b>shopper chrome</b>, ACCOUNT tab active — which is correct:
+          you are not in creator or business mode while choosing which mode to enter.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- C2 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="viewers">
+  <div class="sh"><h3>C2 · One page, four viewers</h3><span class="tag">/[handle] and product pages</span><span class="tag">already a named rule</span></div>
+  <p>The hardest case: a page all three roles look at <b>at the same time</b>. The rule already in
+     DESIGN.md — <i>Viewer-Swaps-The-Chrome</i> — is that only the header action slot and any band
+     change. The buy path is byte-identical for every viewer. Repeated here because it is the answer
+     to "who is in action" on the surfaces that matter most.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>1 · Anonymous shopper</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><div class="chip">Log in</div></div>
+        <div class="row"><div class="av"></div><div class="col grow"><div class="line w60"></div><div class="line w30"></div></div></div>
+        <div class="btn" style="text-align:center">Follow</div>
+        <span class="lbl">ACTION SLOT — opens the claim sheet, never navigates</span>
+        <div class="row" style="gap:5px"><div class="chip on" style="font-size:9px">All</div><div class="chip" style="font-size:9px">Shelf</div></div>
+        <div class="grid g3"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+          <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+        <span class="lbl">↑ identical for all four viewers ↑</span>
+        <div class="box" style="border-style:solid"><span class="txt" style="font-size:11px">Sign in to comment</span></div>
+        <span class="lbl">FOOTER — claim band</span>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>2 · Signed-in shopper</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><div class="av sm"></div></div>
+        <div class="row"><div class="av"></div><div class="col grow"><div class="line w60"></div><div class="line w30"></div></div></div>
+        <div class="btn ghost" style="text-align:center">Following ✓</div>
+        <span class="lbl">ACTION SLOT — a working toggle, optimistic</span>
+        <div class="row" style="gap:5px"><div class="chip on" style="font-size:9px">All</div><div class="chip" style="font-size:9px">Shelf</div></div>
+        <div class="grid g3"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+          <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+        <span class="lbl">↑ identical ↑</span>
+        <div class="field">Write a comment…</div>
+        <span class="lbl">FOOTER — composer, posting as @member-handle</span>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>3 · Business viewer</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><div class="av sm"></div></div>
+        <div class="row"><div class="av"></div><div class="col grow"><div class="line w60"></div><div class="line w30"></div></div></div>
+        <div class="btn ghost" style="text-align:center">Follow</div>
+        <div class="box" style="border-style:solid">
+          <span class="txt" style="font-size:11px"><b>You own a business</b></span>
+          <div class="btn" style="padding:7px 12px">Request collab</div></div>
+        <span class="lbl">EXTRA BAND — the only addition. Suppressed on your own page.</span>
+        <div class="row" style="gap:5px"><div class="chip on" style="font-size:9px">All</div><div class="chip" style="font-size:9px">Shelf</div></div>
+        <div class="grid g3"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+          <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+        <span class="lbl">↑ identical ↑</span>
+        <div class="field">Write a comment…</div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>4 · Owner (Admin or Manager)</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><div class="av sm"></div></div>
+        <div class="row"><div class="av"></div><div class="col grow"><div class="line w60"></div><div class="line w30"></div></div></div>
+        <div class="row"><div class="btn ghost grow" style="text-align:center">Share</div>
+          <div class="btn ghost grow" style="text-align:center">Edit profile</div></div>
+        <span class="lbl">ACTION SLOT — no Follow at all. Edit profile is ADMIN ONLY;
+          a Manager sees Share alone.</span>
+        <div class="box" style="border-style:solid">
+          <span class="txt" style="font-size:11px"><b>This is your page — visitors see exactly this.</b></span>
+          <span class="txt" style="font-size:10px">Go to dashboard →</span></div>
+        <span class="lbl">the band that makes preview-vs-edit unambiguous</span>
+        <div class="row" style="gap:5px"><div class="chip on" style="font-size:9px">All</div><div class="chip" style="font-size:9px">Shelf</div></div>
+        <div class="grid g3"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+          <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+        <span class="lbl">↑ identical — no inline edit pencils, no owner-only overlay ↑</span>
+        <div class="field">Write a comment… <span>as @handle</span></div>
+        <span class="lbl">the one comment identity switch in the product</span>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>The test</h4>
+    <ul>
+      <li><b>If a viewer state changes what someone can buy or how they buy it, the state is wrong —
+          not the layout.</b> Four viewers, four different frames, one identical shop.</li>
+      <li><b>The owner does not get an editable page.</b> Owner tools are a band and an action slot;
+          editing happens in the dashboard. A page that becomes an editor when its owner looks at it
+          is a page the owner can no longer trust as a preview.</li>
+      <li><b>Admin vs Manager is a control-level difference, not a viewer</b> — same band, same slot,
+          but Edit profile is absent for a Manager. Where a Manager is blocked inside Settings the
+          control is <b>shown disabled with a reason</b>, never silently hidden.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GROUP D — ALTERNATES
+     ═══════════════════════════════════════════════════════ -->
+<div class="group">
+  <h2>Group D — Alternates</h2>
+  <p>B1 and A0 are the safe reading of the spec: a marketplace card grid and a SaaS split-screen.
+     Both are correct and both are anonymous — you could swap the logo for any competitor's and
+     nothing would look wrong. These two are the same screens designed <b>against the north star
+     instead of around it</b>: the product tag pinned on a photograph is the mechanism made visible,
+     so it should be the thing discovery and signup are built from.</p>
+</div>
+
+<!-- D1 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="alt-explore">
+  <div class="sh"><h3>D1 · /explore — the tagged wall</h3><span class="tag">alternate to B1</span><span class="tag">bends the spec — read the notes</span></div>
+  <p>Kill the Creators/Products tab switch. <b>You don't browse objects, you browse content, and the
+     things inside it are already priced.</b> A wall of real posts with tags visible at rest — the
+     shop window is the feed. A creator fan sits above it for people who came looking for a person.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Mobile — the wall</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span>
+          <div class="row"><span class="lbl">🔍</span><div class="chip">Log in</div></div></div>
+
+        <div class="row"><div class="field grow">Search posts, people, things…</div></div>
+        <span class="lbl">ONE search box. It searches everything, because everything is
+          reachable through a post.</span>
+
+        <span class="lbl">shelves — how shoppers actually think</span>
+        <div class="row" style="overflow:hidden; gap:5px">
+          <div class="chip on" style="font-size:9px">All</div><div class="chip" style="font-size:9px">Skincare</div>
+          <div class="chip" style="font-size:9px">Desk</div><div class="chip" style="font-size:9px">Fit</div>
+          <div class="chip" style="font-size:9px">›</div></div>
+
+        <span class="lbl">the fan — creators, tilted and overlapping, scrolls with momentum</span>
+        <div class="fanrail">
+          <div class="tilt-a"><div class="img sq"></div><div class="line w75" style="margin-top:4px"></div></div>
+          <div class="tilt-b"><div class="img sq"></div><div class="line w60" style="margin-top:4px"></div></div>
+          <div class="tilt-c"><div class="img sq"></div><div class="line w75" style="margin-top:4px"></div></div>
+          <div class="tilt-d"><div class="img sq"></div><div class="line w60" style="margin-top:4px"></div></div>
+        </div>
+
+        <div class="rule"></div>
+        <div class="txt" style="font-size:11px">Tagged in 240 posts</div>
+
+        <div class="wall">
+          <div class="box tilt-a" style="padding:5px; gap:5px">
+            <div class="shot"><div class="img" style="aspect-ratio:3/4"></div>
+              <div class="pin" style="top:34%; left:12%">Serum · ₹1,299</div>
+              <div class="pin up" style="bottom:12%; right:8%">Balm · ₹640</div></div>
+            <div class="row"><div class="av sm"></div><div class="line w60"></div></div>
+          </div>
+          <div class="box tilt-b" style="padding:5px; gap:5px">
+            <div class="shot"><div class="img sq"></div>
+              <div class="pin" style="top:44%; left:16%">Lamp · $48</div></div>
+            <div class="row"><div class="av sm"></div><div class="line w75"></div></div>
+          </div>
+          <div class="box tilt-c" style="padding:5px; gap:5px">
+            <div class="shot"><div class="img sq"></div>
+              <div class="pin" style="top:30%; right:10%">Keys · $110</div>
+              <div class="pin up" style="bottom:20%; left:10%">Mat · $32</div></div>
+            <div class="row"><div class="av sm"></div><div class="line w60"></div></div>
+          </div>
+          <div class="box tilt-d" style="padding:5px; gap:5px">
+            <div class="shot"><div class="img" style="aspect-ratio:3/4"></div>
+              <div class="pin" style="top:52%; left:14%">Shoe · £89</div></div>
+            <div class="row"><div class="av sm"></div><div class="line w75"></div></div>
+          </div>
+        </div>
+        <span class="lbl">tap a TAG → product page · tap the PHOTO → post view.
+          Two targets, both 44px, no ambiguity.</span>
+
+        <div class="tabbar"><span>Home</span><span class="on">Shop</span><span>Following</span><span>Account</span></div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Mobile — an untagged post, and a coupon tag</figcaption>
+      <div class="vp">
+        <div class="wall">
+          <div class="box tilt-a" style="padding:5px; gap:5px">
+            <div class="shot"><div class="img sq"></div>
+              <div class="pin" style="top:38%; left:12%">Serum · ₹1,299 · CODE</div></div>
+            <div class="row"><div class="av sm"></div><div class="line w60"></div></div>
+          </div>
+          <div class="box tilt-b" style="padding:5px; gap:5px">
+            <div class="shot"><div class="img sq"></div></div>
+            <div class="row"><div class="av sm"></div><div class="line w75"></div></div>
+            <span class="lbl">no tags = no pills. The post still shows —
+              it's still content — it just isn't shoppable.</span>
+          </div>
+          <div class="box tilt-c" style="padding:5px; gap:5px">
+            <div class="shot"><div class="img" style="aspect-ratio:3/4"></div>
+              <div class="pin" style="top:20%; left:10%">Tee · $28</div>
+              <div class="pin" style="top:46%; right:8%">Cap · $22</div>
+              <div class="pin up" style="bottom:14%; left:14%">Bag · $95</div></div>
+            <div class="row"><div class="av sm"></div><div class="line w60"></div></div>
+            <span class="lbl">3 tags is the cap on a wall tile. A 4th collapses
+              them all to one "5 things ›" pill — see notes.</span>
+          </div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop — the wall goes wide, the fan goes long</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span>
+          <div class="row grow" style="justify-content:center"><div class="field grow" style="max-width:360px">Search posts, people, things…</div></div>
+          <div class="row"><div class="chip">Log in</div><div class="btn" style="padding:7px 14px">Create your page</div></div></div>
+
+        <div class="row between">
+          <div class="row" style="gap:5px"><div class="chip on" style="font-size:10px">All</div>
+            <div class="chip" style="font-size:10px">Skincare</div><div class="chip" style="font-size:10px">Desk</div>
+            <div class="chip" style="font-size:10px">Fit</div><div class="chip" style="font-size:10px">Home</div></div>
+          <div class="txt" style="font-size:11px">Browsing as a guest — no login needed.</div>
+        </div>
+
+        <div class="fanrail">
+          <div class="tilt-a"><div class="img sq"></div><div class="line w75" style="margin-top:4px"></div></div>
+          <div class="tilt-b"><div class="img sq"></div><div class="line w60" style="margin-top:4px"></div></div>
+          <div class="tilt-c"><div class="img sq"></div><div class="line w75" style="margin-top:4px"></div></div>
+          <div class="tilt-d"><div class="img sq"></div><div class="line w60" style="margin-top:4px"></div></div>
+          <div class="tilt-a"><div class="img sq"></div><div class="line w75" style="margin-top:4px"></div></div>
+          <div class="tilt-b"><div class="img sq"></div><div class="line w60" style="margin-top:4px"></div></div>
+          <div class="tilt-c"><div class="img sq"></div><div class="line w60" style="margin-top:4px"></div></div>
+        </div>
+        <span class="lbl">the fan keeps its tilts at every width — flattening it to a
+          neat row is what loses the character</span>
+
+        <div class="rule"></div>
+        <div class="grid g4" style="align-items:start">
+          <div class="col">
+            <div class="box tilt-a" style="padding:5px; gap:5px"><div class="shot"><div class="img" style="aspect-ratio:3/4"></div>
+              <div class="pin" style="top:36%; left:12%">Serum · ₹1,299</div></div>
+              <div class="row"><div class="av sm"></div><div class="line w60"></div></div></div>
+            <div class="box tilt-c" style="padding:5px; gap:5px"><div class="shot"><div class="img sq"></div>
+              <div class="pin" style="top:40%; right:10%">Mat · $32</div></div>
+              <div class="row"><div class="av sm"></div><div class="line w75"></div></div></div>
+          </div>
+          <div class="col">
+            <div class="box tilt-b" style="padding:5px; gap:5px"><div class="shot"><div class="img sq"></div>
+              <div class="pin" style="top:44%; left:14%">Lamp · $48</div></div>
+              <div class="row"><div class="av sm"></div><div class="line w75"></div></div></div>
+            <div class="box tilt-d" style="padding:5px; gap:5px"><div class="shot"><div class="img" style="aspect-ratio:3/4"></div>
+              <div class="pin" style="top:30%; left:10%">Tee · $28</div>
+              <div class="pin up" style="bottom:16%; right:8%">Cap · $22</div></div>
+              <div class="row"><div class="av sm"></div><div class="line w60"></div></div></div>
+          </div>
+          <div class="col">
+            <div class="box tilt-c" style="padding:5px; gap:5px"><div class="shot"><div class="img sq"></div>
+              <div class="pin" style="top:38%; left:12%">Keys · $110</div></div>
+              <div class="row"><div class="av sm"></div><div class="line w60"></div></div></div>
+            <div class="box tilt-a" style="padding:5px; gap:5px"><div class="shot"><div class="img" style="aspect-ratio:3/4"></div>
+              <div class="pin" style="top:50%; right:12%">Shoe · £89</div></div>
+              <div class="row"><div class="av sm"></div><div class="line w75"></div></div></div>
+          </div>
+          <div class="col">
+            <div class="box tilt-d" style="padding:5px; gap:5px"><div class="shot"><div class="img sq"></div>
+              <div class="pin" style="top:34%; left:16%">Bottle · ₹890</div></div>
+              <div class="row"><div class="av sm"></div><div class="line w60"></div></div></div>
+            <div class="box tilt-b" style="padding:5px; gap:5px"><div class="shot"><div class="img sq"></div></div>
+              <div class="row"><div class="av sm"></div><div class="line w75"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>What this buys, and what it costs</h4>
+    <ul>
+      <li><b>The tab switch disappears.</b> Creators and products were never two things to browse —
+          a product only exists because it's in a post, and a creator is who made the post. Browsing
+          the posts reaches both. That deletes a control, a URL parameter and a whole second grid.</li>
+      <li><b>Shelves replace search-as-primary.</b> Nobody arrives at a discovery page knowing a
+          creator's username — that's the one thing search is good at. They arrive knowing they want
+          skincare. Shelves already exist as creator-defined categories; this is the first surface
+          that reads them <i>across</i> creators.</li>
+      <li><b>Price is visible before the tap.</b> On the B1 card grid you learn the price after
+          committing to a card. Here every tag carries its price in the wall, so the shopper filters
+          by budget with their eyes.</li>
+      <li><b>Cost — tag density.</b> A post with eight products cannot show eight pills at 160px wide.
+          Cap it at 3 and collapse the rest into a single <code>5 things ›</code> pill that opens the
+          post. Needs a decision on <i>which</i> 3 — creator order, or cheapest-first?</li>
+      <li><b>Cost — it needs real imagery to work at all.</b> The B1 grid degrades gracefully to
+          placeholder rectangles; this one doesn't. On a young platform with thin content the wall
+          looks emptier than a card grid does. That's an argument for launching with B1 and moving
+          to D1 at content volume — or for a hybrid where the wall falls back to cards under N posts.</li>
+      <li><b>Bends the spec:</b> §5.3 specifies a Creators/Products tab switch and two card types.
+          This replaces both. The underlying data supports it (posts already carry tagged products
+          with coordinates) but it is a product IA change, not just a layout one.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- D2 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="alt-auth">
+  <div class="sh"><h3>D2 · Auth — proof instead of pitch</h3><span class="tag">alternate to A0 / A1</span></div>
+  <p>The violet panel with a two-line headline and three ticks is the single most reproduced layout
+     in software. Swap the promise for the artefact: <b>the panel is a real tagged post</b> — the thing
+     a creator is about to make, or the thing a shopper is about to follow. Same slot, same split,
+     but it shows the product instead of describing it.</p>
+
+  <div class="frames">
+    <figure class="fr dk">
+      <figcaption>Desktop — creator door</figcaption>
+      <div class="vp" style="padding:0; flex-direction:row; gap:0">
+        <div class="col" style="width:46%; background:var(--fill); padding:22px; gap:10px; justify-content:center">
+          <span class="lbl">this is what you're making — not a list of benefits</span>
+          <div class="box tilt-a" style="padding:8px; gap:7px; width:78%; margin:0 auto">
+            <div class="shot"><div class="img" style="aspect-ratio:4/5"></div>
+              <div class="pin" style="top:28%; left:12%">Serum · ₹1,299</div>
+              <div class="pin up" style="bottom:22%; right:8%">Balm · ₹640 · CODE</div></div>
+            <div class="row"><div class="av sm"></div>
+              <div class="col grow"><div class="line w60"></div><div class="line w30"></div></div>
+              <span class="lbl">2 items</span></div>
+          </div>
+          <div class="txt" style="text-align:center; font-size:11.5px; margin-top:6px">
+            <b>Tag it once. Sell it everywhere.</b></div>
+          <span class="lbl" style="text-align:center">one line, from the approved register —
+            no bullet list</span>
+        </div>
+        <div class="col grow" style="padding:22px">
+          <div class="row" style="justify-content:flex-end"><div class="line w20" style="height:14px"></div></div>
+          <div class="col grow" style="justify-content:center; max-width:340px; margin:0 auto; width:100%">
+            <div class="txt"><b>Create your account</b></div>
+            <div class="txt" style="font-size:11.5px">Then connect a social and claim your handle.</div>
+            <div class="rule" style="margin:4px 0"></div>
+            <div class="field">you@example.com</div>
+            <div class="field">••••••••<span>show</span></div>
+            <div class="txt" style="font-size:11px">At least 8 characters.</div>
+            <div class="btn">Create account</div>
+            <div class="txt" style="font-size:11px">We'll send one verification email.</div>
+            <div class="rule" style="margin:4px 0"></div>
+            <div class="row between"><span class="txt" style="font-size:11px">Already have an account?</span>
+              <span class="txt" style="font-size:11px"><b>Sign in</b></span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption style="margin:8px 0 0">no "I'm a…" tabs — see notes</figcaption>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop — shopper door (same slot, different artefact)</figcaption>
+      <div class="vp" style="padding:0; flex-direction:row; gap:0">
+        <div class="col" style="width:46%; background:var(--fill); padding:22px; gap:10px; justify-content:center">
+          <span class="lbl">a shopper isn't making a page — they're following people</span>
+          <div class="fanrail" style="justify-content:center">
+            <div class="tilt-a"><div class="img sq"></div><div class="line w75" style="margin-top:4px"></div></div>
+            <div class="tilt-b"><div class="img sq"></div><div class="line w60" style="margin-top:4px"></div></div>
+            <div class="tilt-c"><div class="img sq"></div><div class="line w75" style="margin-top:4px"></div></div>
+          </div>
+          <div class="txt" style="text-align:center; font-size:11.5px">
+            <b>You never need an account to shop.</b></div>
+          <span class="lbl" style="text-align:center">the honesty label IS the pitch —
+            it's the one thing no competitor can say</span>
+        </div>
+        <div class="col grow" style="padding:22px">
+          <div class="col grow" style="justify-content:center; max-width:340px; margin:0 auto; width:100%">
+            <div class="txt"><b>Follow your favorites</b></div>
+            <div class="txt" style="font-size:11.5px">An account only to follow and comment — never to buy.</div>
+            <div class="rule" style="margin:4px 0"></div>
+            <div class="field">you@example.com</div>
+            <div class="field">••••••••<span>show</span></div>
+            <div class="btn">Create account</div>
+          </div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Mobile — the artefact survives the collapse</figcaption>
+      <div class="vp">
+        <div class="row center" style="padding:6px 0"><div class="line w30" style="height:16px"></div></div>
+        <div class="box tilt-a" style="padding:6px; gap:5px; width:62%; align-self:center">
+          <div class="shot"><div class="img" style="aspect-ratio:4/5"></div>
+            <div class="pin" style="top:32%; left:10%; font-size:8px">Serum · ₹1,299</div></div>
+          <div class="row"><div class="av sm"></div><div class="line w60"></div></div>
+        </div>
+        <span class="lbl" style="text-align:center">ONE tilted card at 62% width, not a
+          headline and three ticks. It survives at phone size because it's an object,
+          not a paragraph.</span>
+        <div class="box grow">
+          <div class="txt"><b>Create your account</b></div>
+          <div class="txt" style="font-size:11.5px">Then connect a social and claim your handle.</div>
+          <div class="rule"></div>
+          <div class="field">you@example.com</div>
+          <div class="field">••••••••<span>show</span></div>
+          <div class="txt" style="font-size:11px">At least 8 characters.</div>
+          <div class="btn">Create account</div>
+          <div class="txt" style="font-size:11px">We'll send one verification email.</div>
+          <div class="rule"></div>
+          <div class="row between"><span class="txt" style="font-size:11px">Already have an account?</span>
+            <span class="txt" style="font-size:11px"><b>Sign in</b></span></div>
+        </div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>The second idea in here: the tabs shouldn't exist on <code>/join</code> either</h4>
+    <ul>
+      <li><b>The door already answered the question.</b> Nobody reaches <code>/join</code> by
+          accident — they clicked the creator door on the landing page, the business door, or upgraded
+          from a claim sheet. <code>?as=</code> is already set by the click that got them here.
+          Showing three tabs asks a question the user just answered, and offers them the chance to
+          answer it wrong.</li>
+      <li><b>The three roles aren't peers, and equal-weight tabs claim they are.</b> A shopper doesn't
+          need an account at all — that's rule one of the product. Putting Shopper next to Creator as
+          an equal signup path actively contradicts the thing the page is trying to promise. The
+          shopper path into <code>/join</code> only really exists as a claim-sheet upgrade, where the
+          role is already known.</li>
+      <li><b>So: keep the tabs only as a fallback.</b> Land on <code>/join</code> cold with no
+          <code>?as=</code> and you get a chooser. Arrive through a door — which is every real
+          journey — and you get that door's artefact and no tabs. One control, shown to the
+          ~nobody who needs it.</li>
+      <li><b>Cost:</b> the panel now needs real content per role, and PRODUCT.md forbids fabricating
+          creators, handles, products or prices. So it must ship as either visibly-placeholder imagery
+          or genuine opted-in creator content. That's a real constraint on this direction and the
+          reason A0 is the safer build.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GROUP E — CREATOR PAGE LAYOUTS + AD SLOTS
+     ═══════════════════════════════════════════════════════ -->
+<div class="group">
+  <h2>Group E — Creator page layouts &amp; ad slots</h2>
+  <p>Two independent choices already ship in <code>creator-prefs.js</code>: a <b>header treatment</b>
+     (Compact · Balanced · Centred) and a <b>post layout</b> (Grid · Cards · List). They compose, so
+     the creator has 9 combinations, not 3. E1 and E2 wireframe each axis; E3 proposes two more
+     layouts; E4 covers the ad slots, which are new product scope.</p>
+</div>
+
+<!-- E1 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="ch-headers">
+  <div class="sh"><h3>E1 · Header treatments</h3><span class="tag">creator picks</span><span class="tag">already in creator-prefs.js</span></div>
+  <p>Only the identity block changes. Shelves, grid and comments below are untouched by this choice —
+     which is what keeps 9 combinations maintainable instead of 9 separate pages.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Compact — goods first</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><span class="lbl">search · account</span></div>
+        <div class="row"><div class="av"></div>
+          <div class="col grow"><div class="line w60"></div><div class="line w30"></div></div>
+          <div class="btn" style="padding:7px 12px">Follow</div></div>
+        <span class="lbl">one row: avatar, name+handle, action. No bio, no socials row.</span>
+        <div class="row" style="gap:5px"><div class="chip on" style="font-size:9px">All</div>
+          <div class="chip" style="font-size:9px">Desk</div><div class="chip" style="font-size:9px">Gym</div></div>
+        <div class="grid g3"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+          <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+        <span class="lbl">most posts above the fold — for a creator whose work is the pitch</span>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Balanced — the default</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><span class="lbl">search · account</span></div>
+        <div class="row"><div class="av"></div>
+          <div class="col grow"><div class="line w60"></div><div class="line w30"></div></div></div>
+        <div class="line w90"></div><div class="line w75"></div>
+        <span class="lbl">bio, 2 lines max</span>
+        <div class="row" style="gap:6px"><div class="av sm"></div><div class="av sm"></div>
+          <div class="av sm"></div><div class="av sm"></div></div>
+        <span class="lbl">socials row — fixed order, empty set renders nothing</span>
+        <div class="btn" style="text-align:center">Follow</div>
+        <span class="lbl">ACTIONS-TAKE-A-ROW: on phones the action slot wraps full-width
+          rather than shrinking beside the identity block</span>
+        <div class="row" style="gap:5px"><div class="chip on" style="font-size:9px">All</div>
+          <div class="chip" style="font-size:9px">Desk</div></div>
+        <div class="grid g3"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Centred — reads as a profile</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><span class="lbl">search · account</span></div>
+        <div class="col" style="align-items:center; gap:8px">
+          <div class="av" style="width:64px;height:64px"></div>
+          <div class="line w45"></div><div class="line w30"></div>
+          <div class="line w90"></div><div class="line w75"></div>
+          <div class="row" style="gap:6px"><div class="av sm"></div><div class="av sm"></div><div class="av sm"></div></div>
+          <div class="btn" style="padding:9px 22px">Follow</div>
+        </div>
+        <span class="lbl">everything centred, avatar biggest — for a creator whose face
+          is the brand</span>
+        <div class="row" style="gap:5px; justify-content:center"><div class="chip on" style="font-size:9px">All</div>
+          <div class="chip" style="font-size:9px">Desk</div></div>
+        <div class="grid g3"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop — the same three, side by side</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><span class="lbl">search · log in · create your page</span></div>
+        <span class="lbl">gradient hero band carries the identity block (Group C rule:
+          the band follows the VIEWER's mode, the content below never recolours)</span>
+        <div class="box" style="background:var(--fill); border-style:solid; padding:16px">
+          <div class="grid g3" style="gap:14px">
+            <div class="col"><span class="lbl">compact</span>
+              <div class="row"><div class="av"></div><div class="col grow"><div class="line w75"></div><div class="line w45"></div></div></div></div>
+            <div class="col"><span class="lbl">balanced</span>
+              <div class="row"><div class="av"></div><div class="col grow"><div class="line w75"></div><div class="line w45"></div></div></div>
+              <div class="line w90"></div><div class="row" style="gap:5px"><div class="av sm"></div><div class="av sm"></div></div></div>
+            <div class="col" style="align-items:center"><span class="lbl">centred</span>
+              <div class="av" style="width:44px;height:44px"></div><div class="line w45"></div><div class="line w60"></div></div>
+          </div>
+        </div>
+        <div class="row" style="gap:6px"><div class="chip on">All</div><div class="chip">Desk</div><div class="chip">Gym</div><div class="chip">Skin</div></div>
+        <div class="grid g4"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>Rules</h4>
+    <ul>
+      <li>The header choice never touches the buy path. Shelves, grid, tags and prices are identical
+          across all three, so a creator cannot accidentally make their page harder to shop.</li>
+      <li><b>Centred is the one that costs vertical space</b> on a phone. It pushes the first post row
+          below the fold — worth stating in Settings so the choice is informed rather than aesthetic.</li>
+      <li>The accent is the creator's only colour. The role gradient in the hero band is Plugfolio's
+          and does not change per creator.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- E2 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="ch-layouts">
+  <div class="sh"><h3>E2 · Post layouts</h3><span class="tag">Grid · Cards · List</span><span class="tag">already shipping</span></div>
+  <p>The second axis. Same posts, same tags, three densities — each suits a different kind of
+     content, and the trade is how many posts fit against how much each one says.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Grid — most posts on screen</figcaption>
+      <div class="vp">
+        <div class="grid g3" style="gap:4px">
+          <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+          <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+          <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+        </div>
+        <span class="lbl">square tiles, tight gap, a product-count pill top-right of any
+          tile that has tags. No titles.</span>
+        <div class="txt" style="font-size:11px">Best for: visual work where the photo sells it.</div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Cards — roomier, titled</figcaption>
+      <div class="vp">
+        <div class="grid g2" style="gap:10px">
+          <div class="box" style="padding:5px; gap:5px"><div class="img r43"></div><div class="line w75"></div></div>
+          <div class="box" style="padding:5px; gap:5px"><div class="img r43"></div><div class="line w60"></div></div>
+          <div class="box" style="padding:5px; gap:5px"><div class="img r43"></div><div class="line w90"></div></div>
+          <div class="box" style="padding:5px; gap:5px"><div class="img r43"></div><div class="line w45"></div></div>
+        </div>
+        <span class="lbl">4:3 media on a white card, caption under. Tilt + straighten
+          applies here, not in Grid.</span>
+        <div class="txt" style="font-size:11px">Best for: posts whose caption does work.</div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>List — easiest to scan</figcaption>
+      <div class="vp">
+        <div class="col" style="gap:6px">
+          <div class="box row" style="padding:6px; gap:10px"><div class="img sq" style="width:44px"></div>
+            <div class="col grow"><div class="line w75"></div><div class="line w45"></div></div><span class="lbl">3</span></div>
+          <div class="box row" style="padding:6px; gap:10px"><div class="img sq" style="width:44px"></div>
+            <div class="col grow"><div class="line w60"></div><div class="line w30"></div></div><span class="lbl">1</span></div>
+          <div class="box row" style="padding:6px; gap:10px"><div class="img sq" style="width:44px"></div>
+            <div class="col grow"><div class="line w90"></div><div class="line w45"></div></div><span class="lbl">2</span></div>
+          <div class="box row" style="padding:6px; gap:10px"><div class="img sq" style="width:44px"></div>
+            <div class="col grow"><div class="line w75"></div><div class="line w30"></div></div><span class="lbl">—</span></div>
+        </div>
+        <span class="lbl">64px thumb, title, product count in its own column. No tilt —
+          a list that wobbles is a list you cannot scan.</span>
+        <div class="txt" style="font-size:11px">Best for: many posts, or a catalogue feel.</div>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop — columns scale, the layout does not change</figcaption>
+      <div class="vp">
+        <div class="row between"><span class="lbl">GRID → 4 cols</span><span class="lbl">CARDS → 3 cols</span><span class="lbl">LIST → 1 col, wider</span></div>
+        <div class="grid g3" style="gap:14px; align-items:start">
+          <div class="grid g3" style="gap:4px"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+            <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+          <div class="grid g2" style="gap:8px">
+            <div class="box" style="padding:4px; gap:4px"><div class="img r43"></div><div class="line w75"></div></div>
+            <div class="box" style="padding:4px; gap:4px"><div class="img r43"></div><div class="line w60"></div></div></div>
+          <div class="col" style="gap:5px">
+            <div class="box row" style="padding:5px; gap:8px"><div class="img sq" style="width:32px"></div><div class="line w75"></div></div>
+            <div class="box row" style="padding:5px; gap:8px"><div class="img sq" style="width:32px"></div><div class="line w60"></div></div></div>
+        </div>
+        <span class="lbl">a layout is a shape, not a breakpoint — Grid stays a grid at every width,
+          it just gains columns</span>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<!-- E3 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="ch-new">
+  <div class="sh"><h3>E3 · Two layouts worth adding</h3><span class="tag">proposal</span><span class="tag">not built</span></div>
+  <p>Grid, Cards and List are all <i>one flat sequence of posts</i>. These two change the structure
+     rather than the density, which is where a creator's page can actually start to differ.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Feature — one hero post, then grid</figcaption>
+      <div class="vp">
+        <div class="box" style="padding:6px; gap:6px">
+          <div class="shot"><div class="img" style="aspect-ratio:4/5"></div>
+            <div class="pin" style="top:30%; left:12%">Serum · ₹1,299</div>
+            <div class="pin up" style="bottom:16%; right:10%">Balm · ₹640</div></div>
+          <div class="row"><div class="av sm"></div><div class="line w60"></div></div>
+        </div>
+        <span class="lbl">the creator pins ONE post. It shows its tags at rest —
+          the only place on the page where tags are visible without a tap.</span>
+        <div class="grid g3" style="gap:4px"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+          <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+        <span class="lbl">everything else in Grid beneath</span>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Shelves — a row per category</figcaption>
+      <div class="vp">
+        <div class="row between"><span class="txt" style="font-size:11px"><b>Desk setup</b></span><span class="lbl">see all ›</span></div>
+        <div class="row" style="gap:5px; overflow:hidden">
+          <div class="img sq" style="width:64px; flex:none"></div><div class="img sq" style="width:64px; flex:none"></div>
+          <div class="img sq" style="width:64px; flex:none"></div><div class="img sq" style="width:64px; flex:none"></div></div>
+        <div class="row between"><span class="txt" style="font-size:11px"><b>Skin</b></span><span class="lbl">see all ›</span></div>
+        <div class="row" style="gap:5px; overflow:hidden">
+          <div class="img sq" style="width:64px; flex:none"></div><div class="img sq" style="width:64px; flex:none"></div>
+          <div class="img sq" style="width:64px; flex:none"></div><div class="img sq" style="width:64px; flex:none"></div></div>
+        <div class="row between"><span class="txt" style="font-size:11px"><b>Gym</b></span><span class="lbl">see all ›</span></div>
+        <div class="row" style="gap:5px; overflow:hidden">
+          <div class="img sq" style="width:64px; flex:none"></div><div class="img sq" style="width:64px; flex:none"></div>
+          <div class="img sq" style="width:64px; flex:none"></div><div class="img sq" style="width:64px; flex:none"></div></div>
+        <span class="lbl">shelves become horizontal rails instead of a filter chip row.
+          The chip row disappears — the page IS the filter.</span>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop — both</figcaption>
+      <div class="vp">
+        <div class="grid g2" style="gap:18px; align-items:start">
+          <div class="col"><span class="lbl">FEATURE</span>
+            <div class="box" style="padding:6px"><div class="shot"><div class="img r43"></div>
+              <div class="pin" style="top:32%; left:10%">Lamp · $48</div></div></div>
+            <div class="grid g4" style="gap:5px"><div class="img sq"></div><div class="img sq"></div>
+              <div class="img sq"></div><div class="img sq"></div></div></div>
+          <div class="col"><span class="lbl">SHELVES</span>
+            <div class="row between"><span class="txt" style="font-size:11px"><b>Desk setup</b></span><span class="lbl">see all ›</span></div>
+            <div class="row" style="gap:5px"><div class="img sq" style="width:58px"></div><div class="img sq" style="width:58px"></div>
+              <div class="img sq" style="width:58px"></div><div class="img sq" style="width:58px"></div><div class="img sq" style="width:58px"></div></div>
+            <div class="row between"><span class="txt" style="font-size:11px"><b>Skin</b></span><span class="lbl">see all ›</span></div>
+            <div class="row" style="gap:5px"><div class="img sq" style="width:58px"></div><div class="img sq" style="width:58px"></div>
+              <div class="img sq" style="width:58px"></div><div class="img sq" style="width:58px"></div><div class="img sq" style="width:58px"></div></div></div>
+        </div>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>What each one needs that doesn't exist yet</h4>
+    <ul>
+      <li><b>Feature</b> needs a "pin this post" control in the tagging editor, and a rule for what
+          shows when nothing is pinned (fall back to newest).</li>
+      <li><b>Shelves</b> only works for a creator with 2+ categories and enough posts in each. Below
+          that it looks broken, so it should be offered <b>disabled with a reason</b> until they
+          qualify — never silently missing.</li>
+      <li>Both still respect the rule that the choice cannot change what is buyable. They reorder
+          posts; they never hide any.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- E4 ─────────────────────────────────────────────────────── -->
+<section class="screen" id="ads">
+  <div class="sh"><h3>E4 · Ad slots</h3><span class="tag">NEW SCOPE</span><span class="tag">funds the Pro upgrade</span></div>
+  <p>Plugfolio-sold ads on free creator pages, removed by Pro. This collides with the product's
+     first principle — <i>the shopper's path is sacred</i> — and with the creator's credibility,
+     which is the thing being sold. The placements below are chosen so an ad never sits between a
+     tap and the retailer, and never sits where a creator's own recommendation would.</p>
+
+  <div class="frames">
+    <figure class="fr ph">
+      <figcaption>Profile — in-feed, after row 2</figcaption>
+      <div class="vp">
+        <div class="row"><div class="av"></div><div class="col grow"><div class="line w60"></div><div class="line w30"></div></div></div>
+        <div class="grid g3" style="gap:4px"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+          <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+        <div class="box" style="border-style:solid; border-width:2px; padding:8px">
+          <div class="row between"><span class="lbl">AD · PLUGFOLIO</span><span class="lbl">ⓘ why</span></div>
+          <div class="row" style="gap:8px"><div class="img sq" style="width:44px"></div>
+            <div class="col grow"><div class="line w75"></div><div class="line w45"></div></div></div>
+        </div>
+        <span class="lbl">full-width, NOT a grid tile — an ad shaped like a post is an ad
+          pretending a creator picked it</span>
+        <div class="grid g3" style="gap:4px"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+        <span class="lbl">one slot per page. Not one per screenful.</span>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Post — below the tagged products</figcaption>
+      <div class="vp">
+        <div class="img" style="aspect-ratio:4/5"></div>
+        <div class="line w75"></div>
+        <div class="txt" style="font-size:11px"><b>3 things in this post</b></div>
+        <div class="box row" style="padding:6px; gap:8px"><div class="img sq" style="width:40px"></div>
+          <div class="col grow"><div class="line w75"></div><div class="line w45"></div></div><div class="btn" style="padding:6px 10px">Buy</div></div>
+        <div class="box row" style="padding:6px; gap:8px"><div class="img sq" style="width:40px"></div>
+          <div class="col grow"><div class="line w60"></div><div class="line w45"></div></div><div class="btn" style="padding:6px 10px">Buy</div></div>
+        <div class="box row" style="padding:6px; gap:8px"><div class="img sq" style="width:40px"></div>
+          <div class="col grow"><div class="line w90"></div><div class="line w30"></div></div><div class="btn" style="padding:6px 10px">Buy</div></div>
+        <div class="rule"></div>
+        <div class="box" style="border-style:solid; border-width:2px; padding:8px">
+          <div class="lbl">AD · PLUGFOLIO</div>
+          <div class="row" style="gap:8px"><div class="img sq" style="width:44px"></div>
+            <div class="col grow"><div class="line w75"></div><div class="line w45"></div></div></div>
+        </div>
+        <span class="lbl">AFTER every tagged product, never between them and never above.
+          The shopper has already been given what they came for.</span>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Product — below Buy, below the source post</figcaption>
+      <div class="vp">
+        <div class="img sq"></div>
+        <div class="line h w75"></div><div class="line w30"></div>
+        <span class="lbl">title, price, kind line</span>
+        <div class="box" style="border-style:solid"><span class="lbl">coupon block — copy the code, then go</span></div>
+        <div class="btn" style="text-align:center">Buy</div>
+        <div class="txt" style="font-size:10px; text-align:center">Payment settles off-platform · opens the retailer</div>
+        <div class="row" style="gap:8px"><div class="img sq" style="width:40px"></div><span class="lbl">from this post</span></div>
+        <div class="rule"></div>
+        <div class="box" style="border-style:solid; border-width:2px; padding:8px">
+          <div class="lbl">AD · PLUGFOLIO</div>
+          <div class="row" style="gap:8px"><div class="img sq" style="width:44px"></div>
+            <div class="col grow"><div class="line w75"></div><div class="line w45"></div></div></div>
+        </div>
+        <span class="lbl">the ONLY slot on this page, and it sits after the outbound button,
+          the helper line and the source post. Nothing competes with Buy.</span>
+      </div>
+    </figure>
+
+    <figure class="fr dk">
+      <figcaption>Desktop — a rail, not an interruption</figcaption>
+      <div class="vp">
+        <div class="topbar"><span class="lbl">brand</span><span class="lbl">search · account</span></div>
+        <div class="row" style="gap:16px; align-items:flex-start">
+          <div class="col grow">
+            <div class="row"><div class="av"></div><div class="col grow"><div class="line w45"></div><div class="line w30"></div></div></div>
+            <div class="grid g3"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+              <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div>
+              <div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+          </div>
+          <div class="col" style="width:200px; flex:none">
+            <div class="box" style="border-style:solid; border-width:2px; padding:8px">
+              <div class="row between"><span class="lbl">AD · PLUGFOLIO</span><span class="lbl">ⓘ</span></div>
+              <div class="img r43"></div>
+              <div class="line w75"></div><div class="line w45"></div>
+            </div>
+            <span class="lbl">desktop has room for a rail, so the feed is never broken.
+              The rail does NOT stick — a persistent ad follows the shopper down the buy path.</span>
+            <div class="box later" style="padding:6px"><span class="lbl">[LATER] a second rail slot,
+              only if the first proves it does not hurt tap-through</span></div>
+          </div>
+        </div>
+      </div>
+    </figure>
+
+    <figure class="fr ph">
+      <figcaption>Owner's view — the upgrade path</figcaption>
+      <div class="vp">
+        <div class="box" style="border-style:solid">
+          <span class="txt" style="font-size:11px"><b>This is your page — visitors see exactly this.</b></span>
+        </div>
+        <div class="grid g3" style="gap:4px"><div class="img sq"></div><div class="img sq"></div><div class="img sq"></div></div>
+        <div class="box" style="border-style:solid; border-width:2px; padding:8px">
+          <div class="lbl">AD · PLUGFOLIO</div>
+          <div class="row" style="gap:8px"><div class="img sq" style="width:44px"></div>
+            <div class="col grow"><div class="line w75"></div><div class="line w45"></div></div></div>
+          <div class="rule"></div>
+          <div class="txt" style="font-size:11px">Your visitors see an ad here.
+            <b>Go Pro to remove it.</b></div>
+        </div>
+        <span class="lbl">the owner sees the real ad, in place, with the upgrade attached to it.
+          Showing a creator a fake preview of their own page would be the wrong lie.</span>
+      </div>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h4>The rules an ad slot has to obey here</h4>
+    <ul>
+      <li><b>Never on the outbound path.</b> No interstitial, no ad between tapping Buy and the
+          retailer, no ad above the Buy button. If attribution recording must never block a
+          redirect, an ad certainly must not.</li>
+      <li><b>Never shaped like a tagged product.</b> No product-tag pill, no price in tabular
+          figures, no "Buy" label, no violet or lime dot. An ad that borrows the tag vocabulary
+          is claiming the creator recommended it.</li>
+      <li><b>Always labelled</b> <code>AD · PLUGFOLIO</code> in Micro, plus a "why am I seeing this"
+          affordance. The product already labels what it can and cannot measure; this is the same
+          promise applied to who is paying.</li>
+      <li><b>One slot per page.</b> Not one per scroll depth. The cap is the product decision — the
+          rest is inventory pressure, and inventory pressure is how shopper surfaces rot.</li>
+      <li><b>Free pages only, and the owner sees it.</b> The slot doubles as the Pro upsell, in
+          place, on the real page. A creator should never discover their own page carries ads by
+          hearing it from a follower.</li>
+      <li><b>Open question — does a Pro creator's page still carry Plugfolio's ad?</b> If Pro is
+          bought by the creator, the answer is no, and the revenue model has to survive that.
+          Worth settling before any of this is designed further.</li>
+    </ul>
+    <h4 style="margin-top:12px">Product spec conflicts to resolve</h4>
+    <ul>
+      <li>PRODUCT.md lists no advertising and no paid tier. Both are new, and Pro implies
+          on-platform payment, which v1 explicitly excludes. The <b>subscription</b> may sit outside
+          the "no money in v1" rule, but that has to be a stated decision, not an assumption.</li>
+      <li>An ad on a creator's page spends the creator's audience. Whether creators can opt out
+          without paying — and what that does to the model — is a policy question, not a layout one.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- queue ─────────────────────────────────────────────────── -->
+<section class="queue">
+  <h3>Remaining screens — 18 to wireframe</h3>
+  <ul>
+    <li>/ — landing <i>(built)</i></li>
+    <li>/[handle] — creator page <i>(built)</i></li>
+    <li>/[handle]/post/[id] — post view <i>(built)</i></li>
+    <li>/[handle]/product/[id] — product page</li>
+    <li>/support — help inflow [UNCOMMITTED]</li>
+    <li>/account — member handle + roles</li>
+    <li>/following — followed creators</li>
+    <li>Connect Socials — Google / Meta</li>
+    <li>Create Profile + choose username [LATER]</li>
+    <li>Dashboard shell + profile switcher</li>
+    <li>/dashboard — home + earnings</li>
+    <li>/dashboard/posts — grid + add post</li>
+    <li>/dashboard/posts/[id] — tagging editor</li>
+    <li>/dashboard/products — library</li>
+    <li>/dashboard/categories — shelves</li>
+    <li>/dashboard/settings — profile + managers</li>
+    <li>/dashboard/collabs — creator collabs</li>
+    <li>/collabs — business home</li>
+    <li>/collabs/[id] — collab thread</li>
+    <li>Report sheet — page / product / comment</li>
+    <li>Comments + composer / claim band</li>
+    <li>System — 404, error, rate-limited</li>
+    <li>Admin console (§6) — separate surface</li>
+  </ul>
+</section>
+
+</div>
+</body>
+</html>

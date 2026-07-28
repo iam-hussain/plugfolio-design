@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Local tool state — machine-specific, not design output
+.claude/settings.local.json
+.impeccable/hook.cache.json
+.impeccable/config.local.json
+
+# Third-party agent/skill definitions pulled in by tooling, not design output
+.agents/
+skills-lock.json
+
+# Symlinks into .agents/, same reasoning
+.claude/skills/

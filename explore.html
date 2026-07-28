@@ -1,0 +1,844 @@
+<!doctype html>
+<!-- Plugfolio — /explore, built from wireframe D1 "the tagged wall".
+     The Creators/Products tab switch is gone: you browse content, and the
+     things inside it are already priced. Shelves replace object-type tabs,
+     a creator fan sits above the wall, and every price is visible before
+     the tap. Components are styles.css's — .shot/.tag/.post are not forked. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explore — Plugfolio</title>
+<meta name="description" content="Browse what creators post and buy what's in it. Search and shop freely — no account needed, ever.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── nav: the search affordance lives in the bar on desktop ── */
+.searchbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+  padding: 10px 14px; border-radius: var(--r-chip); border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-2); text-decoration: none;
+  font-size: var(--t-label); font-weight: 600; }
+.searchbtn svg { width: 18px; height: 18px; }
+.searchbtn:hover { border-color: var(--violet); color: var(--violet-deep); }
+@media (min-width: 900px) { .searchbtn { display: none; } }
+
+/* ── page head ─────────────────────────────────────────────── */
+/* One column. A two-column head was tried and rejected: bottom-aligning the
+   controls against a taller text stack left a void above them, and the two
+   halves stopped reading as one header. The height comes down by removing
+   what wasn't earning its space instead — a shorter lede, a search field
+   capped to a sane measure rather than running the full 1200px, and tighter
+   steps between the blocks. */
+/* No max-width on .ex-head itself — it also carries .inner, whose auto
+   margins would centre the whole head and knock it out of alignment with
+   the content below. Cap the individual blocks instead. */
+.ex-head { padding-block: clamp(18px, 2.4vw, 28px) 0; }
+.ex-head .headline { max-width: 15ch; }
+.ex-head .lede { margin-top: 10px; max-width: 54ch; }
+
+/* The honesty label — a product feature, not fine print. Canvas by default,
+   because that is what a signed-out visitor sees; the gradient variants are
+   overrides further down. */
+.guestnote { display: inline-flex; align-items: center; gap: 9px; margin-top: 18px;
+  background: var(--violet-wash); color: var(--violet-deep);
+  border: 1px solid transparent;
+  border-radius: var(--r-chip); padding: 9px 16px;
+  font-size: var(--t-micro); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.guestnote svg { width: 15px; height: 15px; flex: none; }
+body:not([data-viewer="anon"]) .guestnote {
+  background: rgb(255 255 255 / .16); color: #FFFFFF; border-color: rgb(255 255 255 / .38); }
+
+/* ── search: a plain GET form, works with JS off ───────────── */
+/* Capped: a search field running the full 1200px measure is harder to aim
+   at and reads as a page-wide bar rather than a control. */
+.sform { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 640px; }
+/* .onhero-field in styles.css supplies the translucent fill and white type. */
+.sfield { flex: 1 1 260px; display: flex; align-items: center; gap: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--r-chip); padding: 0 8px 0 18px; min-height: 54px; }
+.sfield svg { width: 19px; height: 19px; flex: none; }
+.sfield input { flex: 1; border: 0; background: none; font: inherit; font-size: var(--t-copy);
+  min-height: 44px; }
+.sfield input:focus { outline: 0; }
+.sform .btn { min-height: 54px; }
+/* On the gradient the primary action inverts: white fill, ink label. An ink
+   button on a saturated field reads as a hole rather than an action. */
+body:not([data-viewer="anon"]) .sform .btn { background: #FFFFFF; color: var(--on-white); }
+body:not([data-viewer="anon"]) .sform .btn:hover { background: var(--lime); color: var(--on-white); }
+
+/* ── search scope ──────────────────────────────────────────
+   Browsing and searching want different things. Browsing the wall reaches
+   creators AND products through the content that contains them, so the old
+   Creators/Products tab switch was dead weight — that part of dropping it
+   holds. Searching is the opposite: "maya" wants a person, "keyboard" wants
+   a thing, and one undifferentiated list buries whichever you meant.
+
+   So the scope appears only once there is a query, carried in ?tab= exactly
+   as the spec specifies. No query, no control. */
+.scope { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+.scope-l { color: var(--ink-2); margin-right: 2px; }
+/* Results reuse the fan and the wall as their Creators and Posts groups —
+   they are already group blocks with a heading, a count and a See-all. Only
+   the labelling changes, so a search result and a browse are the same page
+   in two states rather than two layouts to keep in step. */
+body:not([data-state="results"]) .scope,
+body:not([data-state="results"]) .res { display: none; }
+body[data-state="results"] .shelves,
+body[data-state="results"] .browse { display: none; }
+
+/* ?tab= scopes the page to one kind. Creators are the fan; posts and things
+   both live in the wall, since a thing is only reachable through the post
+   that tagged it. */
+body[data-tab="creators"] .wallhead,
+body[data-tab="creators"] .wall,
+body[data-tab="creators"] .adslot,
+body[data-tab="posts"] .fanhead,
+body[data-tab="posts"] .fan,
+body[data-tab="things"] .fanhead,
+body[data-tab="things"] .fan { display: none; }
+
+/* Scoped to creators, the fan stops being a teaser rail and becomes the
+   result list: a grid that wraps, no overlap, no tilt. A rail says "there
+   is more sideways"; a results page has to say "this is the set". The
+   See-all link goes too — you are already there. */
+body[data-tab="creators"] .fanhead .nav-link { display: none; }
+body[data-tab="creators"] .fan {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 18px; overflow: visible; padding: 4px 0 0;
+}
+body[data-tab="creators"] .fc { width: auto; margin-right: 0; transform: none; }
+body[data-tab="creators"] .fc:hover { transform: translateY(-4px); }
+
+/* ── shelves: how shoppers actually think ──────────────────── */
+.shelves { display: flex; gap: 8px; margin-top: 18px; overflow-x: auto;
+  scrollbar-width: none; padding-bottom: 4px; scroll-snap-type: x proximity; }
+.shelves::-webkit-scrollbar { display: none; }
+/* Shelves live on the gradient: translucent outline at rest, solid white
+   when active — the inverse of the canvas treatment, since here white IS
+   the emphasis. */
+.shelf { flex: none; scroll-snap-align: start; text-decoration: none;
+  background: var(--surface); border: 1px solid var(--line); color: var(--ink-2);
+  border-radius: var(--r-chip); padding: 11px 18px; min-height: 44px;
+  display: inline-flex; align-items: center;
+  font-size: var(--t-label); font-weight: 600; white-space: nowrap; }
+.shelf:hover { border-color: var(--violet); color: var(--violet-deep); }
+.shelf[aria-current="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+/* On the gradient the emphasis inverts: white IS the highlight there. */
+body:not([data-viewer="anon"]) .shelf {
+  background: rgb(255 255 255 / .13); border-color: rgb(255 255 255 / .34); color: #FFFFFF; }
+body:not([data-viewer="anon"]) .shelf:hover {
+  background: rgb(255 255 255 / .24); border-color: #FFFFFF; }
+body:not([data-viewer="anon"]) .shelf[aria-current="true"] {
+  background: #FFFFFF; border-color: #FFFFFF; color: var(--on-white); }
+
+/* ── the fan: creators, tilted and overlapping ─────────────── */
+.fanhead { display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; margin-top: clamp(30px, 4vw, 44px); }
+.fan { display: flex; overflow-x: auto; scrollbar-width: none;
+  padding: 20px 0 26px; scroll-snap-type: x proximity; }
+.fan::-webkit-scrollbar { display: none; }
+.fc { flex: none; width: 152px; margin-right: -14px; scroll-snap-align: center;
+  background: var(--surface); border-radius: var(--r-card); padding: 8px;
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest);
+  text-decoration: none; color: inherit;
+  transform: rotate(var(--mt, 0deg));
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease); }
+.fc:nth-child(odd)  { --mt: -2deg; }
+.fc:nth-child(even) { --mt: 1.8deg; z-index: 2; }
+.fc:hover, .fc:focus-visible { transform: rotate(0deg) translateY(-8px); z-index: 5;
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-raise); }
+.fc img { border-radius: var(--r-image); width: 100%; height: 108px; object-fit: cover; }
+.fc-id { display: flex; align-items: center; gap: 8px; padding: 10px 4px 3px; }
+.fc-id .avatar { width: 24px; height: 24px; }
+.fc-h { font-size: var(--t-label); font-weight: 700; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.fc-m { font-size: var(--t-micro); color: var(--ink-3); font-weight: 600; padding: 0 4px 4px; }
+
+/* ── the wall ──────────────────────────────────────────────── */
+.wallhead { display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; border-top: 1px solid var(--line); padding-top: 22px; }
+/* A grid, not CSS columns. Columns balance their heights, so an odd count
+   (5 cards across 3 columns) puts one card in the first column and leaves a
+   hole the size of a card underneath it. A grid places row-wise instead —
+   no hole, and the reading order finally matches the DOM order.
+
+   One column on a phone: at two columns the photo lands at ~135px, and a
+   tag pill carrying a name and a price needs 90–140px, so every tag would
+   overflow its own photograph. */
+.wall { display: grid; grid-template-columns: 1fr; gap: 22px;
+  align-items: start; margin-top: 20px; padding-bottom: 20px; }
+@media (min-width: 560px)  { .wall { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
+@media (min-width: 820px)  { .wall { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1180px) { .wall { grid-template-columns: repeat(4, 1fr); } }
+/* A single-column card would run to the full measure and dwarf the fan;
+   cap it at a comfortable reading width and centre it. */
+@media (max-width: 559px) { .wp { max-width: 420px; margin-inline: auto; } }
+
+.wp { display: block;
+  transform: rotate(var(--mt, 0deg));
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease); }
+.wp:nth-child(4n+1) { --mt: -1.5deg; }
+.wp:nth-child(4n+2) { --mt: 1.4deg; }
+.wp:nth-child(4n+3) { --mt: -1deg; }
+.wp:nth-child(4n+4) { --mt: 1.8deg; }
+/* The Straighten-On-Hover Rule — the tilt is the resting personality. */
+.wp:hover, .wp:focus-within { transform: rotate(0deg) translateY(-6px);
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-raise); }
+
+.wp .shot > a { display: block; border-radius: var(--r-image); }
+.wp .shot img { border-radius: var(--r-image); width: 100%; height: auto; }
+.wp .tag { left: var(--x); top: var(--y); }
+/* Affiliate with no offer gets the neutral anchor dot — lime means a live
+   coupon, violet means the creator's own product, and nothing else may
+   borrow either colour. */
+.tag-dot--plain { background: var(--ink-3); }
+.wp-by { display: flex; align-items: center; gap: 9px; padding: 12px 6px 4px;
+  text-decoration: none; color: inherit; }
+.wp-by .handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wp-n { margin-left: auto; font-size: var(--t-micro); font-weight: 700;
+  color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* A post with more tags than a tile can hold collapses the remainder into
+   one pill that opens the post. Three is the ceiling at phone width. */
+.tag--more { background: var(--ink); color: var(--surface); }
+.tag--more .tag-price { color: var(--surface); }
+
+/* ── ad slot ───────────────────────────────────────────────
+   Deliberately NOT a wall tile. It is full-width across the columns, it
+   does not tilt, it carries no tag pill, no tabular price and no Buy
+   label — every one of those belongs to a creator's recommendation, and
+   an ad wearing them is claiming to be one. Square-shouldered against a
+   wall of 26px cards, so the difference is visible before the label is
+   read. */
+.adslot { border: 1px solid var(--line); background: var(--surface);
+  border-radius: var(--r-tile); padding: 12px; margin: 4px 0 26px;
+  display: grid; gap: 10px; }
+.adslot-l { display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; color: var(--ink-2); }
+.adslot-why { border: 0; background: none; padding: 8px 2px; min-height: 44px;
+  font: inherit; font-size: var(--t-micro); font-weight: 600; color: var(--ink-2);
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.adslot-why:hover { color: var(--violet); }
+.adslot-body { display: flex; gap: 14px; align-items: center;
+  text-decoration: none; color: inherit; }
+.adslot-body img { width: 76px; height: 76px; border-radius: var(--r-image);
+  object-fit: cover; flex: none; }
+@media (min-width: 720px) {
+  .adslot { grid-template-columns: 1fr; padding: 14px 16px; }
+  .adslot-body img { width: 104px; height: 104px; }
+}
+.adslot-t { font-family: Sora, system-ui, sans-serif; font-weight: 700;
+  font-size: var(--t-label); letter-spacing: -.01em; }
+.adslot-d { font-size: var(--t-micro); color: var(--ink-2); margin-top: 3px; }
+.adslot-go { margin-left: auto; font-size: var(--t-label); font-weight: 600;
+  color: var(--ink-2); white-space: nowrap; }
+/* Pro removes it, so the owner-facing upsell rides the same block. */
+body:not([data-plan="free"]) .adslot { display: none; }
+
+/* ── the end of the wall ───────────────────────────────────
+   A list that simply stops reads as a list that broke. Two ends, and the
+   page always shows exactly one of them.
+
+   "Load more" is a real link carrying ?page=, not a JS-only button: the
+   surface is server-rendered and has to work with scripting off. It also
+   keeps the footer reachable, which infinite scroll does not — and it gives
+   the ad slot a natural cadence of one per batch instead of one per
+   scroll-depth, which is how ad load quietly becomes unbounded. */
+.wallend { display: grid; justify-items: center; gap: 10px;
+  padding: 8px 0 clamp(30px, 5vw, 56px); text-align: center; }
+.wallend .btn { min-width: 220px; }
+.wallend-note { color: var(--ink-2); }
+body:not([data-more="yes"]) .wallend-more,
+body[data-more="yes"] .wallend-done { display: none; }
+
+/* ── empty states ──────────────────────────────────────────── */
+.empty { border: 1px solid var(--line); background: var(--surface);
+  border-radius: var(--r-bay); padding: clamp(34px, 6vw, 64px) 28px;
+  text-align: center; margin: 26px 0 40px; }
+.empty .title { max-width: 24ch; margin: 0 auto; }
+.empty .copy { margin: 12px auto 0; max-width: 44ch; }
+.empty .btn { margin-top: 24px; }
+
+/* ── Hide-By-Exclusion (DESIGN.md): swap visibility by excluding the
+   matching state, never a flat hide plus a guessed re-show. ── */
+body:not([data-state="q-empty"]) .empty--q,
+body:not([data-state="cold"])    .empty--cold,
+body:not([data-state="cold"])    .cold-note,
+body[data-state="cold"]          .fanhead,
+body[data-state="cold"]          .fan,
+body[data-state="q-empty"]       .wall,
+body[data-state="cold"]          .wall,
+body[data-state="q-empty"]       .wallhead,
+body[data-state="cold"]          .wallhead,
+body:not([data-viewer="anon"])   .v-anon,
+body[data-viewer="anon"]         .v-signedin { display: none; }
+
+.acct { display: inline-flex; width: 44px; height: 44px; border-radius: 50%; overflow: hidden;
+  border: 1px solid var(--line); }
+.acct img { width: 100%; height: 100%; object-fit: cover; }
+
+.foot-note .micro { text-transform: none; }
+</style>
+</head>
+<!-- data-role is the CHROME's mode, not the person's. Public shopping surfaces
+     are always "shopper" — /[handle] is read by all three roles at once, so
+     the shop may never recolour under anyone. -->
+<body data-state="full" data-viewer="anon" data-role="shopper" data-plan="free" data-more="yes">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#wall">Skip to posts</a>
+
+<header class="inner">
+  <nav class="nav" aria-label="Primary">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <!-- "How it works" and "For business" are acquisition doors: they answer
+         questions someone asks BEFORE signing up. Once signed in they are
+         noise in the one row that should be navigation, so they stand down
+         and "For business" reappears inside the account menu as an action
+         rather than a pitch. Following takes their place. -->
+    <div class="nav-mid">
+      <a class="nav-link" href="/explore" aria-current="page">Explore</a>
+      <a class="nav-link v-anon" href="/#how">How it works</a>
+      <a class="nav-link v-anon" href="/collabs">For business</a>
+      <a class="nav-link v-signedin" href="/following">Following</a>
+    </div>
+    <div class="nav-end">
+      <a class="searchbtn" href="#search" aria-label="Search creators and products">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <span>Search</span>
+      </a>
+      <a class="btn btn--ghost v-anon" href="/signin">Log in</a>
+      <a class="btn btn--primary v-anon" href="/join?as=creator">Create your page</a>
+      <!-- ONE control: names the current mode, carries the avatar, and opens
+           the switchboard. Same slot in every chrome. -->
+      <span class="acctwrap v-signedin">
+        <button class="acctbtn" type="button" aria-expanded="false" aria-haspopup="true"
+                aria-controls="acctmenu" data-acct>
+          <img src="images/avatars/nia.jpg" alt="">
+          <span class="acctbtn-c"><span class="roleslot-dot" aria-hidden="true"></span>Shopping
+            <span aria-hidden="true">▾</span></span>
+          <span class="skip">Your account and roles</span>
+        </button>
+
+        <div class="acctmenu" id="acctmenu" role="menu" hidden>
+          <div class="acctmenu-id">
+            <b>Nia Okafor</b>
+            <span>@niaeveryday · nia@email.com</span>
+          </div>
+
+          <h6>You are here</h6>
+          <a role="menuitem" href="/following"><span class="dot dot--shop"></span>Shopping
+            <span class="sub">Following</span></a>
+
+          <h6>Creator · 2 of 5 profiles</h6>
+          <a role="menuitem" href="/dashboard?profile=maya">
+            <img class="av" src="images/avatars/maya.jpg" alt="">@mayamoves
+            <span class="sub">Dashboard</span></a>
+          <a role="menuitem" href="/dashboard?profile=rhea">
+            <img class="av" src="images/avatars/rhea.jpg" alt="">@rheamakes
+            <span class="sub">Manager</span></a>
+
+          <hr>
+          <!-- No business on this account, so it is an action, not a locked row. -->
+          <a role="menuitem" href="/join?as=business"><span class="dot dot--business"></span>Create a business</a>
+          <a role="menuitem" href="/account">Account settings</a>
+          <a role="menuitem" href="/support">Help</a>
+          <hr>
+          <button role="menuitem" type="button" data-signout>Sign out</button>
+        </div>
+      </span>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+<!-- The gradient hero, shared with auth and (later) the dashboard. Its colour
+     follows the viewer's current MODE, never the page's content. -->
+<div class="rolehero">
+  <div class="inner ex-head">
+   <div class="ex-say">
+    <h1 class="headline">Everything your favourites post.</h1>
+    <p class="lede">Browse the posts, not a catalogue. Whatever's in them is already tagged with its
+      price — tap the tag to go straight to the retailer.</p>
+
+    <p class="guestnote v-anon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      Browsing as a guest — no login needed
+    </p>
+    <p class="guestnote v-signedin">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.3a5 5 0 0 0 0-7.1z"/></svg>
+      Follow a creator to save them
+    </p>
+   </div>
+
+   <div class="ex-do">
+    <form class="sform" id="search" action="/explore" method="get" role="search">
+      <label class="sfield onhero-field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <span class="skip">Search posts, people and things</span>
+        <input type="search" name="q" maxlength="80"
+               placeholder="Search posts, people, things…"
+               value="" autocomplete="off">
+      </label>
+      <button class="btn btn--primary" type="submit">Search</button>
+    </form>
+
+    <!-- Only with a query. Real links carrying ?tab=, so scoping works
+         without JS and survives being shared or bookmarked. -->
+    <nav class="scope" aria-label="Narrow these results">
+      <span class="micro scope-l">Showing</span>
+      <a class="shelf" href="/explore?q=desk" aria-current="true">Everything</a>
+      <a class="shelf" href="/explore?q=desk&amp;tab=creators">Creators</a>
+      <a class="shelf" href="/explore?q=desk&amp;tab=posts">Posts</a>
+      <a class="shelf" href="/explore?q=desk&amp;tab=things">Things</a>
+    </nav>
+
+    <nav class="shelves" aria-label="Shelves">
+      <a class="shelf" href="/explore" aria-current="true">All</a>
+      <a class="shelf" href="/explore?shelf=skincare">Skincare</a>
+      <a class="shelf" href="/explore?shelf=desk">Desk setup</a>
+      <a class="shelf" href="/explore?shelf=fitness">Fitness</a>
+      <a class="shelf" href="/explore?shelf=home">Home</a>
+      <a class="shelf" href="/explore?shelf=style">Style</a>
+      <a class="shelf" href="/explore?shelf=tech">Tech</a>
+    </nav>
+   </div>
+  </div>
+</div>
+
+<div class="sheet">
+  <div class="inner">
+
+  <!-- ── the fan ─────────────────────────────────────────── -->
+  <div class="fanhead">
+    <!-- The count states what is rendered. It said 3 while 5 cards showed,
+         two of them the same creator — a number describing nothing. -->
+    <h2 class="title"><span class="browse">Creators</span><span class="res">Creators · 4</span></h2>
+    <!-- ?tab= scopes the page to one kind, with or without a query. Same
+         param the search scope uses, so there is one way to narrow Explore
+         rather than two that drift apart. -->
+    <a class="nav-link" href="/explore?tab=creators">See all creators</a>
+  </div>
+  <div class="fan">
+    <a class="fc" href="/mayamoves">
+      <img src="images/posts/skincare.jpg" alt="Maya's latest post — a skincare shelf" width="300" height="300">
+      <span class="fc-id"><img class="avatar" src="images/avatars/maya.jpg" alt="" width="60" height="60">
+        <span class="fc-h">@mayamoves</span></span>
+      <span class="fc-m">18 posts · 42 things</span>
+    </a>
+    <a class="fc" href="/arjunbuilds">
+      <img src="images/posts/desk.jpg" alt="Arjun's latest post — a desk setup" width="300" height="300">
+      <span class="fc-id"><img class="avatar" src="images/avatars/arjun.jpg" alt="" width="60" height="60">
+        <span class="fc-h">@arjunbuilds</span></span>
+      <span class="fc-m">24 posts · 51 things</span>
+    </a>
+    <a class="fc" href="/niaeveryday">
+      <img src="images/posts/gym.jpg" alt="Nia's latest post — gym kit" width="300" height="300">
+      <span class="fc-id"><img class="avatar" src="images/avatars/nia.jpg" alt="" width="60" height="60">
+        <span class="fc-h">@niaeveryday</span></span>
+      <span class="fc-m">6 posts · 9 things</span>
+    </a>
+    <a class="fc" href="/rheamakes">
+      <img src="images/posts/shelf.jpg" alt="Rhea's latest post — a styled shelf" width="300" height="300">
+      <span class="fc-id"><img class="avatar" src="images/avatars/rhea.jpg" alt="" width="60" height="60">
+        <span class="fc-h">@rheamakes</span></span>
+      <span class="fc-m">11 posts · 20 things</span>
+    </a>
+  </div>
+
+  <!-- ── the wall ────────────────────────────────────────── -->
+  <div class="wallhead">
+    <!-- Not "Tagged posts": untagged posts appear here too. They are still
+         content, they just aren't shoppable, and the heading shouldn't
+         promise otherwise. -->
+    <h2 class="title" id="wall"><span class="browse">Latest posts</span><span class="res">Posts &amp; things · 12</span></h2>
+    <!-- The count states what MATCHED, not what happens to be rendered.
+         Saying "10 posts" while 240 match is the kind of number this
+         product promises not to print. -->
+    <p class="micro">
+      <span class="browse"><span class="wallend-more">240 posts</span><span class="wallend-done">10 posts</span></span>
+      <span class="res">12 match “desk”</span>
+    </p>
+  </div>
+
+  <div class="wall">
+
+    <article class="post wp tile-lavender">
+      <div class="shot">
+        <a href="/mayamoves/post/1" aria-label="Open Maya's skincare post">
+          <img src="images/posts/skincare.jpg" alt="A shelf of skincare bottles in morning light" width="900" height="1125" loading="lazy">
+        </a>
+        <a class="tag" href="/mayamoves/product/1" style="--x:9%; --y:26%">
+          <span class="tag-dot tag-dot--offer"></span>
+          <span class="tag-name">Serum</span><span class="tag-price">₹1,299</span>
+        </a>
+        <a class="tag" href="/mayamoves/product/2" style="--x:38%; --y:66%">
+          <span class="tag-dot tag-dot--plain"></span>
+          <span class="tag-name">Balm</span><span class="tag-price">₹640</span>
+        </a>
+      </div>
+      <a class="wp-by" href="/mayamoves">
+        <img class="avatar" src="images/avatars/maya.jpg" alt="" width="60" height="60">
+        <span class="handle">@mayamoves</span><span class="wp-n">2 things</span>
+      </a>
+    </article>
+
+    <article class="post wp tile-sky">
+      <div class="shot">
+        <a href="/arjunbuilds/post/2" aria-label="Open Arjun's desk post">
+          <img src="images/posts/desk.jpg" alt="A tidy desk with a mechanical keyboard and lamp" width="900" height="900" loading="lazy">
+        </a>
+        <a class="tag" href="/arjunbuilds/product/3" style="--x:11%; --y:58%">
+          <span class="tag-dot tag-dot--plain"></span>
+          <span class="tag-name">Lamp</span><span class="tag-price">$48.00</span>
+        </a>
+      </div>
+      <a class="wp-by" href="/arjunbuilds">
+        <img class="avatar" src="images/avatars/arjun.jpg" alt="" width="60" height="60">
+        <span class="handle">@arjunbuilds</span><span class="wp-n">1 thing</span>
+      </a>
+    </article>
+
+    <article class="post wp tile-butter">
+      <div class="shot">
+        <a href="/niaeveryday/post/3" aria-label="Open Nia's gym post">
+          <img src="images/posts/gym.jpg" alt="Gym kit laid out on a bench" width="900" height="900" loading="lazy">
+        </a>
+        <a class="tag" href="/niaeveryday/product/4" style="--x:8%; --y:22%">
+          <span class="tag-dot"></span>
+          <span class="tag-name">Mat</span><span class="tag-price">$32.00</span>
+        </a>
+        <a class="tag" href="/niaeveryday/product/5" style="--x:44%; --y:70%">
+          <span class="tag-dot tag-dot--plain"></span>
+          <span class="tag-name">Bottle</span><span class="tag-price">₹890</span>
+        </a>
+      </div>
+      <a class="wp-by" href="/niaeveryday">
+        <img class="avatar" src="images/avatars/nia.jpg" alt="" width="60" height="60">
+        <span class="handle">@niaeveryday</span><span class="wp-n">2 things</span>
+      </a>
+    </article>
+
+    <article class="post wp tile-blush">
+      <div class="shot">
+        <a href="/rheamakes/post/4" aria-label="Open Rhea's shelf post">
+          <img src="images/posts/shelf.jpg" alt="A styled shelf with ceramics and books" width="900" height="1125" loading="lazy">
+        </a>
+        <a class="tag" href="/rheamakes/product/6" style="--x:10%; --y:18%">
+          <span class="tag-dot"></span>
+          <span class="tag-name">Vase</span><span class="tag-price">£38.00</span>
+        </a>
+        <a class="tag" href="/rheamakes/product/7" style="--x:36%; --y:48%">
+          <span class="tag-dot tag-dot--plain"></span>
+          <span class="tag-name">Print</span><span class="tag-price">£22.00</span>
+        </a>
+        <a class="tag tag--more" href="/rheamakes/post/4" style="--x:14%; --y:78%">
+          <span class="tag-price">5 things</span><span class="tag-name" style="color:rgb(255 255 255 / .7)">›</span>
+        </a>
+      </div>
+      <a class="wp-by" href="/rheamakes">
+        <img class="avatar" src="images/avatars/rhea.jpg" alt="" width="60" height="60">
+        <span class="handle">@rheamakes</span><span class="wp-n">5 things</span>
+      </a>
+    </article>
+
+  </div>
+
+  <!-- One slot per page, breaking the wall rather than sitting inside it.
+       Placed after the first screenful: the shopper has already been given
+       what they came for before anything is sold to them. -->
+  <aside class="adslot" aria-label="Advertisement">
+    <p class="micro adslot-l">
+      <span>Ad · Plugfolio</span>
+      <button class="adslot-why" type="button">Why this ad?</button>
+    </p>
+    <a class="adslot-body" href="#" rel="nofollow sponsored">
+      <img src="images/products/keyboard.jpg" alt="" width="300" height="300" loading="lazy">
+      <span>
+        <span class="adslot-t">Placeholder advertiser</span>
+        <span class="adslot-d">Sponsored placement — not a creator's pick, and not tracked
+          as one.</span>
+      </span>
+      <span class="adslot-go" aria-hidden="true">→</span>
+    </a>
+  </aside>
+
+  <div class="wall">
+
+    <article class="post wp tile-mint">
+      <div class="shot">
+        <a href="/mayamoves/post/5" aria-label="Open Maya's beauty post">
+          <img src="images/posts/beauty.jpg" alt="Beauty products arranged on a pale surface" width="900" height="900" loading="lazy">
+        </a>
+        <a class="tag" href="/mayamoves/product/8" style="--x:12%; --y:60%">
+          <span class="tag-dot tag-dot--offer"></span>
+          <span class="tag-name">Palette</span><span class="tag-price">$36.00</span>
+        </a>
+      </div>
+      <a class="wp-by" href="/mayamoves">
+        <img class="avatar" src="images/avatars/maya.jpg" alt="" width="60" height="60">
+        <span class="handle">@mayamoves</span><span class="wp-n">1 thing</span>
+      </a>
+    </article>
+
+    <!-- An untagged post still shows. It is still content; it just isn't shoppable. -->
+    <article class="post wp tile-lavender">
+      <div class="shot">
+        <a href="/arjunbuilds/post/6" aria-label="Open Arjun's post">
+          <img src="images/posts/p6.jpg" alt="A morning workspace scene" width="900" height="1125" loading="lazy">
+        </a>
+      </div>
+      <a class="wp-by" href="/arjunbuilds">
+        <img class="avatar" src="images/avatars/arjun.jpg" alt="" width="60" height="60">
+        <span class="handle">@arjunbuilds</span><span class="wp-n">Nothing tagged</span>
+      </a>
+    </article>
+
+    <article class="post wp tile-sky">
+      <div class="shot">
+        <a href="/rheamakes/post/7" aria-label="Open Rhea's post">
+          <img src="images/posts/p7.jpg" alt="A neutral-toned still life" width="900" height="900" loading="lazy">
+        </a>
+        <a class="tag" href="/rheamakes/product/9" style="--x:44%; --y:24%">
+          <span class="tag-dot tag-dot--plain"></span>
+          <span class="tag-name">Chair</span><span class="tag-price">€140.00</span>
+        </a>
+      </div>
+      <a class="wp-by" href="/rheamakes">
+        <img class="avatar" src="images/avatars/rhea.jpg" alt="" width="60" height="60">
+        <span class="handle">@rheamakes</span><span class="wp-n">1 thing</span>
+      </a>
+    </article>
+
+    <article class="post wp tile-butter">
+      <div class="shot">
+        <a href="/niaeveryday/post/8" aria-label="Open Nia's post">
+          <img src="images/posts/p8.jpg" alt="An outdoor lifestyle shot" width="900" height="1125" loading="lazy">
+        </a>
+        <a class="tag" href="/niaeveryday/product/10" style="--x:9%; --y:34%">
+          <span class="tag-dot tag-dot--offer"></span>
+          <span class="tag-name">Shoes</span><span class="tag-price">£89.00</span>
+        </a>
+        <a class="tag" href="/niaeveryday/product/11" style="--x:40%; --y:72%">
+          <span class="tag-dot tag-dot--plain"></span>
+          <span class="tag-name">Socks</span><span class="tag-price">£12.00</span>
+        </a>
+      </div>
+      <a class="wp-by" href="/niaeveryday">
+        <img class="avatar" src="images/avatars/nia.jpg" alt="" width="60" height="60">
+        <span class="handle">@niaeveryday</span><span class="wp-n">2 things</span>
+      </a>
+    </article>
+
+    <article class="post wp tile-blush">
+      <div class="shot">
+        <a href="/mayamoves/post/9" aria-label="Open Maya's post">
+          <img src="images/posts/p9.jpg" alt="A close-up product flatlay" width="900" height="900" loading="lazy">
+        </a>
+        <a class="tag" href="/mayamoves/product/12" style="--x:13%; --y:56%">
+          <span class="tag-dot"></span>
+          <span class="tag-name">Candle</span><span class="tag-price">₹1,450</span>
+        </a>
+      </div>
+      <a class="wp-by" href="/mayamoves">
+        <img class="avatar" src="images/avatars/maya.jpg" alt="" width="60" height="60">
+        <span class="handle">@mayamoves</span><span class="wp-n">1 thing</span>
+      </a>
+    </article>
+
+    <article class="post wp tile-mint">
+      <div class="shot">
+        <a href="/arjunbuilds/post/10" aria-label="Open Arjun's post">
+          <img src="images/posts/p10.jpg" alt="A hardware detail shot" width="900" height="1125" loading="lazy">
+        </a>
+        <a class="tag" href="/arjunbuilds/product/13" style="--x:10%; --y:28%">
+          <span class="tag-dot tag-dot--plain"></span>
+          <span class="tag-name">Keyboard</span><span class="tag-price">$110.00</span>
+        </a>
+        <a class="tag" href="/arjunbuilds/product/14" style="--x:38%; --y:68%">
+          <span class="tag-dot tag-dot--offer"></span>
+          <span class="tag-name">Cable</span><span class="tag-price">$19.00</span>
+        </a>
+      </div>
+      <a class="wp-by" href="/arjunbuilds">
+        <img class="avatar" src="images/avatars/arjun.jpg" alt="" width="60" height="60">
+        <span class="handle">@arjunbuilds</span><span class="wp-n">2 things</span>
+      </a>
+    </article>
+
+  </div>
+
+  <!-- The wall has to end somewhere. Exactly one of these shows. -->
+  <div class="wallend">
+    <div class="wallend-more">
+      <!-- "Load more" rather than "Load more posts": the same control ends
+           the creators scope too, and it must not name the wrong thing. -->
+      <a class="btn btn--ghost" href="/explore?page=2" rel="next">Load more</a>
+      <p class="micro wallend-note browse" style="margin:10px 0 0">Showing 10 of 240</p>
+      <p class="micro wallend-note res" style="margin:10px 0 0">Showing the first 4 of 26 creators</p>
+    </div>
+    <div class="wallend-done">
+      <p class="micro wallend-note">That's all 10 posts. Try a shelf to see something different.</p>
+    </div>
+  </div>
+
+  <!-- Empty with a query — the search was too narrow. -->
+  <div class="empty empty--q">
+    <h2 class="title">Nothing matches that search — try widening it.</h2>
+    <p class="copy">Search looks at post captions, creator handles and the things tagged in them.
+      A shelf might get you there faster.</p>
+    <a class="btn btn--ghost" href="/explore">Clear search</a>
+  </div>
+
+  <!-- Empty with no query — the platform is young. Not the shopper's fault. -->
+  <div class="empty empty--cold">
+    <h2 class="title">Nothing here yet — creators are on their way.</h2>
+    <p class="copy">This is the only screen in Plugfolio where there is genuinely nothing to shop.
+      If you make content, this is a good moment to claim your handle.</p>
+    <a class="btn btn--primary" href="/join?as=creator">Create your page</a>
+  </div>
+
+  </div>
+</div>
+</main>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/join?as=creator">For creators</a>
+      <a class="foot-link" href="/collabs">For business</a>
+      <a class="foot-link" href="/support">Help</a>
+    </div>
+  </div>
+  <div class="inner foot-note">
+    <p class="micro">Plugfolio never takes a payment. Every Buy hands you to the retailer, and what
+      happens there is between you and them. Shopping never needs an account.</p>
+  </div>
+</footer>
+
+<nav class="tabs" aria-label="Sections">
+  <a class="tab" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V21H3z"/></svg>Home</a>
+  <a class="tab" href="/explore" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Shop</a>
+  <a class="tab" href="/following"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.3a5 5 0 0 0 0-7.1z"/></svg>Following</a>
+  <a class="tab" href="/account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>Account</a>
+</nav>
+
+<script>
+/* ── URL params ────────────────────────────────────────────
+   In the product these are read server-side; this prototype is static
+   files, so nothing was reading them and every ?tab= link looked broken.
+   Reading them here makes the URLs demonstrable — a state can be linked to
+   and shared, which is the whole point of putting it in the URL rather than
+   in component state.
+
+   NOTE: there is no router, so the path is /explore.html, not /explore.
+   The hrefs use the product's real routes on purpose; only the origin
+   differs in the prototype. */
+(function () {
+  var p = new URLSearchParams(location.search);
+  var body = document.body;
+  var q = (p.get('q') || '').trim();
+  var tab = p.get('tab');
+  var shelf = p.get('shelf');
+
+  if (q) {
+    body.dataset.state = 'results';
+    var input = document.querySelector('.sfield input');
+    if (input) input.value = q;
+  }
+  if (tab === 'creators' || tab === 'posts' || tab === 'things') {
+    body.dataset.tab = tab;
+    /* A scoped browse is still a results-shaped page: it shows the scope
+       control so there is a way back out to Everything. */
+    body.dataset.state = 'results';
+  }
+  /* Mark whichever chip the URL actually selected. */
+  function mark(sel, test) {
+    document.querySelectorAll(sel).forEach(function (a) {
+      a.setAttribute('aria-current', String(test(a.getAttribute('href') || '')));
+    });
+  }
+  mark('.scope a', function (href) {
+    var t = new URLSearchParams(href.split('?')[1] || '').get('tab');
+    return (t || null) === (tab || null);
+  });
+  mark('.shelves a', function (href) {
+    var s = new URLSearchParams(href.split('?')[1] || '').get('shelf');
+    return (s || null) === (shelf || null);
+  });
+})();
+
+/* The account menu — a real product control, not review chrome. */
+(function () {
+  var btn = document.querySelector('[data-acct]');
+  var menu = document.getElementById('acctmenu');
+  if (!btn || !menu) return;
+
+  function open(v) {
+    menu.hidden = !v;
+    btn.setAttribute('aria-expanded', String(v));
+  }
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    open(menu.hidden);
+  });
+  /* Dismiss the way a menu is expected to: outside tap, or Escape. */
+  document.addEventListener('click', function (e) {
+    if (!menu.hidden && !menu.contains(e.target)) open(false);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !menu.hidden) { open(false); btn.focus(); }
+  });
+  /* Sign out is the one destructive-ish action here, so it gets the busy
+     state every action button gets — in-app browsers double-fire taps. */
+  var out = menu.querySelector('[data-signout]');
+  out.addEventListener('click', function () {
+    out.textContent = 'Signing out…';
+    out.setAttribute('aria-disabled', 'true');
+  });
+})();
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: '/explore',
+  groups: [
+    { label: 'Content state', options: [
+      { name: 'Browsing',    note: 'No query — shelves, fan, wall',      set: { state: 'full'    } },
+      { name: 'Search results', note: 'Scope chips, grouped counts',     set: { state: 'results' } },
+      { name: 'No match',    note: 'A query that finds nothing',         set: { state: 'q-empty' } },
+      { name: 'Nothing yet', note: 'No query, no content at all',        set: { state: 'cold'    } }
+    ]},
+    { label: 'Who is looking', options: [
+      { name: 'Guest',     note: 'No account — shops freely', set: { viewer: 'anon'    } },
+      { name: 'Signed in', note: 'Shows the mode slot',       set: { viewer: 'shopper' } }
+    ]},
+    { label: 'End of the wall', options: [
+      { name: 'More to load', note: 'Load more link · count states the total', set: { more: 'yes' } },
+      { name: 'That is everything', note: 'No control, just an honest end',    set: { more: 'no'  } }
+    ]},
+    { label: 'Plan', options: [
+      { name: 'Free', note: 'One ad slot, after the first screenful', set: { plan: 'free' } },
+      { name: 'Pro',  note: 'No ad slot at all',                      set: { plan: 'pro'  } }
+    ]}
+  ]
+};
+</script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

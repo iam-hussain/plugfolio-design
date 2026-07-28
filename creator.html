@@ -1,0 +1,919 @@
+<!doctype html>
+<!--
+  Plugfolio — /[handle] Creator page (the shop window). Spec: design-handoff §5.4.
+  Mode: OPERATE. The visitor arrived from a bio link wanting the thing they saw,
+  so scanability and the in-app-browser scene outrank expression. Fixed rem steps
+  rather than the landing page's fluid clamps; Sora is reserved for the creator's
+  name, everything else is Manrope.
+
+  Viewer: anonymous shopper. Follow opens an inline claim band — it never
+  navigates away and never walls the page (PRODUCT.md rule 1).
+
+  ⚠ NEW SCOPE — not in the spec, needs backend before it is real:
+    · Cover image + creator accent colour (§5.4 has no cover field)
+    · Comment like / dislike counts, and the "Popular" sort that depends on them
+  IN SPEC and correctly built: threaded replies (§5.10), the four-tab bottom
+  bar and shopper chrome (§5.1), shelves (§5.16).
+
+  Header treatment and content state are switchable via the Tweaks panel.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>@mayamoves · Plugfolio</title>
+<meta name="description" content="Everyday things that actually work — tagged so you can just tap. Shop @mayamoves' posts at the retailer, no account needed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Shopper chrome (§5.1): search + account, no marketing CTA ── */
+.searchbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+  padding: 10px 16px; border-radius: var(--r-chip); border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-2); text-decoration: none;
+  font-size: var(--t-label); font-weight: 600; }
+.searchbtn:hover { border-color: var(--accent); color: var(--accent); }
+.searchbtn svg { width: 16px; height: 16px; }
+@media (max-width: 620px) { .searchbtn span { display: none; } .searchbtn { padding: 10px 13px; } }
+
+/* Past the header, the bar stops being Plugfolio's and becomes the creator's. */
+.ctx { display: flex; align-items: center; gap: 10px; min-width: 0; margin-left: 14px;
+  opacity: 0; transform: translateY(6px); pointer-events: none;
+  transition: opacity .22s var(--ease), transform .22s var(--ease); }
+body[data-ctx="on"] .ctx { opacity: 1; transform: none; pointer-events: auto; }
+.ctx-av { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: none; }
+.ctx-id { display: grid; line-height: 1.15; min-width: 0; }
+.ctx-id b { font-size: var(--t-label); font-weight: 700; white-space: nowrap; }
+.ctx-id i { font-style: normal; font-size: var(--t-micro); font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.ctx .btn { padding: 9px 18px; min-height: 40px; }
+@media (max-width: 700px) {
+  body[data-ctx="on"] header .mark-name { display: none; }
+  .ctx { margin-left: 8px; gap: 8px; }
+  .ctx-id b { font-size: var(--t-micro); }
+  .ctx-id i { font-size: var(--t-micro); }
+  .ctx .btn { padding: 9px 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .ctx { transition: none; } }
+
+/* ── Cover ────────────────────────────────────────────────── */
+.cover { position: relative; height: 168px; overflow: hidden; background: var(--violet-wash); }
+@media (max-width: 640px) { .cover { height: 112px; } }
+.cover img { width: 100%; height: 100%; object-fit: cover; }
+/* the canvas fades up, so the header never sits on unpredictable pixels */
+.cover::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgb(var(--shadow-ink) / .10) 0%, transparent 45%, var(--canvas) 100%); }
+
+/* ── Operate type: fixed steps, no fluid display ──────────── */
+.ch-name { font-family: Sora, system-ui, sans-serif; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; margin: 0; }
+.sec-h { font-size: var(--t-title); font-weight: 800; letter-spacing: -.02em; margin: 0; }
+
+/* ── Creator header ───────────────────────────────────────── */
+.ch { padding-block: 0 20px; margin-top: -44px; position: relative; z-index: 1; }
+@media (max-width: 640px) { .ch { margin-top: -34px; } }
+.ch-top { display: flex; align-items: flex-start; gap: 16px; }
+.ch-av { border-radius: 50%; object-fit: cover; flex: none; background: var(--violet-wash);
+  width: 88px; height: 88px; box-shadow: 0 0 0 4px var(--canvas); }
+@media (max-width: 640px) { .ch-av { width: 68px; height: 68px; box-shadow: 0 0 0 3px var(--canvas); } }
+.ch-id { min-width: 0; flex: 1; padding-top: 48px; }
+@media (max-width: 640px) { .ch-id { padding-top: 38px; } }
+.ch-name { font-size: var(--t-name); }
+.ch-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 4px; }
+.ch-handle { font-size: var(--t-label); font-weight: 600; color: var(--ink-2); }
+.ch-dot { color: var(--ink-3); }
+.ch-count { font-size: var(--t-label); font-weight: 700; font-variant-numeric: tabular-nums; }
+.ch-count span { font-weight: 500; color: var(--ink-2); }
+.ch-bio { margin: 12px 0 0; font-size: var(--t-copy); color: var(--ink-2); max-width: 58ch; }
+.ch-act { flex: none; padding-top: 48px; }
+/* On phones the actions take their own row. .ch-act never shrinks, so left
+   beside the name it eats the identity column — one word per line once a
+   viewer has two buttons. */
+@media (max-width: 640px) {
+  .ch-top { flex-wrap: wrap; }
+  .ch-act { flex: 1 0 100%; padding-top: 14px; }
+  .ch-act > .btn { width: 100%; }
+  .owner-tools { display: flex; width: 100%; }
+  .owner-tools > .btn { flex: 1; }
+}
+.ch-act .btn { padding: 12px 24px; }
+
+.socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+/* Outbound identity links. Circular and icon-only, so they can never be
+   mistaken for the rectangular text chips that filter the grid below. */
+.social { display: grid; place-items: center; width: 40px; height: 40px;
+  border-radius: 50%; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-2); text-decoration: none;
+  transition: border-color .18s var(--ease), color .18s var(--ease), background-color .18s var(--ease); }
+.social:hover { border-color: var(--accent); color: var(--accent); background: var(--violet-wash); }
+.social svg { width: 17px; height: 17px; }
+
+/* ── Inline claim band — Follow never walls the page ──────── */
+
+/* ── Category chips ───────────────────────────────────────── */
+.chips-wrap { padding-block: 10px 0; }
+.chips-lab { display: block; margin-bottom: 8px; }
+/* Filters, not links out: square-shouldered, text-led, with a real selected state. */
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+.chips::-webkit-scrollbar { display: none; }
+.chip-f { flex: none; min-height: 40px; display: inline-flex; align-items: center;
+  padding: 9px 16px; border-radius: var(--r-image); border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-2); text-decoration: none;
+  font-size: var(--t-label); font-weight: 600; white-space: nowrap;
+  transition: border-color .18s var(--ease), background-color .18s var(--ease), color .18s var(--ease); }
+.chip-f:hover { border-color: var(--accent); color: var(--accent); }
+.chip-f[aria-current="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip-desc { margin: 10px 0 0; font-size: var(--t-copy); color: var(--ink-2); }
+
+/* ── Post grid ────────────────────────────────────────────── */
+.grid-wrap { padding-block: 22px 8px; }
+.grid-h { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.grid-h .micro { margin-left: auto; }
+.grid { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); list-style: none; margin: 0; padding: 0; }
+@media (min-width: 640px) { .grid { grid-template-columns: repeat(3, 1fr); gap: 12px; } }
+@media (min-width: 1000px) { .grid { grid-template-columns: repeat(4, 1fr); gap: 14px; } }
+
+.tile { position: relative; display: block; border-radius: var(--r-image); overflow: hidden;
+  background: var(--surface); box-shadow: 0 0 0 1px var(--card-edge);
+  text-decoration: none; color: inherit; aspect-ratio: 1;
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease); }
+.tile img { width: 100%; height: 100%; object-fit: cover; }
+.tile:hover, .tile:focus-visible { transform: translateY(-3px); box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); }
+/* product-count indicator — only on posts that carry tagged products */
+.tile-n { position: absolute; right: 8px; top: 8px; display: inline-flex; align-items: center; gap: 5px;
+  background: #FFFFFF; color: var(--on-white); border-radius: var(--r-chip);
+  padding: 5px 9px; font-size: var(--t-micro); font-weight: 700;
+  font-variant-numeric: tabular-nums; box-shadow: var(--sh-tag); }
+.tile-n svg { width: 11px; height: 11px; color: var(--accent); }
+
+/* ── Comments ─────────────────────────────────────────────── */
+.cm-wrap { padding-block: 34px 44px; border-top: 1px solid var(--line); margin-top: 34px; }
+.cm-h { display: flex; align-items: baseline; gap: 12px; }
+.cm-report { margin-left: auto; font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-3); text-decoration: none; padding: 8px 0; }
+.cm-report:hover { color: var(--accent); }
+.cm-av { width: 32px; height: 32px; border-radius: 50%; flex: none; background: var(--violet-wash);
+  display: grid; place-items: center; font-size: var(--t-micro); font-weight: 800; color: var(--violet-deep); }
+.cm-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.cm-who b { font-size: var(--t-label); }
+.cm-badge { font-size: var(--t-micro); font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  background: var(--violet-wash); color: var(--violet-deep); padding: 2px 8px; border-radius: var(--r-chip); }
+.cm-when { font-size: var(--t-micro); color: var(--ink-3); }
+.cm-t { margin: 5px 0 0; font-size: var(--t-copy); color: var(--ink-2); }
+
+/* ── Empty states ─────────────────────────────────────────── */
+.empty { border: 1px dashed var(--line); border-radius: var(--r-tile); padding: 40px 24px;
+  text-align: center; }
+.empty b { display: block; font-size: var(--t-title); font-weight: 800; letter-spacing: -.02em; }
+.empty p { margin: 8px auto 0; font-size: var(--t-copy); color: var(--ink-2); max-width: 40ch; }
+.empty .btn { margin-top: 18px; }
+/* inline links inside an empty state — never the action button, which
+   carries its own colour pair */
+.empty a:not(.btn) { color: var(--violet-deep); font-weight: 700; }
+
+
+/* ── Comments: reactions, threads, and the panel ──────────── */
+.cm-list { list-style: none; margin: 18px 0 0; padding: 0; }
+/* Preview list on the page separates its two entries; the panel's threaded
+   list does not, because the reply rail already carries the structure. */
+.cm-wrap .cm-list > li + li { border-top: 1px solid var(--line); }
+.cm { display: flex; gap: 12px; padding: 14px 0; }
+.cm-b { min-width: 0; flex: 1; }
+.cm-more { margin-top: 14px; }
+.cm-acts { display: flex; align-items: center; gap: 4px; margin-top: 8px; }
+/* ⚠ like / dislike are NEW SCOPE — no counts exist in the product today */
+.react { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 7px 10px;
+  border: 0; background: none; border-radius: var(--r-chip); cursor: pointer; color: var(--ink-2);
+  font: inherit; font-size: var(--t-micro); font-weight: 700; font-variant-numeric: tabular-nums;
+  transition: background-color .16s var(--ease), color .16s var(--ease); }
+.react:hover { background: var(--violet-wash); color: var(--accent); }
+.react[aria-pressed="true"] { color: var(--accent); }
+.react svg { width: 15px; height: 15px; }
+.cm-reply { min-height: 36px; padding: 7px 10px; border: 0; background: none; cursor: pointer;
+  color: var(--ink-2); font: inherit; font-size: var(--t-micro); font-weight: 700; border-radius: var(--r-chip); }
+.cm-reply:hover { background: var(--violet-wash); color: var(--accent); }
+/* threaded replies, one level (§5.10) */
+.cm-thread { list-style: none; margin: 0 0 6px 44px; padding: 0; border-left: 1px solid var(--line); }
+.cm-thread .cm { padding-left: 16px; }
+.cm-thread .cm-av { width: 26px; height: 26px; }
+
+#cmPanel { border: 0; padding: 0; background: var(--canvas); color: var(--ink);
+  width: min(560px, 100%); max-width: 100%; height: 100dvh; max-height: 100dvh;
+  margin: 0 0 0 auto; box-shadow: -20px 0 60px -20px rgb(var(--shadow-ink) / .4); }
+#cmPanel::backdrop { background: rgb(var(--shadow-ink) / .5); }
+@media (max-width: 640px) {
+  #cmPanel { width: 100%; height: 92dvh; max-height: 92dvh; margin: auto 0 0;
+    border-radius: var(--r-bay) var(--r-bay) 0 0; }
+}
+.pn { display: flex; flex-direction: column; height: 100%; }
+.pn-h { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+.pn-h h2 { margin: 0; font-size: var(--t-title); font-weight: 800; letter-spacing: -.02em; }
+.pn-x { margin-left: auto; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-2); cursor: pointer; display: grid; place-items: center; font-size: 15px; }
+.pn-x:hover { border-color: var(--accent); color: var(--accent); }
+.pn-sort { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 14px 20px 4px; }
+.sortbtn { min-height: 38px; padding: 8px 14px; border-radius: var(--r-chip); border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-2); cursor: pointer; font: inherit;
+  font-size: var(--t-micro); font-weight: 700; }
+.sortbtn:hover { border-color: var(--accent); color: var(--accent); }
+.sortbtn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+.pn-new { margin-left: auto; }
+.pn-body { flex: 1; overflow-y: auto; padding: 0 20px 20px; }
+.pn-foot { border-top: 1px solid var(--line); padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.pn-foot p { margin: 0; flex: 1 1 200px; font-size: var(--t-copy); color: var(--ink-2); }
+
+
+/* Desktop reads the thread inline. The sheet is a mobile affordance only. */
+.cm-sort { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 16px; }
+.cm-sort > svg { width: 18px; height: 18px; color: var(--ink-3); margin-right: 4px; }
+.cm-load { margin-top: 18px; }
+.cm-more { display: none; }
+.rep-toggle { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; margin: 2px 0 6px 44px;
+  padding: 7px 12px; border: 0; border-radius: var(--r-chip); background: none; cursor: pointer;
+  color: var(--accent); font: inherit; font-size: var(--t-micro); font-weight: 700; }
+.rep-toggle:hover { background: var(--violet-wash); }
+.rep-toggle svg { width: 14px; height: 14px; transition: transform .2s var(--ease); }
+.rep-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+@media (max-width: 780px) {
+  .cm-wrap #cmThread > li:nth-child(n+3) { display: none; }
+  .cm-wrap #cmThread .cm-acts,
+  .cm-wrap #cmThread .cm-thread,
+  .cm-wrap #cmThread .rep-toggle { display: none; }
+  .cm-sort, .cm-load { display: none; }
+  .cm-more { display: inline-flex; }
+  /* lifted into the sheet, the full thread returns */
+  #cmBody .cm-sort { display: flex; margin: 0 0 4px; }
+  #cmBody #cmThread > li { display: block; }
+  #cmBody #cmThread .cm-acts { display: flex; }
+  #cmBody #cmThread .rep-toggle { display: inline-flex; }
+}
+
+/* The sheet rises from the bottom and can be dragged away. */
+.pn-grab { display: none; }
+@media (max-width: 780px) {
+  .pn-grab { display: grid; place-items: center; width: 100%; padding: 10px 0 2px;
+    border: 0; background: none; cursor: grab; touch-action: none; }
+  .pn-grab span { width: 44px; height: 5px; border-radius: 999px; background: var(--line); display: block; }
+  #cmPanel[open] { animation: sheetUp .34s cubic-bezier(.2,.9,.25,1); }
+  #cmPanel::backdrop { animation: sheetFade .34s ease; }
+}
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sheetFade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  #cmPanel[open], #cmPanel::backdrop { animation: none; }
+  .rep-toggle svg { transition: none; }
+}
+
+
+/* Signed-out composer stand-in (§5.4). Inline on desktop; the sheet
+   carries its own at the foot, so this one steps aside on mobile. */
+.cm-claim { display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  margin-top: 18px; padding: 14px 16px; border: 1px solid var(--line);
+  border-radius: var(--r-tile); background: var(--surface); }
+.cm-claim-av { width: 32px; height: 32px; border-radius: 50%; flex: none; display: grid;
+  place-items: center; background: var(--violet-wash); color: var(--violet-deep);
+  font-size: var(--t-micro); font-weight: 800; }
+.cm-claim p { margin: 0; flex: 1 1 200px; font-size: var(--t-copy); color: var(--ink-2); }
+@media (max-width: 780px) { .cm-claim { display: none; } }
+
+/* The sheet's foot: tighter type so it never eats three lines of a short screen. */
+.pn-foot p { font-size: var(--t-micro); line-height: 1.5; }
+
+
+
+/* ═══ Creator-set page (creator-prefs.js) ═══════════════════════════ */
+.ch-greet { margin: 0 0 4px; font-size: var(--t-label); font-weight: 600; color: var(--accent); }
+
+/* Post layouts the creator picks. The tile, its photo and its tag count
+   are the same object in all three — only the frame around them moves. */
+.tile-t { display: none; }
+body[data-layout="card"] .grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+body[data-layout="card"] .tile { aspect-ratio: auto; padding: 10px; background: var(--surface);
+  border-radius: var(--r-tile); box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); }
+body[data-layout="card"] .tile img { aspect-ratio: 4 / 3; border-radius: var(--r-image); }
+body[data-layout="card"] .tile-n { right: 18px; top: 18px; }
+body[data-layout="card"] .tile-t { display: block; padding: 10px 4px 2px;
+  font-size: var(--t-label); font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+
+body[data-layout="list"] .grid { grid-template-columns: 1fr; gap: 8px; }
+/* Three explicit tracks: thumbnail, title, count. Left to auto-placement
+   the title falls into the 64px image column and wraps a word per line. */
+body[data-layout="list"] .tile { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px;
+  align-items: center; aspect-ratio: auto; padding: 8px; background: var(--surface);
+  border-radius: var(--r-tile); box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); }
+body[data-layout="list"] .tile img { aspect-ratio: 1; border-radius: var(--r-image); }
+body[data-layout="list"] .tile-t { display: block; grid-column: 2; grid-row: 1; align-self: center;
+  font-size: var(--t-label); font-weight: 700; color: var(--ink); }
+body[data-layout="list"] .tile-n { position: static; grid-column: 3; grid-row: 1;
+  align-self: center; margin-right: 8px; }
+body[data-layout="list"] .tile:hover, body[data-layout="list"] .tile:focus-visible { transform: none; }
+
+/* ── Comment identity (§5.10) ──────────────────────────────────── */
+.cm-as { flex: 1 1 100%; order: -1; position: relative; }
+.as-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 5px 12px;
+  border-radius: var(--r-chip); border: 1px solid var(--line); background: var(--canvas);
+  color: var(--ink-2); cursor: pointer; font: inherit; font-size: var(--t-micro); font-weight: 600; }
+.as-btn b { color: var(--ink); font-weight: 700; }
+.as-btn:hover { border-color: var(--accent); color: var(--accent); }
+.as-btn--fixed { cursor: default; }
+.as-btn--fixed:hover { border-color: var(--line); color: var(--ink-2); }
+.as-menu { position: absolute; z-index: 40; left: 0; top: calc(100% + 6px); min-width: 260px;
+  list-style: none; margin: 0; padding: 6px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-tile); box-shadow: var(--sh-lift); }
+.as-menu[hidden] { display: none; }
+.as-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px;
+  border: 0; border-radius: var(--r-image); background: none; cursor: pointer; font: inherit; text-align: left; }
+.as-menu button:hover { background: var(--violet-wash); }
+.as-menu img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: none; }
+.as-menu s { display: block; text-decoration: none; font-size: var(--t-label); font-weight: 700; color: var(--ink); }
+.as-menu em { display: block; font-style: normal; font-size: var(--t-micro); color: var(--ink-2); }
+.as-menu [aria-selected="true"] { background: var(--violet-wash); }
+
+/* ── The customiser ────────────────────────────────────────────── */
+.cz { margin-top: 14px; padding: 18px; border: 1px solid var(--accent); border-radius: var(--r-tile);
+  background: var(--surface); display: grid; gap: 16px; }
+.cz[hidden] { display: none; }
+.cz-note { margin: 0; font-size: var(--t-micro); color: var(--ink-2); }
+.cz-note a { color: var(--accent); }
+.cz-row { display: grid; gap: 8px; }
+.cz-lab { font-size: var(--t-micro); font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--ink-2); }
+.cz-input { width: 100%; min-height: 44px; padding: 11px 14px; border-radius: var(--r-image);
+  border: 1px solid var(--line); background: var(--canvas); color: var(--ink); font: inherit;
+  font-size: var(--t-label); }
+textarea.cz-input { min-height: 76px; resize: vertical; }
+.cz-input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
+.cz-seg { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cz-opt { flex: 1 1 180px; min-height: 44px; padding: 10px 14px; border-radius: var(--r-image);
+  border: 1px solid var(--line); background: var(--canvas); color: var(--ink); cursor: pointer;
+  font: inherit; text-align: left; }
+.cz-opt s { display: block; text-decoration: none; font-size: var(--t-label); font-weight: 700; }
+.cz-opt em { display: block; font-style: normal; margin-top: 2px; font-size: var(--t-micro); color: var(--ink-2); }
+.cz-opt[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.cz-opt--tog { flex: 0 0 auto; }
+.cz-opt--tog[aria-pressed="false"] { color: var(--ink-3); text-decoration: line-through; }
+.cz-sw { display: flex; flex-wrap: wrap; gap: 10px; }
+.cz-chip { width: 44px; height: 44px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+.cz-chip[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 3px var(--canvas) inset; }
+.cz-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.cz-link { background: none; border: 0; cursor: pointer; color: var(--ink-2); font: inherit;
+  font-size: var(--t-label); font-weight: 600; text-decoration: underline; text-underline-offset: 3px;
+  min-height: 44px; padding: 0 6px; }
+.cz-link:hover { color: var(--accent); }
+
+/* ── Customiser as a sheet on phones ───────────────────────────────
+   Held at 66dvh, not the comments sheet's 92dvh, and under a lighter
+   backdrop: the page behind IS the preview, so it has to stay readable
+   while you drag a control. A sheet that covers the result would make
+   the live editing pointless. */
+#czSheet { display: none; }
+@media (max-width: 780px) {
+  #czSheet[open] { display: block; animation: sheetUp .34s cubic-bezier(.2,.9,.25,1); }
+  #czSheet { border: 0; padding: 0; width: 100%; max-width: 100%;
+    height: 66dvh; max-height: 66dvh; margin: auto 0 0;
+    background: var(--canvas); color: var(--ink);
+    border-radius: var(--r-bay) var(--r-bay) 0 0; }
+  #czSheet::backdrop { background: rgb(var(--shadow-ink) / .22); animation: sheetFade .34s ease; }
+  /* In the sheet the panel is the sheet — it drops its own frame. */
+  #czBody .cz { margin: 0; border: 0; border-radius: 0; background: transparent; padding: 4px 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #czSheet[open], #czSheet::backdrop { animation: none; }
+}
+
+/* ═══ One page, four viewers (§5.4) ═══
+   Only the header action slot, the bands and the comment footer change.
+   The buy path — shelves, grid, tiles — never does. */
+/* Hide by exclusion, never by .v-x{display:none} — a plain hide would be
+   outranked by whatever display the element already carries (.band-v is flex,
+   .acct is inline-grid). Matching viewers match no rule at all, so each
+   element simply keeps its own display. */
+body:not([data-viewer="anon"])     .v-anon,
+body:not([data-viewer="shopper"])  .v-shopper,
+body:not([data-viewer="business"]) .v-business,
+body:not([data-viewer="owner"])    .v-owner,
+body[data-viewer="anon"]           .v-signedin { display: none; }
+
+/* the claim band only exists for a viewer who has no account */
+body:not([data-viewer="anon"]) .cm-claim, body:not([data-viewer="anon"]) .claim { display: none !important; }
+body[data-viewer="anon"] .composer { display: none !important; }
+
+/* Following is a real toggle, with the pending state the in-app browser needs */
+.btn--following { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.btn--following:hover { border-color: var(--accent); color: var(--accent); }
+.btn[aria-busy="true"] { opacity: .6; pointer-events: none; }
+
+.owner-tools { display: flex; gap: 8px; }
+
+/* Viewer bands */
+.band-v { display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  margin-top: 18px; padding: 16px 18px; border-radius: var(--r-tile); }
+.band-v p { margin: 0; flex: 1 1 240px; font-size: var(--t-copy); }
+.band-v b { display: block; font-size: var(--t-label); font-weight: 700; }
+.band-owner { background: var(--violet-wash); border: 1px solid var(--accent); }
+.band-owner p { color: var(--ink-2); }
+.band-biz { display: block; background: var(--surface); border: 1px solid var(--line); }
+.band-biz-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.band-biz-h b { flex: 1 1 auto; }
+.collab { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; margin-top: 4px; }
+.collab textarea { flex: 1 1 260px; min-height: 76px; resize: vertical; padding: 11px 14px;
+  border-radius: var(--r-image); border: 1px solid var(--line); background: var(--canvas);
+  color: var(--ink); font: inherit; font-size: var(--t-label); }
+.collab textarea::placeholder { color: var(--ink-3); }
+.collab textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
+
+/* Signed-in comment composer */
+.composer { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px;
+  margin-top: 18px; padding: 14px 16px; border: 1px solid var(--line);
+  border-radius: var(--r-tile); background: var(--surface); }
+.composer img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex: none; }
+.composer input { flex: 1 1 220px; min-height: 44px; padding: 11px 14px; border-radius: var(--r-image);
+  border: 1px solid var(--line); background: var(--canvas); color: var(--ink); font: inherit; font-size: var(--t-label); }
+.composer input::placeholder { color: var(--ink-3); }
+.composer input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
+
+/* signed-in account slot replaces Log in */
+.acct { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--line); overflow: hidden; }
+.acct img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ═══ Header treatments — switched from the Tweaks panel ═══ */
+/* Minimal: goods above the fold. Bio and socials stand down. */
+body[data-header="minimal"] .cover { height: 96px; }
+body[data-header="minimal"] .ch { margin-top: -30px; padding-bottom: 12px; }
+body[data-header="minimal"] .ch-id, body[data-header="minimal"] .ch-act { padding-top: 32px; }
+body[data-header="minimal"] .ch-av { width: 58px; height: 58px; }
+body[data-header="minimal"] .ch-name { font-size: var(--t-title); }
+body[data-header="minimal"] .ch-bio,
+body[data-header="minimal"] .socials { display: none; }
+
+/* Balanced (default) needs no overrides. */
+
+/* Identity-forward: the creator leads. */
+body[data-header="identity"] .cover { height: 220px; }
+body[data-header="identity"] .ch { margin-top: -60px; padding-bottom: 26px; text-align: center; }
+body[data-header="identity"] .ch-id, body[data-header="identity"] .ch-act { padding-top: 0; }
+body[data-header="identity"] .ch-top { flex-direction: column; align-items: center; gap: 18px; }
+body[data-header="identity"] .ch-av { width: 128px; height: 128px; }
+body[data-header="identity"] .ch-name { font-size: var(--t-name-lg); }
+body[data-header="identity"] .ch-meta { justify-content: center; }
+body[data-header="identity"] .ch-bio { margin-inline: auto; text-align: center; }
+body[data-header="identity"] .socials { justify-content: center; }
+body[data-header="identity"] .ch-act { order: 3; }
+body[data-header="identity"] .claim { text-align: left; }
+
+/* ═══ Content states ═══ */
+body[data-state="no-posts"] .grid,
+body[data-state="empty-category"] .grid { display: none; }
+body:not([data-state="no-posts"]) .empty--posts { display: none; }
+body:not([data-state="empty-category"]) .empty--cat { display: none; }
+body[data-state="no-categories"] .chips-wrap { display: none; }
+body[data-state="no-comments"] .cm-list,
+body[data-state="no-comments"] .cm-sort,
+body[data-state="no-comments"] .cm-load,
+body[data-state="no-comments"] .cm-more,
+body[data-state="no-comments"] .cm-count { display: none; }
+body:not([data-state="no-comments"]) .empty--cm { display: none; }
+body[data-state="empty-category"] .chip-f[data-c="all"] { background: var(--surface); border-color: var(--line); color: var(--ink-2); }
+body[data-state="empty-category"] .chip-f[data-c="under"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+</style>
+</head>
+<body data-header="balanced" data-state="full" data-role="shopper">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#grid">Skip to posts</a>
+
+<header class="inner">
+  <nav class="nav" aria-label="Primary">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="ctx">
+      <img class="ctx-av" src="images/avatars/maya.jpg" alt="" width="60" height="60">
+      <span class="ctx-id"><b>Maya Rao</b><i>@mayamoves</i></span>
+      <button class="btn btn--accent v-anon" type="button" data-follow>Follow</button>
+      <button class="btn btn--accent v-shopper" type="button" data-toggle-follow>Follow</button>
+      <button class="btn btn--accent v-business" type="button" data-toggle-follow>Follow</button>
+      <a class="btn btn--ghost v-owner" href="/dashboard/settings">Edit profile</a>
+    </div>
+    <div class="nav-end">
+      <a class="searchbtn" href="/explore" aria-label="Search creators and products">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <span>Search</span>
+      </a>
+      <a class="btn btn--ghost v-anon" href="/signin">Log in</a>
+      <a class="acct v-signedin" href="/account" aria-label="Your account"><img src="images/avatars/nia.jpg" alt=""></a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="cover"><img src="images/cover.jpg" alt="" width="1600" height="600"></div>
+
+  <!-- 1 · Creator header -->
+  <section class="inner ch" aria-labelledby="who">
+    <div class="ch-top">
+      <img class="ch-av" src="images/avatars/maya.jpg" alt="" width="152" height="152">
+      <div class="ch-id">
+        <p class="ch-greet" id="greet"></p>
+        <h1 class="ch-name" id="who">Maya Rao</h1>
+        <div class="ch-meta">
+          <span class="ch-handle">@mayamoves</span>
+          <span class="ch-dot" aria-hidden="true">·</span>
+          <span class="ch-count">48.2K <span>followers</span></span>
+        </div>
+        <p class="ch-bio">Everyday things that actually work — desk, gym, skin, home. Everything in my posts is tagged, so you can just tap it.</p>
+        <div class="socials">
+          <a class="social" href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram" data-social="instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+          <a class="social" href="https://youtube.com" target="_blank" rel="noopener" aria-label="YouTube" data-social="youtube">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg></a>
+          <a class="social" href="https://tiktok.com" target="_blank" rel="noopener" aria-label="TikTok" data-social="tiktok">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3v11a4 4 0 1 1-4-4"/><path d="M14 6.5c1 1.6 2.6 2.5 4.5 2.5"/></svg></a>
+          <a class="social" href="https://mayarao.co" target="_blank" rel="noopener" aria-label="mayarao.co" data-social="site">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></svg></a>
+        </div>
+      </div>
+      <div class="ch-act">
+        <button class="btn btn--accent v-anon" type="button" data-follow aria-expanded="false">Follow</button>
+        <button class="btn btn--accent v-shopper" type="button" data-toggle-follow>Follow</button>
+        <button class="btn btn--accent v-business" type="button" data-toggle-follow>Follow</button>
+        <span class="owner-tools v-owner">
+          <button class="btn btn--ghost" type="button" data-share>Share</button>
+          <a class="btn btn--accent" href="/dashboard/settings">Edit profile</a>
+        </span>
+      </div>
+    </div>
+
+    <!-- Follow opens this inline. It never navigates away and never walls the page. -->
+    <div class="claim" id="claim" role="region" aria-label="Create an account to follow">
+      <p class="claim-h">Following needs an account — shopping never does.</p>
+      <p class="claim-p">You can keep browsing and buying without this. An account only saves creators you like.</p>
+      <div class="claim-row">
+        <input type="email" placeholder="you@email.com" aria-label="Email address" autocomplete="email">
+        <button class="btn btn--accent" type="button">Create account</button>
+        <button class="claim-x" type="button" id="claimX">Not now</button>
+      </div>
+    </div>
+
+    <!-- Bands that belong to one viewer only. Everything below them is identical for all four. -->
+    <div class="band-v band-owner v-owner">
+      <p><b>This is your page — visitors see exactly this.</b>
+        Customise it right here — every change shows the moment you make it.</p>
+      <button class="btn btn--accent" type="button" id="customise" aria-expanded="false">Customise page</button>
+      <a class="btn btn--ghost" href="/dashboard">Dashboard</a>
+    </div>
+
+    <div class="band-v band-biz v-business">
+      <div class="band-biz-h">
+        <b>You run a brand — want Maya to make something?</b>
+        <span class="micro">Payment is settled off Plugfolio</span>
+      </div>
+      <div class="collab">
+        <textarea placeholder="What do you need? A reel, a photo set, a story…" aria-label="Your collab message"></textarea>
+        <button class="btn btn--accent" type="button">Request collab</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Category chips -->
+  <div class="inner chips-wrap">
+    <span class="micro chips-lab">Shelves</span>
+    <nav class="chips" aria-label="Filter posts by shelf">
+      <a class="chip-f" data-c="all" href="?" aria-current="true">All</a>
+      <a class="chip-f" data-c="desk" href="?category=desk">Desk setup</a>
+      <a class="chip-f" data-c="gym" href="?category=gym">Gym</a>
+      <a class="chip-f" data-c="skin" href="?category=skin">Skin</a>
+      <a class="chip-f" data-c="home" href="?category=home">Home</a>
+      <a class="chip-f" data-c="under" href="?category=under-1000">Under ₹1,000</a>
+    </nav>
+  </div>
+
+  <!-- 4 · Post grid -->
+  <section class="inner grid-wrap" id="grid" aria-labelledby="posts-h">
+    <div class="grid-h">
+      <h2 class="sec-h" id="posts-h">Posts</h2>
+      <span class="micro">12 posts · 41 products tagged</span>
+    </div>
+
+    <ul class="grid">
+      <li><a class="tile" href="/mayamoves/post/1"><img src="images/posts/gym.jpg" alt="Trainers, a bottle and a sweatshirt on a yellow background."><span class="tile-n" aria-label="4 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>4</span><span class="tile-t">Gym kit that lasted a year</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/2"><img src="images/posts/desk.jpg" alt="A white desk flat-lay with a keyboard, tablet and controller." loading="lazy"><span class="tile-n" aria-label="3 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>3</span><span class="tile-t">The white desk flat-lay</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/3"><img src="images/posts/skincare.jpg" alt="Two skincare tubes and a jade gua sha on stone." loading="lazy"><span class="tile-n" aria-label="3 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>3</span><span class="tile-t">Two tubes and a gua sha</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/4"><img src="images/posts/p6.jpg" alt="A home office desk with a lamp and notebook." loading="lazy"><span class="tile-n" aria-label="5 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>5</span><span class="tile-t">The desk reset</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/5"><img src="images/posts/beauty.jpg" alt="Make-up brushes and lip colours arranged with flowers." loading="lazy"><span class="tile-n" aria-label="6 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>6</span><span class="tile-t">Everyday face, five things</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/6"><img src="images/posts/p10.jpg" alt="A cosy living room corner." loading="lazy"><span class="tile-t">Living room corner</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/7"><img src="images/posts/shelf.jpg" alt="A styled wall shelf with a plant and clock." loading="lazy"><span class="tile-n" aria-label="5 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>5</span><span class="tile-t">Shelf styling, finally</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/8"><img src="images/posts/p14.jpg" alt="A morning coffee flat-lay." loading="lazy"><span class="tile-n" aria-label="2 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>2</span><span class="tile-t">Morning coffee setup</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/9"><img src="images/posts/p7.jpg" alt="A minimal desk setup from above." loading="lazy"><span class="tile-n" aria-label="4 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>4</span><span class="tile-t">Desk from above</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/10"><img src="images/posts/p11.jpg" alt="A living room with soft daylight." loading="lazy"><span class="tile-t">Soft daylight living room</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/11"><img src="images/posts/p15.jpg" alt="Coffee and a notebook on a table." loading="lazy"><span class="tile-n" aria-label="3 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>3</span><span class="tile-t">Coffee and a notebook</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/12"><img src="images/posts/p8.jpg" alt="A desk with a monitor and plant." loading="lazy"><span class="tile-n" aria-label="7 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>7</span><span class="tile-t">Monitor and a plant</span></a></li>
+    </ul>
+
+    <div class="empty empty--posts">
+      <b>No posts yet.</b>
+      <p>When Maya posts, everything in the frame shows up here — already tagged and ready to tap.</p>
+    </div>
+
+    <div class="empty empty--cat">
+      <b>Nothing here yet.</b>
+      <p>No posts in this category. <a href="?">See All</a>.</p>
+    </div>
+  </section>
+
+  <!-- 5 · Comments -->
+  <section class="inner cm-wrap" aria-labelledby="cm-h">
+    <div class="cm-h">
+      <h2 class="sec-h" id="cm-h">Comments <span class="micro cm-count" style="font-weight:700">24</span></h2>
+      <a class="cm-report" href="#report">Report page</a>
+    </div>
+
+    <div class="cm-sort" role="group" aria-label="Sort comments">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h6"/></svg>
+      <button class="sortbtn" type="button" aria-pressed="true">Recent</button>
+      <button class="sortbtn" type="button" aria-pressed="false">Oldest</button>
+      <button class="sortbtn" type="button" aria-pressed="false">Popular</button>
+      <span class="micro pn-new" title="Sorting and reactions need backend support that does not exist yet">New scope</span>
+    </div>
+    <div class="composer v-signedin">
+      <img class="v-owner" src="images/avatars/maya.jpg" alt="" id="cmAv">
+      <img class="v-shopper v-business" src="images/avatars/nia.jpg" alt="">
+      <div class="cm-as">
+        <!-- A shopper has one identity. A creator has their account plus every
+             profile they run, and which one they pick is visible in the thread. -->
+        <button class="as-btn v-owner" type="button" id="asBtn" aria-expanded="false" aria-haspopup="listbox">
+          <span>as <b id="asName">@mayamoves</b></span>
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span class="as-btn as-btn--fixed v-shopper v-business">as <b>@niaburns</b></span>
+        <ul class="as-menu" id="asMenu" role="listbox" aria-label="Comment as" hidden>
+          <li><button type="button" role="option" aria-selected="true" data-as="@mayamoves" data-av="images/avatars/maya.jpg" data-badge="1">
+            <img src="images/avatars/maya.jpg" alt=""><span><s>Maya Rao</s><em>@mayamoves · this page</em></span></button></li>
+          <li><button type="button" role="option" aria-selected="false" data-as="@mayamoves.fit" data-av="images/avatars/nia.jpg" data-badge="1">
+            <img src="images/avatars/nia.jpg" alt=""><span><s>Maya Moves Fitness</s><em>@mayamoves.fit</em></span></button></li>
+          <li><button type="button" role="option" aria-selected="false" data-as="@mayarao" data-av="images/avatars/rhea.jpg" data-badge="">
+            <img src="images/avatars/rhea.jpg" alt=""><span><s>Your account</s><em>@mayarao · no Creator badge</em></span></button></li>
+        </ul>
+      </div>
+      <input type="text" placeholder="Ask about anything in these posts…" aria-label="Add a comment">
+      <button class="btn btn--accent" type="button">Comment</button>
+    </div>
+
+    <div class="cm-claim">
+      <span class="cm-claim-av" aria-hidden="true">?</span>
+      <p>You'll appear by a handle you choose — never your email.</p>
+      <a class="btn btn--accent" href="/join">Create an account</a>
+    </div>
+
+    <ul class="cm-list" id="cmThread">
+        <li>
+          <div class="cm"><span class="cm-av" aria-hidden="true">P</span><div class="cm-b"><div class="cm-who"><b>@priyareads</b><span class="cm-when">2 days ago</span></div><p class="cm-t">Do the runners ship to Pune? Tapped through and it looked like only metros.</p><div class="cm-acts"><button class="react" type="button" aria-pressed="false" aria-label="Like, 12"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 22V10l5-8a2.5 2.5 0 0 1 2.5 3l-1 5H20a2 2 0 0 1 2 2.4l-1.6 7A2 2 0 0 1 18.4 22z"/></svg>12</button><button class="react" type="button" aria-pressed="false" aria-label="Dislike"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 2v12l-5 8a2.5 2.5 0 0 1-2.5-3l1-5H4a2 2 0 0 1-2-2.4l1.6-7A2 2 0 0 1 5.6 2z"/></svg></button><button class="cm-reply" type="button">Reply</button></div></div></div>
+          <ul class="cm-thread">
+            <li><div class="cm"><span class="cm-av" aria-hidden="true">M</span><div class="cm-b"><div class="cm-who"><b>@mayamoves</b><span class="cm-badge">Creator</span><span class="cm-when">2 days ago</span></div><p class="cm-t">They do — the checkout page just shows metros first. Pin code works at the last step.</p><div class="cm-acts"><button class="react" type="button" aria-pressed="true" aria-label="Like, 31"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 22V10l5-8a2.5 2.5 0 0 1 2.5 3l-1 5H20a2 2 0 0 1 2 2.4l-1.6 7A2 2 0 0 1 18.4 22z"/></svg>31</button><button class="react" type="button" aria-pressed="false" aria-label="Dislike"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 2v12l-5 8a2.5 2.5 0 0 1-2.5-3l1-5H4a2 2 0 0 1-2-2.4l1.6-7A2 2 0 0 1 5.6 2z"/></svg></button><button class="cm-reply" type="button">Reply</button></div></div></div></li>
+            <li><div class="cm"><span class="cm-av" aria-hidden="true">P</span><div class="cm-b"><div class="cm-who"><b>@priyareads</b><span class="cm-when">1 day ago</span></div><p class="cm-t">Perfect, ordered. Thank you!</p><div class="cm-acts"><button class="react" type="button" aria-pressed="false" aria-label="Like, 3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 22V10l5-8a2.5 2.5 0 0 1 2.5 3l-1 5H20a2 2 0 0 1 2 2.4l-1.6 7A2 2 0 0 1 18.4 22z"/></svg>3</button><button class="react" type="button" aria-pressed="false" aria-label="Dislike"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 2v12l-5 8a2.5 2.5 0 0 1-2.5-3l1-5H4a2 2 0 0 1-2-2.4l1.6-7A2 2 0 0 1 5.6 2z"/></svg></button><button class="cm-reply" type="button">Reply</button></div></div></div></li>
+          </ul>
+        </li>
+        <li><div class="cm"><span class="cm-av" aria-hidden="true">S</span><div class="cm-b"><div class="cm-who"><b>@sanj</b><span class="cm-when">5 days ago</span></div><p class="cm-t">The gua sha is genuinely the best ₹649 I've spent this year.</p><div class="cm-acts"><button class="react" type="button" aria-pressed="false" aria-label="Like, 48"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 22V10l5-8a2.5 2.5 0 0 1 2.5 3l-1 5H20a2 2 0 0 1 2 2.4l-1.6 7A2 2 0 0 1 18.4 22z"/></svg>48</button><button class="react" type="button" aria-pressed="false" aria-label="Dislike"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 2v12l-5 8a2.5 2.5 0 0 1-2.5-3l1-5H4a2 2 0 0 1-2-2.4l1.6-7A2 2 0 0 1 5.6 2z"/></svg></button><button class="cm-reply" type="button">Reply</button></div></div></div></li>
+        <li>
+          <div class="cm"><span class="cm-av" aria-hidden="true">D</span><div class="cm-b"><div class="cm-who"><b>@devbuilds</b><span class="cm-when">1 week ago</span></div><p class="cm-t">Which keyboard is on the desk post? The tag opens Amazon but the listing looks different.</p><div class="cm-acts"><button class="react" type="button" aria-pressed="false" aria-label="Like, 7"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 22V10l5-8a2.5 2.5 0 0 1 2.5 3l-1 5H20a2 2 0 0 1 2 2.4l-1.6 7A2 2 0 0 1 18.4 22z"/></svg>7</button><button class="react" type="button" aria-pressed="false" aria-label="Dislike"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 2v12l-5 8a2.5 2.5 0 0 1-2.5-3l1-5H4a2 2 0 0 1-2-2.4l1.6-7A2 2 0 0 1 5.6 2z"/></svg></button><button class="cm-reply" type="button">Reply</button></div></div></div>
+          <ul class="cm-thread">
+            <li><div class="cm"><span class="cm-av" aria-hidden="true">M</span><div class="cm-b"><div class="cm-who"><b>@mayamoves</b><span class="cm-badge">Creator</span><span class="cm-when">6 days ago</span></div><p class="cm-t">Same board, they just renamed the listing. The tag still lands on the right one.</p><div class="cm-acts"><button class="react" type="button" aria-pressed="false" aria-label="Like, 9"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 22V10l5-8a2.5 2.5 0 0 1 2.5 3l-1 5H20a2 2 0 0 1 2 2.4l-1.6 7A2 2 0 0 1 18.4 22z"/></svg>9</button><button class="react" type="button" aria-pressed="false" aria-label="Dislike"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 2v12l-5 8a2.5 2.5 0 0 1-2.5-3l1-5H4a2 2 0 0 1-2-2.4l1.6-7A2 2 0 0 1 5.6 2z"/></svg></button><button class="cm-reply" type="button">Reply</button></div></div></div></li>
+          </ul>
+        </li>
+        <li><div class="cm"><span class="cm-av" aria-hidden="true">A</span><div class="cm-b"><div class="cm-who"><b>@anitak</b><span class="cm-when">1 week ago</span></div><p class="cm-t">Shelf styling post changed my whole living room. More of these please.</p><div class="cm-acts"><button class="react" type="button" aria-pressed="false" aria-label="Like, 22"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 22V10l5-8a2.5 2.5 0 0 1 2.5 3l-1 5H20a2 2 0 0 1 2 2.4l-1.6 7A2 2 0 0 1 18.4 22z"/></svg>22</button><button class="react" type="button" aria-pressed="false" aria-label="Dislike"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 2v12l-5 8a2.5 2.5 0 0 1-2.5-3l1-5H4a2 2 0 0 1-2-2.4l1.6-7A2 2 0 0 1 5.6 2z"/></svg></button><button class="cm-reply" type="button">Reply</button></div></div></div></li>
+      </ul>
+    <button class="btn btn--ghost cm-load" type="button">Load more comments</button>
+    <button class="btn btn--ghost cm-more" type="button" id="cmOpen">View all 24 comments</button>
+
+    <div class="empty empty--cm">
+      <b>No comments yet.</b>
+      <p>Ask Maya anything about what's in these posts — she answers here.</p>
+    </div>
+
+  </section>
+</main>
+
+<!-- Comments panel: full-height sheet on mobile, right drawer on desktop -->
+<dialog id="czSheet" aria-label="Customise page">
+  <div class="pn">
+    <button class="pn-grab" type="button" id="czGrab" aria-label="Drag down to close"><span></span></button>
+    <div class="pn-h">
+      <h2>Customise page</h2>
+      <button class="pn-x" type="button" id="czClose" aria-label="Close customiser">✕</button>
+    </div>
+    <div class="pn-body" id="czBody"></div>
+  </div>
+</dialog>
+
+<dialog id="cmPanel" aria-label="Comments">
+  <div class="pn">
+    <button class="pn-grab" type="button" id="cmGrab" aria-label="Drag down to close"><span></span></button>
+    <div class="pn-h">
+      <h2>Comments <span class="micro" style="font-weight:700">24</span></h2>
+      <button class="pn-x" type="button" id="cmClose" aria-label="Close comments">✕</button>
+    </div>
+    <div class="pn-body" id="cmBody"></div>
+    <div class="pn-foot">
+      <p>You'll appear by a handle you choose — never your email.</p>
+      <a class="btn btn--accent" href="/join">Create an account</a>
+    </div>
+  </div>
+</dialog>
+
+<!-- Mobile bottom tab bar (§5.1) -->
+<nav class="tabs" aria-label="Sections">
+  <a class="tab" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V21H3z"/></svg>Home</a>
+  <a class="tab" href="/explore" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Shop</a>
+  <a class="tab" href="/following"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.3a5 5 0 0 0 0-7.1z"/></svg>Following</a>
+  <a class="tab" href="/account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>Account</a>
+</nav>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/signin">For creators</a>
+      <a class="foot-link" href="/support">Support</a>
+      <span class="micro">One link, everything shoppable · 2026</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* Product behaviour, not review chrome: Follow reveals the claim band inline. */
+(function () {
+  /* Follow → inline claim band. Never navigates, never walls the page. */
+  var claim = document.getElementById('claim'), x = document.getElementById('claimX');
+  function setClaim(open) {
+    document.body.dataset.claim = open ? 'open' : '';
+    document.querySelectorAll('[data-follow]').forEach(function (b) { b.setAttribute('aria-expanded', String(open)); });
+    if (open) { claim.scrollIntoView({ block: 'nearest' }); claim.querySelector('input').focus(); }
+  }
+  document.querySelectorAll('[data-follow]').forEach(function (b) {
+    b.addEventListener('click', function () { setClaim(document.body.dataset.claim !== 'open'); });
+  });
+  x.addEventListener('click', function () { setClaim(false); });
+
+  /* Comments. Desktop reads them inline; mobile lifts the same list into a
+     sheet, so there is one thread in the DOM rather than two copies. */
+  var pn = document.getElementById('cmPanel');
+  var thread = document.getElementById('cmThread');
+  var sort = document.querySelector('.cm-wrap .cm-sort');
+  var body = document.getElementById('cmBody');
+  var tHome = thread.parentNode, tAnchor = thread.nextSibling;
+  var sHome = sort.parentNode, sAnchor = sort.nextSibling;
+
+  document.getElementById('cmOpen').addEventListener('click', function () {
+    body.appendChild(sort); body.appendChild(thread); pn.showModal();
+  });
+  function restore() {
+    if (sort.parentNode !== sHome) sHome.insertBefore(sort, sAnchor);
+    if (thread.parentNode !== tHome) tHome.insertBefore(thread, tAnchor);
+    pn.style.transform = ''; pn.style.transition = '';
+  }
+  function closeSheet() { pn.close(); restore(); }
+  document.getElementById('cmClose').addEventListener('click', closeSheet);
+  pn.addEventListener('click', function (e) { if (e.target === pn) closeSheet(); });
+  pn.addEventListener('close', restore);
+
+  /* drag down to dismiss */
+  var grab = document.getElementById('cmGrab'), y0 = null;
+  grab.addEventListener('pointerdown', function (e) { y0 = e.clientY; grab.setPointerCapture(e.pointerId); });
+  grab.addEventListener('pointermove', function (e) {
+    if (y0 === null) return;
+    pn.style.transition = 'none';
+    pn.style.transform = 'translateY(' + Math.max(0, e.clientY - y0) + 'px)';
+  });
+  function release(e) {
+    if (y0 === null) return;
+    var dy = Math.max(0, e.clientY - y0); y0 = null;
+    pn.style.transition = 'transform .26s cubic-bezier(.2,.9,.25,1)';
+    if (dy > 120) { pn.style.transform = 'translateY(100%)'; setTimeout(closeSheet, 220); }
+    else { pn.style.transform = ''; }
+  }
+  grab.addEventListener('pointerup', release);
+  grab.addEventListener('pointercancel', release);
+
+  document.querySelectorAll('.sortbtn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      b.closest('[role="group"]').querySelectorAll('.sortbtn').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
+      b.setAttribute('aria-pressed', 'true');
+    });
+  });
+  /* Reactions toggle locally — there is no backend for them yet. */
+  document.querySelectorAll('.react').forEach(function (b) {
+    b.addEventListener('click', function () {
+      b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+    });
+  });
+  /* Replies collapse behind their count, the way a long thread should. */
+  document.querySelectorAll('.cm-thread').forEach(function (t) {
+    var n = t.children.length;
+    var btn = document.createElement('button');
+    btn.className = 'rep-toggle'; btn.type = 'button'; btn.setAttribute('aria-expanded', 'false');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>' + n + (n === 1 ? ' reply' : ' replies');
+    t.hidden = true;
+    t.parentNode.insertBefore(btn, t);
+    btn.addEventListener('click', function () {
+      var open = t.hidden; t.hidden = !open; btn.setAttribute('aria-expanded', String(open));
+    });
+  });
+
+  /* Scroll-reveal: past the header the bar becomes the creator's. */
+  var sentinel = document.createElement('div');
+  sentinel.style.cssText = 'position:absolute;top:190px;left:0;height:1px;width:1px';
+  document.body.appendChild(sentinel);
+  new IntersectionObserver(function (en) {
+    document.body.dataset.ctx = en[0].isIntersecting ? '' : 'on';
+  }).observe(sentinel);
+
+  /* ── Follow, for a viewer who has an account (§5.4) ────────────────
+     Optimistic: flips at once, locks while pending, reverts if the
+     write fails. Both header copies stay in step. */
+  var following = false;
+  function paintFollow() {
+    document.querySelectorAll('[data-toggle-follow]').forEach(function (b) {
+      b.textContent = following ? 'Following' : 'Follow';
+      b.classList.toggle('btn--following', following);
+      b.classList.toggle('btn--accent', !following);
+      b.setAttribute('aria-pressed', following ? 'true' : 'false');
+    });
+  }
+  document.querySelectorAll('[data-toggle-follow]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      following = !following; paintFollow();
+      document.querySelectorAll('[data-toggle-follow]').forEach(function (x) { x.setAttribute('aria-busy', 'true'); });
+      setTimeout(function () {
+        document.querySelectorAll('[data-toggle-follow]').forEach(function (x) { x.removeAttribute('aria-busy'); });
+      }, 420); /* stands in for the write */
+    });
+  });
+  paintFollow();
+
+  /* Comment identity (§5.10). Which profile you speak as is a real
+     product choice — it decides whether the comment carries a Creator
+     badge — so it sits in the composer, not in a settings screen. */
+  var asBtn = document.getElementById('asBtn'), asMenu = document.getElementById('asMenu'),
+      asName = document.getElementById('asName'), cmAv = document.getElementById('cmAv');
+  if (asBtn) {
+    asBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = asMenu.hidden;
+      asMenu.hidden = !open;
+      asBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    asMenu.querySelectorAll('[data-as]').forEach(function (o) {
+      o.addEventListener('click', function () {
+        asName.textContent = o.dataset.as;
+        cmAv.src = o.dataset.av;
+        asMenu.querySelectorAll('[role="option"]').forEach(function (x) { x.setAttribute('aria-selected', 'false'); });
+        o.setAttribute('aria-selected', 'true');
+        asMenu.hidden = true;
+        asBtn.setAttribute('aria-expanded', 'false');
+        asBtn.focus();
+      });
+    });
+    document.addEventListener('click', function (e) {
+      if (!asMenu.hidden && !asMenu.contains(e.target)) {
+        asMenu.hidden = true; asBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !asMenu.hidden) {
+        asMenu.hidden = true; asBtn.setAttribute('aria-expanded', 'false'); asBtn.focus();
+      }
+    });
+  }
+
+
+  /* Share: native sheet where it exists, clipboard everywhere else */
+  document.querySelectorAll('[data-share]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var url = location.origin + '/mayamoves';
+      if (navigator.share) { navigator.share({ title: 'Maya Rao on Plugfolio', url: url }).catch(function () {}); return; }
+      navigator.clipboard.writeText(url).then(function () {
+        var was = b.textContent; b.textContent = 'Link copied'; b.disabled = true;
+        setTimeout(function () { b.textContent = was; b.disabled = false; }, 1600);
+      }).catch(function () {});
+    });
+  });
+})();
+</script>
+<script src="creator-prefs.js" defer></script>
+<script src="tweaks.js" defer></script>
+</body>
+</html>

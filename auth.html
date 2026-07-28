@@ -1,0 +1,772 @@
+<!doctype html>
+<!-- Plugfolio — auth, built from wireframe D2 "proof instead of pitch".
+     Two departures from the current build, both argued in wireframes.html:
+     (1) the left pane shows the ARTEFACT — a real tagged post, a fan of
+         creators, a brief on paper — instead of a headline and three ticks;
+     (2) the role switch is a dealt deck, not a segmented control — three
+         tilted cards, the chosen one dealt to the front and straightened.
+         It lives on /join only (sign-in has no role to pick, since the
+         account already holds whatever roles it holds) and is ALWAYS
+         offered there, because signin → "Create an account" is a real path
+         with no door and no declared role. The form itself is role-agnostic
+         and identical for all three: every account created here is the same
+         account, and the role only decides where verification lands you.
+     The pane is a TILE on canvas, not a full-bleed violet field with a
+     gradient — DESIGN.md forbids both, and the tile rule is what the rest
+     of the product already obeys. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — Plugfolio</title>
+<meta name="description" content="Email and password, one step. Shopping never needs an account — this is only for creators, comments and collabs.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── the shell: two panes on desktop, one column on a phone ── */
+.au { min-height: 100svh; display: grid; grid-template-rows: auto 1fr; }
+@media (min-width: 960px) {
+  /* Full bleed: no page padding, no gap, no radius. The pane runs to the
+     window edge so the gradient and the cropped mark read as the surface
+     itself rather than a card sitting on one. */
+  .au { grid-template-rows: 1fr; grid-template-columns: minmax(0, 46fr) minmax(0, 54fr);
+        align-items: stretch; }
+}
+
+/* Auth is a dead end by design: no nav, no explore link, no tab bar.
+   The mark is the only way out, because auth must never sit on a
+   shopping path. */
+/* In the band the mark sits in normal flow at the top; from 960px it pins
+   to the pane's corner. */
+@media (min-width: 960px) { .pane > .au-back { position: absolute; top: 30px; left: 34px; z-index: 3; } }
+
+/* ══ MOBILE ═══════════════════════════════════════════════
+   A phone has no split screen, so stacking the two desktop halves left a
+   hard horizontal seam where the colour stopped — a desktop layout wearing
+   a phone's dimensions. Below 960px the page is ONE surface, and the two
+   variants differ in how the form meets it.
+
+   The [data-mlayout] switch is a review affordance for choosing between
+   them; only one ships.
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 959px) {
+  .au { display: block; min-height: 100svh; }
+  .pane { min-height: auto; padding: 24px 20px 34px; }
+  .form-pane { padding: 0; }
+
+  /* ── Variant 1 · Sheet ──────────────────────────────────
+     The gradient owns the screen; the form rides up over it on a sheet
+     with a big top radius. There is no seam because nothing abuts —
+     one plane simply sits above another, which is how a phone already
+     behaves everywhere else. */
+  body[data-mlayout="sheet"] .form-pane {
+    position: relative; z-index: 2; margin-top: -30px;
+    background: var(--canvas);
+    border-radius: var(--r-bay) var(--r-bay) 0 0;
+    padding: 32px 20px 64px; min-height: 56svh;
+    box-shadow: 0 -22px 44px -24px rgb(var(--shadow-ink) / .55);
+  }
+  /* The lip: a short grab bar, the universal phone cue that this layer
+     is on top of something rather than joined to it. */
+  body[data-mlayout="sheet"] .form-pane::before {
+    content: ""; display: block; width: 40px; height: 4px; border-radius: 999px;
+    background: var(--line); margin: -14px auto 22px;
+  }
+
+  /* ── Variant 2 · Immersive ──────────────────────────────
+     No sheet at all: the gradient runs the whole screen and the form sits
+     directly on it. Every text colour goes solid white — no alpha-reduced
+     type — because the lightest end of the gradient only clears AA against
+     full white, and a faded label there would fail. */
+  body[data-mlayout="immersive"] .au {
+    background: linear-gradient(168deg, var(--role-grad-a) 0%, var(--role-grad-b) 100%);
+  }
+  body[data-mlayout="immersive"] .pane { background: none; }
+  body[data-mlayout="immersive"] .form-pane { padding: 4px 20px 64px; }
+  body[data-mlayout="immersive"] .form-in .headline,
+  body[data-mlayout="immersive"] .form-in .copy,
+  body[data-mlayout="immersive"] .af-l,
+  body[data-mlayout="immersive"] .af-rule,
+  body[data-mlayout="immersive"] .consequence,
+  body[data-mlayout="immersive"] .af-show,
+  body[data-mlayout="immersive"] .seconds a,
+  body[data-mlayout="immersive"] .seconds .copy,
+  body[data-mlayout="immersive"] .status .copy { color: #FFFFFF; }
+  body[data-mlayout="immersive"] .af-box {
+    background: rgb(255 255 255 / .14); border-color: rgb(255 255 255 / .4);
+  }
+  body[data-mlayout="immersive"] .af-box:focus-within {
+    border-color: #FFFFFF; box-shadow: 0 0 0 3px rgb(255 255 255 / .25);
+  }
+  body[data-mlayout="immersive"] .af-box input { color: #FFFFFF; }
+  body[data-mlayout="immersive"] .af-box input::placeholder { color: #FFFFFF; opacity: .95; }
+  body[data-mlayout="immersive"] .btn--primary { background: #FFFFFF; color: #12101C; }
+  body[data-mlayout="immersive"] .seconds { border-top-color: rgb(255 255 255 / .26); }
+  body[data-mlayout="immersive"] .notice--info { background: rgb(255 255 255 / .16); color: #FFFFFF; }
+  body[data-mlayout="immersive"] .status .stamp { background: rgb(255 255 255 / .18); color: #FFFFFF; }
+  /* The mark drops to the foot of the whole screen, not the foot of a band. */
+  body[data-mlayout="immersive"] .rolepane-mark { display: none; }
+  body[data-mlayout="immersive"] .au { position: relative; overflow: hidden; }
+}
+/* Re-asserted at higher specificity above: .rolepane sets position:relative
+   on its direct children to lift them over the cropped mark, which would
+   otherwise drag this out of the corner and into the centred grid flow. */
+
+/* ── pane one: the artefact ────────────────────────────────── */
+/* ONE pane: a band above the form on a phone, a full column from 960px.
+   Previously this was duplicated as .pane + .pane-m, which meant every
+   artefact existed twice — and the role deck would have made it three
+   times. Colour, gradient, cropped mark and the light-object neutrals all
+   come from .rolepane in styles.css; this only does layout. */
+.pane { position: relative; display: grid; align-content: center; justify-items: center;
+        gap: 16px; padding: 22px 20px 28px; }
+@media (min-width: 960px) { .pane { gap: 26px; padding: 40px 36px 96px; } }
+
+/* On a phone the pane collapses to the artefact alone, above the form.
+   One object survives the collapse; a headline plus three ticks does not. */
+.rolepane-mark { left: -14%; bottom: -30%; width: 76%; }
+@media (min-width: 960px) { .rolepane-mark { left: -7%; bottom: -19%; width: 62%; } }
+
+.art { width: min(62%, 210px); }
+@media (min-width: 960px) { .art { width: min(78%, 320px); } }
+
+/* ── the role deck ─────────────────────────────────────────
+   The register role switch, built from the system's own dealt-deck
+   language instead of a segmented control. Three role cards sit fanned
+   and tilted; the chosen one is dealt to the front and straightened,
+   which is the Straighten-On-Hover rule used as selection rather than
+   decoration. Picking a role IS the artefact — so the pane stops being
+   an illustration you look at and becomes the control you use.
+   Real radiogroup underneath: arrow keys move, roving tabindex. */
+.rolepick { display: grid; justify-items: center; gap: 12px; width: 100%; }
+/* Solid white, never faded. On the gradient's lightest stop even 0.85–0.93
+   alpha lands under AA, so hierarchy here is carried by size and weight
+   rather than by transparency. */
+.rolepick-eyebrow { color: #FFFFFF; }
+.roledeck { position: relative; width: 100%; height: 268px; }
+@media (min-width: 960px) { .roledeck { height: 366px; } }
+
+.rcard {
+  position: absolute; left: 50%; top: 0; width: 156px;
+  background: var(--surface); border: 0; border-radius: var(--r-card); padding: 8px;
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest);
+  cursor: pointer; font: inherit; color: var(--ink); text-align: left;
+  display: grid; gap: 7px; transform-origin: 50% 92%;
+  transition: transform .42s var(--ease), opacity .3s var(--ease), box-shadow .3s var(--ease);
+}
+@media (min-width: 960px) { .rcard { width: 214px; padding: 10px; } }
+
+.rcard[data-pos="front"] { transform: translate(-50%, 0) rotate(0deg) scale(1); z-index: 3; opacity: 1; }
+/* The fan has to spread far enough that each back card keeps a tappable,
+   readable sliver — at a tighter offset the front card eats their labels and
+   the deck stops reading as three choices. */
+.rcard[data-pos="left"]  { transform: translate(calc(-50% - 96px), 26px) rotate(-10deg) scale(.8); z-index: 1; opacity: .74; }
+.rcard[data-pos="right"] { transform: translate(calc(-50% + 96px), 26px) rotate(10deg) scale(.8);  z-index: 2; opacity: .74; }
+@media (min-width: 960px) {
+  .rcard[data-pos="left"]  { transform: translate(calc(-50% - 112px), 32px) rotate(-10deg) scale(.82); }
+  .rcard[data-pos="right"] { transform: translate(calc(-50% + 112px), 32px) rotate(10deg) scale(.82); }
+}
+.rcard[data-pos="left"]:hover, .rcard[data-pos="right"]:hover { opacity: .88; }
+.rcard[data-pos="front"] { box-shadow: 0 0 0 1px var(--card-edge), var(--sh-raise); }
+.rcard:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 4px; }
+/* The tilt is the personality, not the information — remove the travel and
+   the deck still reads, because position and opacity carry the state. */
+@media (prefers-reduced-motion: reduce) { .rcard { transition: none; } }
+
+.rcard-art { position: relative; border-radius: var(--r-image); overflow: hidden;
+  aspect-ratio: 4/5; background: var(--line); display: block; }
+.rcard-art img { width: 100%; height: 100%; object-fit: cover; }
+/* All three cards are the same object — a photograph with one pinned pill —
+   because a set of three where one is a text panel reads as a card that
+   failed to load rather than as a deliberate difference. The pill carries
+   the meaning: a price for creator, Following for shopper, Open brief for
+   business. A photo also crops gracefully in the peeking sliver, which a
+   cropped sentence does not. */
+
+/* ── the explanation under the deck ────────────────────────
+   Picking a card should say what you just chose, in the register the
+   brand actually uses: one promise, one plain line, and the honesty
+   label that role turns on. Not a bullet list — that was the generic
+   pattern the deck replaced. */
+.rolenote { width: min(100%, 340px); text-align: center; display: grid; gap: 6px; }
+@media (min-width: 960px) { .rolenote { width: min(100%, 380px); } }
+.rolenote-t { font-family: Sora, system-ui, sans-serif; font-weight: 700;
+  font-size: var(--t-body); line-height: 1.2; letter-spacing: -.02em; margin: 0; color: #FFFFFF; }
+.rolenote-b { margin: 0; font-size: var(--t-copy); line-height: 1.5; color: #FFFFFF; }
+.rolenote-f { display: inline-flex; align-items: center; gap: 7px; justify-self: center;
+  margin: 4px 0 0; padding: 7px 13px; border-radius: var(--r-chip);
+  border: 1px solid rgb(255 255 255 / .38); color: #FFFFFF;
+  text-transform: none; letter-spacing: .01em; }
+.rolenote-f::before { content: ""; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--lime); flex: none; }
+@media (max-width: 959px) { .rolenote-b { font-size: var(--t-micro); } }
+.rcard-pin { position: absolute; left: 7px; bottom: 7px; }
+.rcard-lab s { display: block; text-decoration: none; font-family: Sora, system-ui, sans-serif;
+  font-weight: 700; font-size: var(--t-label); letter-spacing: -.01em; }
+.rcard-lab em { display: block; font-style: normal; font-size: var(--t-micro);
+  color: var(--ink-2); margin-top: 2px; line-height: 1.35; }
+@media (max-width: 959px) { .rcard-lab em { display: none; } }
+/* Scoped to direct children so the white cards nested inside the pane keep
+   their own ink type — .micro carries an explicit ink-2 that would otherwise
+   leak dark text onto the gradient. */
+.pane > .art-line { text-align: center; max-width: 22ch; color: #FFFFFF; }
+.pane > .art-foot { text-align: center; color: #FFFFFF; }
+
+/* the creator artefact — the thing they're about to make */
+.card { background: var(--surface); border-radius: var(--r-card); padding: 10px;
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest);
+  transform: rotate(-1.8deg); }
+.card .shot img { border-radius: var(--r-image); width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+.card .tag { left: var(--x); top: var(--y); }
+.tag-dot--plain { background: var(--ink-3); }
+
+/* the shopper artefact — a fan of people, not a benefit list */
+.fan { display: flex; justify-content: center; }
+.fan .fcard { flex: none; width: 44%; max-width: 132px; margin-right: -16px;
+  background: var(--surface); border-radius: var(--r-card); padding: 7px;
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest);
+  transform: rotate(var(--mt)); }
+.fan .fcard:nth-child(1) { --mt: -7deg; }
+.fan .fcard:nth-child(2) { --mt: 0deg; z-index: 2; }
+.fan .fcard:nth-child(3) { --mt: 7deg; }
+.fan .fcard img { border-radius: var(--r-image); width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; }
+.fan .fcard .fh { display: block; font-size: var(--t-micro); font-weight: 700;
+  padding: 8px 3px 2px; text-align: center; color: var(--on-white);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* the business artefact — a brief, cut on paper stock (r-paper) */
+.brief { background: var(--surface); border-radius: var(--r-paper); padding: 18px 18px 16px;
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest);
+  transform: rotate(1.4deg); color: var(--on-white); }
+.brief .micro { color: var(--ink-3); }
+.brief .title { font-size: var(--t-body); margin: 6px 0 8px; }
+.brief-meta { display: flex; gap: 8px; align-items: center; margin-top: 14px;
+  padding-top: 12px; border-top: 1px solid var(--line); }
+.brief-meta .avatar { width: 24px; height: 24px; margin-right: -10px; border: 2px solid var(--surface); }
+.brief-meta .micro { margin-left: 14px; text-transform: none; letter-spacing: 0; }
+
+/* ── pane two: the form ────────────────────────────────────── */
+.form-pane { display: grid; align-content: center; justify-items: stretch;
+  padding: 22px 20px 56px; }
+@media (min-width: 960px) { .form-pane { padding: 40px; } }
+.form-in { width: 100%; max-width: 380px; margin-inline: auto; }
+.form-in > .copy { margin-top: 10px; }
+
+.af { display: block; margin-top: 18px; }
+.af-l { display: block; font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-2); margin-bottom: 7px; }
+.af-box { display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-image); padding: 0 8px 0 16px; min-height: 54px; }
+.af-box:focus-within { border-color: var(--violet); box-shadow: 0 0 0 3px rgb(124 58 237 / .16); }
+.af-box input { flex: 1; border: 0; background: none; font: inherit; font-size: var(--t-copy);
+  color: var(--ink); min-height: 44px; min-width: 0; }
+.af-box input::placeholder { color: var(--ink-3); }
+.af-box input:focus { outline: 0; }
+.af-show { border: 0; background: none; cursor: pointer; font: inherit;
+  font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-2); padding: 12px 10px; min-height: 44px; }
+.af-show:hover { color: var(--violet-deep); }
+.af-rule { display: block; margin-top: 7px; font-size: var(--t-micro); color: var(--ink-2); }
+
+.form-in .btn { width: 100%; margin-top: 22px; }
+.consequence { margin-top: 12px; font-size: var(--t-micro); color: var(--ink-2); text-align: center; }
+/* align-items:center is load-bearing. The links carry min-height:44px for the
+   tap target; the plain text beside them doesn't. Under the default stretch,
+   the text box grows to 44px and renders its line at the top while the link
+   centres its own — so the two sit ~20px apart on a row that should share a
+   baseline. */
+.seconds { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px;
+  justify-content: center;
+  margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line); }
+.seconds a { color: var(--ink-2); text-decoration: none; font-size: var(--t-label); font-weight: 600;
+  min-height: 44px; display: inline-flex; align-items: center; }
+.seconds a:hover { color: var(--violet); }
+.seconds .strong { color: var(--violet-deep); font-weight: 700; }
+
+/* Errors. The generic sign-in failure is ONE banner above the form and
+   never a ring on a field — a ring on email alone is an existence oracle. */
+.notice { display: flex; gap: 11px; align-items: flex-start;
+  border-radius: var(--r-image); padding: 14px 16px; margin-top: 20px;
+  font-size: var(--t-copy); line-height: 1.5; }
+.notice--bad { background: rgb(255 138 115 / .16); color: var(--ink);
+  border: 1px solid rgb(255 138 115 / .5); }
+.notice--info { background: var(--violet-wash); color: var(--ink); border: 1px solid transparent; }
+.notice b { display: block; }
+.notice .btn { width: auto; margin-top: 12px; padding: 10px 18px; }
+.notice svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+
+/* ── the confirmation screens: one status object, one action ── */
+.status { text-align: center; }
+.status .stamp { width: 64px; height: 64px; margin: 0 auto 20px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--violet-wash); color: var(--violet-deep); }
+.status .stamp svg { width: 28px; height: 28px; }
+.status .copy { margin: 12px auto 0; max-width: 38ch; }
+.status .btn { margin-top: 10px; }
+.status .btn + .btn { margin-top: 10px; }
+
+/* The role chooser is ALWAYS on /join. It was briefly gated to a "cold
+   landing" on the theory that the door you came through already answered
+   this — but signin → "Create an account" is a real path with no door and
+   no declared role, and it stranded the user on whatever ?as= happened to
+   be set. Register is also the one screen where the answer actually changes
+   behaviour, so the switch belongs here permanently. */
+/* The three-pill .chooser lived here. Replaced by the role deck in the pane
+   — the same choice, made with the system's own dealt-deck language instead
+   of a segmented control that could belong to any product. */
+
+/* ── Hide-By-Exclusion (DESIGN.md) ─────────────────────────── */
+body:not([data-as="creator"])  .as-creator,
+body:not([data-as="shopper"])  .as-shopper,
+body:not([data-as="business"]) .as-business,
+body:not([data-screen="join"])     .sc-join,
+body:not([data-screen="check"])    .sc-check,
+body:not([data-screen="signin"])   .sc-signin,
+body:not([data-screen="verify"])   .sc-verify,
+body:not([data-screen="expired"])  .sc-expired,
+body:not([data-screen="forgot"])   .sc-forgot,
+body:not([data-screen="sent"])     .sc-sent,
+body:not([data-screen="reset"])    .sc-reset,
+body:not([data-err="generic"])     .er-generic,
+body:not([data-err="unverified"])  .er-unverified { display: none; }
+
+/* The deck IS the artefact on /join, so the single illustration and its
+   strapline stand down there — otherwise the pane says the same thing twice.
+   Every other screen has nothing to choose, so it gets the illustration. */
+body:not([data-screen="join"]) .rolepick { display: none; }
+body[data-screen="join"] .art,
+body[data-screen="join"] .art-line { display: none; }
+
+/* Screens that are about the email, not the role, borrow the artefact but
+   swap the line — the object stays, the promise changes. */
+body:not([data-screen="join"]):not([data-screen="signin"]) .art-line--role { display: none; }
+body[data-screen="join"] .art-line--mail,
+body[data-screen="signin"] .art-line--mail { display: none; }
+</style>
+</head>
+<!-- data-role mirrors data-as here, because on auth the role IS the surface —
+     it's the only place a person declares which hat they're putting on. -->
+<body data-screen="join" data-as="creator" data-role="creator" data-err="none" data-mlayout="sheet">
+<div class="rolerail" aria-hidden="true"></div>
+
+<div class="au">
+
+  <!-- ── pane one — the artefact ─────────────────────────── -->
+  <aside class="pane rolepane">
+    <!-- The mark set huge and translucent at the foot, cropped by the pane
+         edge. One flat colour — the brand book forbids gradients on the mark
+         itself, so the gradient stays behind it. -->
+    <svg class="rolepane-mark" viewBox="0 0 100 100" aria-hidden="true">
+      <polygon points="33,53 33,27 39.5,15 46,27 46,53"/>
+      <polygon points="54,53 54,27 60.5,15 67,27 67,53"/>
+      <rect x="18" y="43" width="64" height="44" rx="13"/>
+    </svg>
+    <a class="mark au-back" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+
+    <!-- creator: the page they're about to make -->
+    <div class="art as-creator">
+      <div class="card">
+        <div class="shot">
+          <img src="images/posts/skincare.jpg" alt="A creator's post with two products tagged on it" width="900" height="1125">
+          <span class="tag" style="--x:8%; --y:24%">
+            <span class="tag-dot tag-dot--offer"></span>
+            <span class="tag-name">Serum</span><span class="tag-price">₹1,299</span>
+          </span>
+          <span class="tag" style="--x:34%; --y:64%">
+            <span class="tag-dot tag-dot--plain"></span>
+            <span class="tag-name">Balm</span><span class="tag-price">₹640</span>
+          </span>
+        </div>
+        <span class="creator">
+          <img class="avatar" src="images/avatars/maya.jpg" alt="" width="60" height="60">
+          <span class="handle">@yourhandle</span>
+          <span class="count">2 things</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- shopper: the people they're about to follow -->
+    <div class="art as-shopper">
+      <div class="fan">
+        <span class="fcard"><img src="images/posts/desk.jpg" alt="" width="300" height="300"><span class="fh">@arjunbuilds</span></span>
+        <span class="fcard"><img src="images/posts/skincare.jpg" alt="" width="300" height="300"><span class="fh">@mayamoves</span></span>
+        <span class="fcard"><img src="images/posts/gym.jpg" alt="" width="300" height="300"><span class="fh">@niaeveryday</span></span>
+      </div>
+    </div>
+
+    <!-- business: the brief they're about to post, cut on paper stock -->
+    <div class="art as-business">
+      <div class="brief">
+        <p class="micro">Open requirement</p>
+        <p class="title">Looking for skincare creators for a spring launch.</p>
+        <p class="copy">Two posts, one story. Budget discussed in the thread.</p>
+        <span class="brief-meta">
+          <img class="avatar" src="images/avatars/maya.jpg" alt="" width="60" height="60">
+          <img class="avatar" src="images/avatars/nia.jpg" alt="" width="60" height="60">
+          <img class="avatar" src="images/avatars/rhea.jpg" alt="" width="60" height="60">
+          <span class="micro">3 creators replied</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- The role switch, on /join only. Three cards fanned; the chosen one
+         is dealt to the front and straightened. -->
+    <div class="rolepick">
+      <p class="micro rolepick-eyebrow" id="rolepick-l">I'm a…</p>
+      <div class="roledeck" role="radiogroup" aria-labelledby="rolepick-l">
+
+        <button class="rcard" type="button" role="radio" aria-checked="true" data-as="creator">
+          <span class="rcard-art">
+            <img src="images/posts/skincare.jpg" alt="" width="900" height="1125">
+            <span class="tag rcard-pin"><span class="tag-dot tag-dot--offer"></span><span class="tag-price">₹1,299</span></span>
+          </span>
+          <span class="rcard-lab"><s>Creator</s><em>Make what you post shoppable</em></span>
+        </button>
+
+        <button class="rcard" type="button" role="radio" aria-checked="false" data-as="shopper">
+          <span class="rcard-art">
+            <img src="images/posts/gym.jpg" alt="" width="900" height="1125">
+            <span class="tag rcard-pin"><span class="tag-dot"></span><span class="tag-price">Following</span></span>
+          </span>
+          <span class="rcard-lab"><s>Shopper</s><em>Follow people — shopping needs no account</em></span>
+        </button>
+
+        <button class="rcard" type="button" role="radio" aria-checked="false" data-as="business">
+          <span class="rcard-art">
+            <img src="images/products/bottle.jpg" alt="" width="900" height="1125">
+            <span class="tag rcard-pin"><span class="tag-dot"></span><span class="tag-price">Open brief</span></span>
+          </span>
+          <span class="rcard-lab"><s>Business</s><em>Find creators to work with</em></span>
+        </button>
+
+      </div>
+
+      <!-- What the chosen card actually means. Swaps with the selection. -->
+      <div class="rolenote">
+        <p class="rolenote-t as-creator">Your posts become a shop.</p>
+        <p class="rolenote-b as-creator">Tag the products in what you already post, pin your own
+          links, and see which post drove the taps.</p>
+        <p class="micro rolenote-f as-creator">Free to start — no card needed</p>
+
+        <p class="rolenote-t as-shopper">Follow the people you buy from.</p>
+        <p class="rolenote-b as-shopper">An account is only for following creators and leaving
+          comments. Buying never asks for one.</p>
+        <p class="micro rolenote-f as-shopper">Shopping never needs an account</p>
+
+        <p class="rolenote-t as-business">Brief it once, hear from creators.</p>
+        <p class="rolenote-b as-business">Post to the open board or approach a creator directly,
+          then agree terms in one thread.</p>
+        <p class="micro rolenote-f as-business">Payment settles off-platform</p>
+      </div>
+    </div>
+
+    <!-- one line, from the approved register. Never a bullet list. -->
+    <p class="title art-line art-line--role as-creator">Tag it once. Sell it everywhere.</p>
+    <p class="title art-line art-line--role as-shopper">You never need an account to shop.</p>
+    <p class="title art-line art-line--role as-business">Post a brief. Hear from creators.</p>
+    <p class="title art-line art-line--mail">One link, then your password is all you need.</p>
+
+    <p class="micro art-foot">plugfolio.com · turn your content into commerce</p>
+  </aside>
+
+  <!-- ── pane two — the form ─────────────────────────────── -->
+  <main class="form-pane">
+    <div class="form-in">
+
+      <!-- ══ /join ══════════════════════════════════════ -->
+      <div class="sc-join">
+        <h1 class="headline as-creator">Create your account</h1>
+        <h1 class="headline as-shopper">Follow your favourites</h1>
+        <h1 class="headline as-business">Create your business</h1>
+
+        <p class="copy as-creator">Then connect a social and claim your handle.</p>
+        <p class="copy as-shopper">An account only to follow and comment — never to buy.</p>
+        <p class="copy as-business">A name and what you sell — that's the whole sign-up.</p>
+
+        <form data-busy="Creating…">
+          <label class="af">
+            <span class="af-l">Email</span>
+            <span class="af-box"><input type="email" name="email" placeholder="you@email.com" autocomplete="email" required></span>
+          </label>
+          <label class="af">
+            <span class="af-l">Password</span>
+            <span class="af-box">
+              <input type="password" name="password" placeholder="••••••••" autocomplete="new-password" minlength="8" required>
+              <button class="af-show" type="button" data-show>Show</button>
+            </span>
+            <span class="af-rule">At least 8 characters.</span>
+          </label>
+          <button class="btn btn--primary" type="submit">
+            <span class="as-creator">Create account</span>
+            <span class="as-shopper">Create account</span>
+            <span class="as-business">Create business</span>
+          </button>
+        </form>
+        <p class="consequence">We'll send one verification email.</p>
+        <p class="seconds">
+          <span class="copy">Already have an account?</span>
+          <a class="strong" href="#" data-go="signin">Sign in</a>
+        </p>
+      </div>
+
+      <!-- ══ check your email ═══════════════════════════ -->
+      <div class="sc-check status">
+        <span class="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7l9 6 9-6"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg></span>
+        <h1 class="headline">Check your email</h1>
+        <p class="copy">We sent a verification link to <b>you@email.com</b>. It works once, and it
+          works on any device.</p>
+        <button class="btn btn--ghost" type="button">Resend email</button>
+        <button class="btn btn--ghost" type="button">Change email</button>
+      </div>
+
+      <!-- ══ /signin ════════════════════════════════════ -->
+      <div class="sc-signin">
+        <h1 class="headline">Welcome back</h1>
+        <p class="copy">Email and password. That's the whole thing.</p>
+
+        <!-- ONE banner, above the form. Never a ring on a single field. -->
+        <div class="notice notice--bad er-generic" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>
+          <span><b>Email or password is incorrect.</b>Check both and try again.</span>
+        </div>
+        <div class="notice notice--info er-unverified" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 7l9 6 9-6"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
+          <span><b>Verify your email to sign in.</b>We sent a link when you registered.
+            <button class="btn btn--ghost" type="button">Resend verification email</button></span>
+        </div>
+
+        <form data-busy="Signing in…">
+          <label class="af">
+            <span class="af-l">Email</span>
+            <span class="af-box"><input type="email" name="email" placeholder="you@email.com" autocomplete="email" required></span>
+          </label>
+          <label class="af">
+            <span class="af-l">Password</span>
+            <span class="af-box">
+              <input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+              <button class="af-show" type="button" data-show>Show</button>
+            </span>
+          </label>
+          <button class="btn btn--primary" type="submit">Sign in</button>
+        </form>
+        <p class="seconds">
+          <a href="#" data-go="forgot">Forgot password?</a>
+          <a class="strong" href="#" data-go="join">Create an account</a>
+        </p>
+      </div>
+
+      <!-- ══ /verify — success ══════════════════════════ -->
+      <div class="sc-verify status">
+        <span class="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
+        <h1 class="headline">Email verified</h1>
+        <p class="copy as-creator">Next: connect a social so your handle can't be claimed by anyone else.</p>
+        <p class="copy as-shopper">Taking you back to what you were doing.</p>
+        <p class="copy as-business">Next: your business name and what you sell.</p>
+        <a class="btn btn--primary as-creator" href="/dashboard/settings#connections">Connect a social</a>
+        <a class="btn btn--primary as-shopper" href="/explore">Keep shopping</a>
+        <a class="btn btn--primary as-business" href="/collabs">Set up your business</a>
+      </div>
+
+      <!-- ══ /verify — expired ══════════════════════════ -->
+      <div class="sc-expired status">
+        <span class="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg></span>
+        <h1 class="headline">This link has expired</h1>
+        <p class="copy">Links work once and last 24 hours. We'll send a fresh one — it takes a moment.</p>
+        <form data-busy="Sending…">
+          <label class="af">
+            <span class="af-l">Email</span>
+            <span class="af-box"><input type="email" name="email" placeholder="you@email.com" autocomplete="email" required></span>
+          </label>
+          <button class="btn btn--primary" type="submit">Send a new link</button>
+        </form>
+      </div>
+
+      <!-- ══ /forgot ════════════════════════════════════ -->
+      <div class="sc-forgot">
+        <h1 class="headline">Reset your password</h1>
+        <p class="copy">Enter your email and we'll send one reset link.</p>
+        <form data-busy="Sending…">
+          <label class="af">
+            <span class="af-l">Email</span>
+            <span class="af-box"><input type="email" name="email" placeholder="you@email.com" autocomplete="email" required></span>
+          </label>
+          <button class="btn btn--primary" type="submit">Send reset link</button>
+        </form>
+        <p class="seconds">
+          <a href="#" data-go="signin">Back to sign in</a>
+          <a class="strong" href="#" data-go="join">Create an account</a>
+        </p>
+      </div>
+
+      <!-- ══ /forgot — sent. The ONLY outcome. ══════════ -->
+      <div class="sc-sent status">
+        <span class="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7l9 6 9-6"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg></span>
+        <h1 class="headline">Check your email</h1>
+        <!-- "If an account exists" is load-bearing: same words, same screen,
+             same timing for a real address and a made-up one. -->
+        <p class="copy">If an account exists for <b>you@email.com</b>, a reset link is on its way.</p>
+        <a class="btn btn--ghost" href="#" data-go="signin">Back to sign in</a>
+      </div>
+
+      <!-- ══ /reset — also the invited Manager's first password ══ -->
+      <div class="sc-reset">
+        <h1 class="headline">Set a new password</h1>
+        <div class="notice notice--info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+          <span><b>You've been added as a Manager on @mayamoves.</b>Setting a password verifies your
+            email and signs you in.</span>
+        </div>
+        <form data-busy="Saving…">
+          <label class="af">
+            <span class="af-l">New password</span>
+            <span class="af-box">
+              <input type="password" name="password" placeholder="••••••••" autocomplete="new-password" minlength="8" required>
+              <button class="af-show" type="button" data-show>Show</button>
+            </span>
+            <span class="af-rule">At least 8 characters.</span>
+          </label>
+          <label class="af">
+            <span class="af-l">Confirm password</span>
+            <span class="af-box">
+              <input type="password" name="confirm" placeholder="••••••••" autocomplete="new-password" minlength="8" required>
+              <button class="af-show" type="button" data-show>Show</button>
+            </span>
+          </label>
+          <button class="btn btn--primary" type="submit">Save password</button>
+        </form>
+        <p class="consequence">You'll be signed in straight away.</p>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var body = document.body;
+
+  /* Show/hide — a real product control, required on every password field. */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-show]');
+    if (!b) return;
+    var input = b.parentNode.querySelector('input');
+    var hidden = input.type === 'password';
+    input.type = hidden ? 'text' : 'password';
+    b.textContent = hidden ? 'Hide' : 'Show';
+  });
+
+  /* Busy state. In-app browsers double-fire taps, so every action button
+     disables and changes its label on the first one. Here it also walks
+     to the next screen so the flow is reviewable end to end. */
+  var NEXT = { join: 'check', forgot: 'sent', reset: 'verify', expired: 'check' };
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest('form[data-busy]');
+    if (!form) return;
+    e.preventDefault();
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn.getAttribute('aria-disabled') === 'true') return;
+    var was = btn.innerHTML;
+    btn.setAttribute('aria-disabled', 'true');
+    btn.textContent = form.dataset.busy;
+    setTimeout(function () {
+      btn.removeAttribute('aria-disabled');
+      btn.innerHTML = was;
+      var next = NEXT[body.dataset.screen];
+      if (next) { body.dataset.screen = next; sync(); }
+    }, 900);
+  });
+
+  /* In-page routing for the secondary links. */
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-go]');
+    if (!a) return;
+    e.preventDefault();
+    body.dataset.screen = a.dataset.go;
+    body.dataset.err = 'none';
+    sync();
+  });
+
+  /* ── the role deck ───────────────────────────────────────
+     A real radiogroup: the chosen card is dealt to the front, the other
+     two fan out behind it in their declared order so the arrangement is
+     stable rather than reshuffling on every pick. Roving tabindex plus
+     arrow keys, because a radiogroup that only answers to taps is a
+     picture of a control rather than a control. */
+  var cards = [].slice.call(document.querySelectorAll('.rcard'));
+
+  function deal() {
+    var sel = body.dataset.as, rest = [];
+    cards.forEach(function (c) {
+      var on = c.dataset.as === sel;
+      if (!on) rest.push(c);
+      c.dataset.pos = on ? 'front' : '';
+      c.setAttribute('aria-checked', String(on));
+      c.tabIndex = on ? 0 : -1;
+    });
+    if (rest[0]) rest[0].dataset.pos = 'left';
+    if (rest[1]) rest[1].dataset.pos = 'right';
+  }
+
+  function pick(card, focus) {
+    body.dataset.as = body.dataset.role = card.dataset.as;
+    deal();
+    if (focus) card.focus();
+  }
+
+  cards.forEach(function (c, i) {
+    c.addEventListener('click', function () { pick(c, false); });
+    c.addEventListener('keydown', function (e) {
+      var d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1
+            : e.key === 'ArrowLeft'  || e.key === 'ArrowUp'   ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      pick(cards[(i + d + cards.length) % cards.length], true);
+    });
+  });
+
+  deal();
+  /* Keep the deck in step when the review panel changes the role. */
+  new MutationObserver(deal).observe(body, { attributes: true, attributeFilter: ['data-as'] });
+})();
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: 'auth',
+  groups: [
+    { label: 'Screen', options: [
+      { name: 'Join',            note: 'Register — role switch lives here', set: { screen: 'join',    err: 'none' } },
+      { name: 'Check your email',note: 'After submitting register',         set: { screen: 'check',   err: 'none' } },
+      { name: 'Sign in',         note: 'One step, no role tabs',            set: { screen: 'signin',  err: 'none' } },
+      { name: 'Verified',        note: 'Link consumed, routing by role',    set: { screen: 'verify',  err: 'none' } },
+      { name: 'Link expired',    note: 'Used or timed out — never a dead end', set: { screen: 'expired', err: 'none' } },
+      { name: 'Forgot password', note: 'One field',                         set: { screen: 'forgot',  err: 'none' } },
+      { name: 'Reset link sent', note: 'The only outcome /forgot has',      set: { screen: 'sent',    err: 'none' } },
+      { name: 'New password',    note: 'Also the invited Manager screen',   set: { screen: 'reset',   err: 'none' } }
+    ]},
+    { label: 'Sign-in failures', options: [
+      { name: 'Wrong email or password', note: 'One generic banner, no field ring', set: { screen: 'signin', err: 'generic' } },
+      { name: 'Unverified email',        note: 'Distinct state, carries resend',    set: { screen: 'signin', err: 'unverified' } }
+    ]},
+    { label: 'Mobile layout (under 960px)', options: [
+      { name: 'Sheet',     note: 'Form rides up over the gradient on a rounded sheet', set: { mlayout: 'sheet' } },
+      { name: 'Immersive', note: 'Gradient runs the whole screen, form sits on it',    set: { mlayout: 'immersive' } }
+    ]},
+    { label: 'Role', options: [
+      { name: 'Creator',  note: 'Verification lands on Connect Socials', set: { as: 'creator',  role: 'creator'  } },
+      { name: 'Shopper',  note: 'Lands back where they were',           set: { as: 'shopper',  role: 'shopper'  } },
+      { name: 'Business', note: 'Lands on business basics',             set: { as: 'business', role: 'business' } }
+    ]}
+  ]
+};
+</script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!doctype html>
+<!-- Plugfolio landing page (/).
+     Promoted from variant 14. Section 1 is the locked v9 deck hero; section 2 is v1's fanned-feed trail verbatim; section 3 keeps v3's bento layout and content exactly, restyled as dealt plates: white card stock holding a coloured face, tilted like the hero's cards, with a mini dealt hand in the wide cell. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plugfolio — Buy what your favourites post</title>
+<meta name="description" content="Follow a creator, tap any post, and buy it straight at the retailer. No account, no cart, no checkout. Shopping on Plugfolio never needs a login.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* Section 1 is the LOCKED deck hero from base.css. */
+.hero { text-align: center; padding-block: clamp(28px,5vw,52px) 0; }
+.hero .display { margin-top: 20px; }
+.hero .lede { max-width: 48ch; margin: 20px auto 0; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 28px; }
+.honest { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: center; margin-top: 30px; }
+
+/* Section 2 — the fanned-feed trail, carried over verbatim. */
+/* ── section 2: the trail of three tilted mini-screens ── */
+.trail { list-style: none; margin: clamp(34px,4vw,52px) 0 0; padding: 0; display: grid; gap: 34px; }
+@media (min-width: 900px) { .trail { grid-template-columns: repeat(3, 1fr); gap: 26px; } }
+.trail-s { position: relative; }
+@media (min-width: 900px) {
+  .trail-s:not(:last-child)::after {
+    content: ""; position: absolute; top: 96px; right: -20px; width: 16px; height: 2px;
+    background: repeating-linear-gradient(90deg, var(--ink-3) 0 4px, transparent 4px 8px);
+  }
+  .trail-s:nth-child(2) { margin-top: 26px; }
+  .trail-s:nth-child(3) { margin-top: 52px; }
+}
+.mock { border-radius: var(--r-card); padding: 12px; box-shadow: var(--sh-rest); min-height: 186px;
+        transform: rotate(var(--mt, -1.6deg)); transition: transform .3s var(--ease); }
+.trail-s:nth-child(2) .mock { --mt: 1.8deg; }
+.trail-s:nth-child(3) .mock { --mt: -1.2deg; }
+.trail-s:hover .mock { transform: rotate(0deg); }
+.mk-field { background: var(--surface); color: var(--ink); border-radius: var(--r-chip); padding: 9px 14px;
+            font-size: var(--t-label); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.mk-mag { opacity: .5; }
+.mk-caret { width: 2px; height: 14px; background: var(--violet); margin-left: 2px; }
+.mk-row { display: flex; align-items: center; gap: 9px; background: var(--surface); border-radius: var(--r-image);
+          padding: 8px 10px; margin-top: 8px; }
+.mk-row.dim { opacity: .58; }
+.mk-row b { display: block; font-size: var(--t-label); color: var(--ink); }
+.mk-row i { display: block; font-style: normal; font-size: var(--t-micro); color: var(--ink-2); }
+.mk-av { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex: none; }
+.mk-shot { position: relative; }
+.mk-shot img { border-radius: var(--r-image); width: 100%; height: 162px; object-fit: cover; }
+.mk-card { background: var(--surface); border-radius: var(--r-image); padding: 16px; display: grid; gap: 6px; }
+.mk-eyebrow { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.mk-store { font-family: Sora, system-ui, sans-serif; font-size: var(--t-title); color: var(--ink); letter-spacing: -.02em; }
+.mk-busy { display: inline-flex; align-self: start; background: var(--ink); color: var(--surface);
+           border-radius: var(--r-chip); padding: 7px 14px; font-size: var(--t-label); font-weight: 700; }
+.mk-note { font-size: var(--t-micro); color: var(--ink-2); }
+.trail-n { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+           background: var(--ink); color: var(--surface); font-size: var(--t-label); font-weight: 700; margin: 20px 0 12px; }
+.trail-s .title { margin-bottom: 8px; }
+
+/* Section 3 — the bento layout and content, restyled to match. */
+.doorbento { display: grid; gap: 16px; margin-top: clamp(30px,4vw,46px); }
+@media (min-width: 900px) { .doorbento { grid-template-columns: repeat(2, 1fr); } .db--wide { grid-row: span 2; } }
+
+/* Card stock — exactly the material the hero's deck cards are cut from:
+   the same surface, the same edge treatment, the same rest shadow. */
+.db { position: relative; background: var(--surface); border: 0;
+  border-radius: var(--r-card); padding: 30px 28px 26px; text-decoration: none; color: var(--ink);
+  display: flex; flex-direction: column;
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest);
+  transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
+.db:hover { transform: translateY(-4px); box-shadow: 0 0 0 1px var(--card-edge), var(--sh-raise); }
+.db .micro { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); }
+.db .micro::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--violet); flex: none; }
+.db .title { margin: 14px 0 10px; font-family: Sora, system-ui, sans-serif; font-weight: 800;
+  letter-spacing: -.035em; font-size: clamp(1.875rem,3.6vw,3rem); line-height: 1; }
+.db .copy { color: var(--ink-2); max-width: 44ch; }
+.db .dlist { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 0;
+  border-top: 1px solid var(--line); }
+.db .dlist li { font-size: var(--t-copy); color: var(--ink-2); padding: 11px 0;
+  border-bottom: 1px solid var(--line); }
+.db .dgo { margin-top: auto; padding-top: 26px; border-top: 0;
+  font-size: var(--t-label); font-weight: 700; color: var(--ink);
+  display: flex; align-items: center; justify-content: space-between; }
+.db .dgo span { transition: transform .25s var(--ease); }
+.db:hover .dgo span { transform: translateX(5px); }
+</style>
+</head>
+<!-- Public surfaces are always shopper-coloured: the landing page is read by
+     all three audiences at once, so the rail names the surface, not the reader. -->
+<body data-role="shopper">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#main">Skip to content</a>
+<header class="inner">
+  <nav class="nav" aria-label="Primary">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="nav-mid">
+      <a class="nav-link" href="/explore">Explore</a>
+      <a class="nav-link" href="#how">How it works</a>
+      <a class="nav-link" href="/signin">For creators</a>
+      <a class="nav-link" href="/collabs">For business</a>
+    </div>
+    <div class="nav-end">
+      <a class="btn btn--ghost hide-sm" href="/signin">Log in</a>
+      <a class="btn btn--primary" href="/explore">Explore creators</a>
+    </div>
+  </nav>
+</header>
+<main id="main">
+<section class="hero">
+    <div class="inner">
+      <span class="chip"><span class="chip-dot" aria-hidden="true"></span> No account needed to shop</span>
+      <h1 class="display">One link.<br>The whole deck.</h1>
+      <p class="lede">Every post a creator makes is a card you can buy from. Tap one and land at the retailer — no account, no cart, no checkout.</p>
+      <div class="hero-actions">
+        <a class="btn btn--primary" href="/explore">Explore creators</a>
+        <a class="btn btn--ghost" href="#how">See how it works</a>
+      </div>
+    </div>
+    <div class="inner deck" aria-label="Shoppable posts from creators">
+      <a class="card9 c9-1" href="/mayamoves/post/gym">
+        <div class="shot"><img src="images/posts/gym.jpg" alt="A shoppable post by @mayamoves.">
+          <span class="tag" style="left:7%;bottom:10%"><span class="tag-dot"></span><span class="tag-name">Runners</span><span class="tag-price">₹6,499</span></span></div>
+        <span class="lw-meter"><img class="avatar" style="width:22px;height:22px" src="images/avatars/maya.jpg" alt=""><b>@mayamoves</b><em>4 tagged</em></span>
+      </a>
+      <a class="card9 c9-2" href="/niaglow/post/beauty">
+        <div class="shot"><img src="images/posts/beauty.jpg" alt="A shoppable post by @niaglow.">
+          <span class="tag" style="left:7%;bottom:10%"><span class="tag-dot"></span><span class="tag-name">Lip tint</span><span class="tag-price">₹749</span></span></div>
+        <span class="lw-meter"><img class="avatar" style="width:22px;height:22px" src="images/avatars/nia.jpg" alt=""><b>@niaglow</b><em>6 tagged</em></span>
+      </a>
+      <a class="card9 c9-3" href="/arjunbuilds/post/desk">
+        <div class="shot"><img src="images/posts/desk.jpg" alt="A shoppable post by @arjunbuilds.">
+          <span class="tag" style="left:7%;bottom:10%"><span class="tag-dot"></span><span class="tag-name">Keyboard</span><span class="tag-price">$52</span></span></div>
+        <span class="lw-meter"><img class="avatar" style="width:22px;height:22px" src="images/avatars/arjun.jpg" alt=""><b>@arjunbuilds</b><em>3 tagged</em></span>
+      </a>
+      <a class="card9 c9-4" href="/rhearooms/post/shelf">
+        <div class="shot"><img src="images/posts/shelf.jpg" alt="A shoppable post by @rhearooms.">
+          <span class="tag" style="left:7%;bottom:10%"><span class="tag-dot"></span><span class="tag-name">Wall shelf</span><span class="tag-price">$62</span></span></div>
+        <span class="lw-meter"><img class="avatar" style="width:22px;height:22px" src="images/avatars/rhea.jpg" alt=""><b>@rhearooms</b><em>5 tagged</em></span>
+      </a>
+      <a class="card9 c9-5" href="/niaglow/post/skincare">
+        <div class="shot"><img src="images/posts/skincare.jpg" alt="A shoppable post by @niaglow.">
+          <span class="tag" style="left:7%;bottom:10%"><span class="tag-dot"></span><span class="tag-name">Gua sha</span><span class="tag-price">₹649</span></span></div>
+        <span class="lw-meter"><img class="avatar" style="width:22px;height:22px" src="images/avatars/nia.jpg" alt=""><b>@niaglow</b><em>3 tagged</em></span>
+      </a>
+    </div>
+  </section>
+
+<section class="band" id="how" aria-labelledby="how-h">
+    <div class="inner">
+      <div class="band-head"><h2 class="headline" id="how-h">Three taps from a post to the shop.</h2><p class="lede">Nothing in between asks who you are.</p></div>
+      <ol class="trail">
+        <li class="trail-s">
+          <div class="mock" style="background:var(--tile-3)">
+            <div class="mk-field"><span class="mk-mag" aria-hidden="true">⌕</span>@mayamoves<span class="mk-caret" aria-hidden="true"></span></div>
+            <div class="mk-row"><img class="mk-av" src="images/avatars/maya.jpg" alt=""><span><b>@mayamoves</b><i>4 posts · 12 products</i></span></div>
+            <div class="mk-row dim"><img class="mk-av" src="images/avatars/nia.jpg" alt=""><span><b>@niaglow</b><i>6 posts · 21 products</i></span></div>
+          </div>
+          <span class="trail-n">1</span>
+          <h3 class="title">Find a creator</h3>
+          <p class="copy">Search a name, or arrive straight from their bio link. Nothing asks you to sign in.</p>
+        </li>
+        <li class="trail-s">
+          <div class="mock" style="background:var(--tile-1)">
+            <div class="mk-shot"><img src="images/posts/gym.jpg" alt="A creator's post with a product tagged on it.">
+              <span class="tag" style="left:8%;bottom:12%"><span class="tag-dot"></span><span class="tag-name">Runners</span><span class="tag-price">₹6,499</span></span>
+            </div>
+          </div>
+          <span class="trail-n">2</span>
+          <h3 class="title">Tap any post</h3>
+          <p class="copy">Every product in the frame already carries a tag — its name, its price, its retailer.</p>
+        </li>
+        <li class="trail-s">
+          <div class="mock" style="background:var(--tile-2)">
+            <div class="mk-card">
+              <span class="mk-eyebrow">Handing you over</span>
+              <b class="mk-store">amazon.in</b>
+              <span class="mk-busy">Opening…</span>
+              <span class="mk-note">We never see your card</span>
+            </div>
+          </div>
+          <span class="trail-n">3</span>
+          <h3 class="title">Buy at the retailer</h3>
+          <p class="copy">One tap opens the store you already shop with. Plugfolio runs no cart and no checkout.</p>
+        </li>
+      </ol>
+      <div class="honest"><a class="btn btn--primary" href="/explore">Start exploring</a><span class="micro">No cart · no checkout · no wallet</span></div>
+    </div>
+  </section>
+
+<section class="band" aria-labelledby="doors-h" style="padding-top:0">
+    <div class="inner">
+      <div class="band-head"><h2 class="headline" id="doors-h">Pick your side.</h2></div>
+      <div class="doorbento">
+        <a class="db db--wide" href="/explore">
+          <span class="micro">You came to buy</span><h3 class="title">Shop</h3>
+          <p class="copy">Find the creators you already follow and buy what they post, at the retailer.</p>
+          <ul class="dlist"><li>No account, ever</li><li>Coupon codes, one tap to copy</li><li>Follow only if you want to</li><li>Every tap opens the real retailer</li></ul>
+          <span class="dgo">Explore creators <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="db" href="/signin">
+          <span class="micro">You make the posts</span><h3 class="title">Create</h3>
+          <p class="copy">Up to five shoppable pages, every tap measured per post.</p>
+          <span class="dgo">Set up your page <span aria-hidden="true">→</span></span>
+        </a>
+        <a class="db" href="/collabs">
+          <span class="micro">You run a brand</span><h3 class="title">Brands</h3>
+          <p class="copy">Post a brief, or approach a creator from their page.</p>
+          <span class="dgo">Find creators <span aria-hidden="true">→</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/signin">For creators</a>
+      <a class="foot-link" href="/collabs">For business</a>
+      <a class="foot-link" href="/support">Support</a>
+      <span class="micro">One link, everything shoppable · 2026</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

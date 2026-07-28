@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desk reset — @mayamoves · Plugfolio</title>
+<meta name="description" content="Everything tagged in Maya Rao's desk reset post. Tap any product to buy it at the retailer — no account needed.">
+<link rel="stylesheet" href="styles.css">
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     /[handle]/post/[postId] — Post view · §5.5 · Operate mode
+
+     The job: show one post large and reveal exactly what is in it.
+     Everything here is a step toward a retailer, so the product list
+     is the page — the media is context, not the hero.
+
+     IN SPEC   compact creator header + back link (§5.5) · tagged count ·
+               product cards by kind/coupon (§5.9) · Buy → "Opening…"
+               tracked tap (§5.7) · copy-code with inline Copied (§5.8) ·
+               empty state · no comments here (they live on profile
+               and product pages) · global chrome + bottom tabs (§5.1)
+     NEW       the owner's tap-count band. §5.5 lists no owner tools;
+               Earnings (§5.18) has the numbers but nothing routes an
+               Admin from a post to its tagging editor. Flagged, not assumed.
+     ═══════════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Back link ────────────────────────────────────────────── */
+.back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+  font-size: var(--t-label); font-weight: 600; color: var(--ink-2); text-decoration: none; }
+.back:hover { color: var(--accent); }
+.back svg { width: 15px; height: 15px; }
+
+/* ── Compact creator header (§5.5 — identity, not a profile) ── */
+.pc { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-block: 4px 20px; }
+.pc-av { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: none; background: var(--violet-wash); }
+.pc-id { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; }
+.pc-name { font-family: var(--font-display, Sora), system-ui, sans-serif; font-weight: 800;
+  font-size: var(--t-label); letter-spacing: -.02em; color: var(--ink); text-decoration: none; }
+.pc-name:hover { color: var(--accent); }
+.pc-handle { font-size: var(--t-micro); font-weight: 600; color: var(--ink-2); }
+.pc-act { flex: none; display: flex; gap: 8px; }
+.pc-act .btn { padding: 10px 20px; }
+
+/* ── The post itself ──────────────────────────────────────── */
+.media { border-radius: var(--r-bay); overflow: hidden; background: var(--violet-wash);
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); }
+.media img { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: cover; }
+.caption { margin: 20px 0 0; font-size: var(--t-copy); color: var(--ink-2); max-width: 62ch; }
+
+/* ── Tagged products ──────────────────────────────────────── */
+.tagged-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px;
+  margin-top: 44px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.tagged-h h2 { margin: 0; font-size: var(--t-title); font-weight: 800; letter-spacing: -.02em; }
+.tagged-h .micro { margin-left: auto; }
+
+.plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; margin-top: 20px; }
+@media (min-width: 900px) { .plist { grid-template-columns: 1fr 1fr; align-items: start; } }
+
+/* One product card. The whole card is not a link — the card holds two
+   competing actions (copy a code, leave for the retailer), and nesting
+   them inside one link is how a shopper copies a code by accident. */
+.pcard { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: start;
+  padding: 16px; border-radius: var(--r-tile); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); }
+@media (min-width: 560px) { .pcard { grid-template-columns: 120px 1fr; } }
+.pcard-img { grid-row: span 2; width: 100%; aspect-ratio: 1; object-fit: cover;
+  border-radius: var(--r-image); background: var(--violet-wash); }
+.pcard-body { min-width: 0; }
+.pcard-title { margin: 0; font-size: var(--t-label); font-weight: 700; letter-spacing: -.01em; }
+.pcard-title a { color: var(--ink); text-decoration: none; }
+.pcard-title a:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.pcard-price { margin: 6px 0 0; font-size: var(--t-name); font-weight: 800;
+  font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.pcard-where { margin: 4px 0 0; font-size: var(--t-micro); font-weight: 600; color: var(--ink-2); }
+.own { display: inline-flex; align-items: center; gap: 5px; margin-bottom: 6px;
+  padding: 3px 9px; border-radius: var(--r-chip); background: var(--violet-wash);
+  color: var(--violet-deep); font-size: var(--t-micro); font-weight: 700; }
+.pcard-act { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.pcard-act .btn { padding: 12px 22px; }
+
+/* ── Coupon (§5.8) — always above the button: copy, then go ── */
+.coupon { grid-column: 2; margin-top: 12px; padding: 12px 14px;
+  border: 1px dashed var(--card-edge, var(--line)); border-color: var(--line);
+  border-radius: var(--r-image); background: var(--canvas); }
+.coupon-ch { font-size: var(--t-micro); font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--ink-2); }
+.coupon-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 7px; }
+.code { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 9px 16px;
+  border-radius: var(--r-chip); border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink); cursor: pointer; font: inherit; font-size: var(--t-label); font-weight: 700; }
+.code b { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+.code em { font-style: normal; font-size: var(--t-micro); font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--ink-2); }
+.code:hover { border-color: var(--accent); color: var(--accent); }
+.code[data-copied] { border-color: var(--accent); color: var(--accent); }
+.coupon-note { margin: 8px 0 0; font-size: var(--t-micro); color: var(--ink-2); }
+.coupon-exp { margin: 6px 0 0; font-size: var(--t-micro); color: var(--ink-2); }
+/* An ended offer never takes the product down with it. */
+.coupon--dead { border-style: solid; background: transparent; }
+.coupon--dead .coupon-ch { color: var(--ink-2); }
+
+.offplat { grid-column: 2; margin: 10px 0 0; font-size: var(--t-micro); color: var(--ink-2); }
+
+/* ── Viewer states — see §5.4's rule, applied here ─────────── */
+body:not([data-viewer="anon"])     .v-anon,
+body:not([data-viewer="shopper"])  .v-shopper,
+body:not([data-viewer="business"]) .v-business,
+body:not([data-viewer="owner"])    .v-owner,
+body[data-viewer="anon"]           .v-signedin { display: none; }
+.btn--following { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.btn--following:hover { border-color: var(--accent); color: var(--accent); }
+.btn[aria-busy="true"] { opacity: .6; pointer-events: none; }
+.acct { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--line); overflow: hidden; }
+.acct img { width: 100%; height: 100%; object-fit: cover; }
+
+.band-v { display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  margin-bottom: 20px; padding: 16px 18px; border-radius: var(--r-tile);
+  background: var(--violet-wash); border: 1px solid var(--accent); }
+.band-v p { margin: 0; flex: 1 1 240px; font-size: var(--t-copy); color: var(--ink-2); }
+.band-v b { display: block; font-size: var(--t-label); font-weight: 700; color: var(--ink); }
+.band-v b span { font-variant-numeric: tabular-nums; }
+
+/* ── Content states ───────────────────────────────────────── */
+body[data-state="empty"] .plist,
+body[data-state="empty"] .tagged-h .micro { display: none; }
+body:not([data-state="empty"]) .empty--tags { display: none; }
+.empty { text-align: center; padding: 44px 24px; margin-top: 20px;
+  border: 1px dashed var(--line); border-radius: var(--r-tile); }
+.empty b { display: block; font-family: var(--font-display, Sora), system-ui, sans-serif;
+  font-size: var(--t-title); font-weight: 800; letter-spacing: -.02em; }
+.empty p { margin: 8px auto 0; max-width: 40ch; font-size: var(--t-copy); color: var(--ink-2); }
+
+@media (max-width: 560px) {
+  .pcard-act .btn, .pcard-act .code { flex: 1 1 100%; }
+  .tagged-h .micro { margin-left: 0; flex-basis: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body data-page="post" data-viewer="anon" data-state="full" data-role="shopper">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#tagged">Skip to the products</a>
+
+<header class="inner">
+  <nav class="nav" aria-label="Primary">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="nav-end">
+      <a class="btn btn--ghost" href="/explore" aria-label="Search creators and products">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
+        <span>Search</span>
+      </a>
+      <a class="btn btn--ghost v-anon" href="/signin">Log in</a>
+      <a class="acct v-signedin" href="/account" aria-label="Your account"><img src="images/avatars/nia.jpg" alt=""></a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <section class="inner" style="padding-block:20px 0">
+    <a class="back" href="/mayamoves">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      All of @mayamoves
+    </a>
+
+    <!-- Compact identity. It says whose post this is; it is not the profile. -->
+    <div class="pc">
+      <img class="pc-av" src="images/avatars/maya.jpg" alt="">
+      <span class="pc-id">
+        <a class="pc-name" href="/mayamoves">Maya Rao</a>
+        <span class="pc-handle">@mayamoves</span>
+      </span>
+      <span class="pc-act">
+        <button class="btn btn--accent v-anon" type="button" data-follow>Follow</button>
+        <button class="btn btn--accent v-shopper" type="button" data-toggle-follow>Follow</button>
+        <button class="btn btn--accent v-business" type="button" data-toggle-follow>Follow</button>
+        <button class="btn btn--ghost v-owner" type="button" data-share>Share</button>
+        <a class="btn btn--accent v-owner" href="/dashboard/posts/4">Edit tags</a>
+      </span>
+    </div>
+
+    <!-- Follow opens this inline. Nothing here ever blocks a buy. -->
+    <div class="claim" id="claim" role="region" aria-label="Create an account to follow">
+      <p class="claim-h">Following needs an account — buying never does.</p>
+      <p class="claim-p">Every Buy button on this page works exactly the same whether you sign up or not.</p>
+      <div class="claim-row">
+        <input type="email" placeholder="you@email.com" aria-label="Email address" autocomplete="email">
+        <button class="btn btn--accent" type="button">Create account</button>
+        <button class="claim-x" type="button" id="claimX">Not now</button>
+      </div>
+    </div>
+
+    <!-- Owner only. Taps are the reason tagging exists. -->
+    <div class="band-v v-owner">
+      <p><b><span>312</span> taps tracked from this post</b>
+        Counted when someone opens a retailer from here. Editing lives in the header.</p>
+      <a class="btn btn--accent" href="/dashboard">See all Earnings</a>
+    </div>
+
+    <figure style="margin:0">
+      <div class="media"><img src="images/posts/p6.jpg" alt="Maya's desk after the reset: a warm-white lamp, keyboard and notebook on a light wood top." width="1200" height="800"></div>
+      <figcaption class="caption">The desk reset, finally finished. The lamp is the thing that changed the room — everything else I'd had for a year and just moved around.</figcaption>
+    </figure>
+
+    <div class="tagged-h" id="tagged">
+      <h2>In this post</h2>
+      <span class="micro">5 products tagged</span>
+    </div>
+
+    <ul class="plist">
+      <!-- Affiliate, no coupon — the plain case -->
+      <li class="pcard">
+        <img class="pcard-img" src="images/products/keyboard.jpg" alt="A low-profile mechanical keyboard.">
+        <div class="pcard-body">
+          <h3 class="pcard-title"><a href="/mayamoves/product/1">Keychron K3 Pro low-profile keyboard</a></h3>
+          <p class="pcard-price">₹8,499</p>
+          <p class="pcard-where">affiliate pick · opens Amazon</p>
+        </div>
+        <div class="pcard-act">
+          <button class="btn btn--accent" type="button" data-buy data-href="https://amazon.in">Buy</button>
+        </div>
+        <p class="offplat">Payment settles off-platform · opens the retailer</p>
+      </li>
+
+      <!-- Affiliate + online coupon — copy, then go -->
+      <li class="pcard">
+        <img class="pcard-img" src="images/products/sneakers.jpg" alt="A pair of white low-top trainers.">
+        <div class="pcard-body">
+          <h3 class="pcard-title"><a href="/mayamoves/product/2">Everyday white trainers</a></h3>
+          <p class="pcard-price">₹4,299</p>
+          <p class="pcard-where">affiliate pick · opens Myntra</p>
+        </div>
+        <div class="coupon">
+          <span class="coupon-ch">Online code</span>
+          <div class="coupon-row">
+            <button class="code" type="button" data-code="MAYA10"><em>Code</em><b>MAYA10</b></button>
+            <span class="micro">10% off</span>
+          </div>
+          <p class="coupon-exp">Valid till 31 Aug 2026</p>
+        </div>
+        <div class="pcard-act">
+          <button class="btn btn--accent" type="button" data-buy data-href="https://myntra.com">Buy</button>
+        </div>
+        <p class="offplat">Payment settles off-platform · opens the retailer</p>
+      </li>
+
+      <!-- The creator's own product — marked, and the label changes -->
+      <li class="pcard">
+        <img class="pcard-img" src="images/products/serum.jpg" alt="A glass serum bottle with a dropper.">
+        <div class="pcard-body">
+          <span class="own">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="m5 13 4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            their own product
+          </span>
+          <h3 class="pcard-title"><a href="/mayamoves/product/3">Maya's Night Serum</a></h3>
+          <p class="pcard-price">₹1,250</p>
+          <p class="pcard-where">their own product · opens mayarao.co</p>
+        </div>
+        <div class="pcard-act">
+          <button class="btn btn--accent" type="button" data-buy data-href="https://mayarao.co">Shop their store</button>
+        </div>
+        <p class="offplat">Payment settles off-platform · opens their store</p>
+      </li>
+
+      <!-- In-store only: no link, so no button. The code IS the action —
+           this must not read as a broken card. Price unknown, so no price. -->
+      <li class="pcard">
+        <img class="pcard-img" src="images/products/bottle.jpg" alt="An insulated steel water bottle.">
+        <div class="pcard-body">
+          <h3 class="pcard-title"><a href="/mayamoves/product/4">Insulated 750ml bottle</a></h3>
+          <p class="pcard-where">in-store offer</p>
+        </div>
+        <div class="coupon">
+          <span class="coupon-ch">In-store code</span>
+          <div class="coupon-row">
+            <button class="code" type="button" data-code="DESK15"><em>Code</em><b>DESK15</b></button>
+            <span class="micro">15% off</span>
+          </div>
+          <p class="coupon-note">Show this code at the counter at any Decathlon store.</p>
+        </div>
+        <p class="offplat">Copies are counted · redemption not tracked</p>
+      </li>
+
+      <!-- Expired coupon: the offer collapses, the product survives it -->
+      <li class="pcard">
+        <img class="pcard-img" src="images/products/lamp.jpg" alt="A white table lamp on a wooden desk.">
+        <div class="pcard-body">
+          <h3 class="pcard-title"><a href="/mayamoves/product/5">Warm-white desk lamp</a></h3>
+          <p class="pcard-price">₹2,990</p>
+          <p class="pcard-where">affiliate pick · opens Amazon</p>
+        </div>
+        <div class="coupon coupon--dead">
+          <span class="coupon-ch">Offer ended</span>
+          <p class="coupon-note">The product is still available below.</p>
+        </div>
+        <div class="pcard-act">
+          <button class="btn btn--accent" type="button" data-buy data-href="https://amazon.in">Buy</button>
+        </div>
+        <p class="offplat">Payment settles off-platform · opens the retailer</p>
+      </li>
+    </ul>
+
+    <!-- Reachable: the grid shows untagged posts too. -->
+    <div class="empty empty--tags">
+      <b>No products tagged on this post.</b>
+      <p>Maya hasn't tagged anything here yet. Everything she has tagged is on her page.</p>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Sections">
+  <a class="tab" href="/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" stroke-linejoin="round"/></svg>
+    <span>Home</span>
+  </a>
+  <a class="tab" href="/explore" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
+    <span>Shop</span>
+  </a>
+  <a class="tab" href="/following">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20s-7-4.4-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.6-7 9-7 9z" stroke-linejoin="round"/></svg>
+    <span>Following</span>
+  </a>
+  <a class="tab" href="/account">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.2-3.4 4-5 7-5s5.8 1.6 7 5" stroke-linecap="round"/></svg>
+    <span>Account</span>
+  </a>
+</nav>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <nav class="foot-links" aria-label="Footer">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/signin">For creators</a>
+      <a class="foot-link" href="/support">Support</a>
+    </nav>
+    <span class="micro">One link, everything shoppable · 2026</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  /* Follow → inline claim, for a viewer with no account. */
+  var claim = document.getElementById('claim');
+  document.querySelectorAll('[data-follow]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var open = claim.classList.toggle('is-open');
+      b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) claim.querySelector('input').focus();
+    });
+  });
+  var cx = document.getElementById('claimX');
+  if (cx) cx.addEventListener('click', function () {
+    claim.classList.remove('is-open');
+    document.querySelectorAll('[data-follow]').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
+  });
+
+  /* Follow, for a viewer who has one. */
+  var following = false;
+  function paintFollow() {
+    document.querySelectorAll('[data-toggle-follow]').forEach(function (b) {
+      b.textContent = following ? 'Following' : 'Follow';
+      b.classList.toggle('btn--following', following);
+      b.classList.toggle('btn--accent', !following);
+      b.setAttribute('aria-pressed', following ? 'true' : 'false');
+    });
+  }
+  document.querySelectorAll('[data-toggle-follow]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      following = !following; paintFollow();
+      b.setAttribute('aria-busy', 'true');
+      setTimeout(function () { b.removeAttribute('aria-busy'); }, 420);
+    });
+  });
+  paintFollow();
+
+  document.querySelectorAll('[data-share]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var url = location.origin + '/mayamoves/post/4';
+      if (navigator.share) { navigator.share({ title: 'Maya Rao — the desk reset', url: url }).catch(function () {}); return; }
+      navigator.clipboard.writeText(url).then(function () {
+        var was = b.textContent; b.textContent = 'Link copied';
+        setTimeout(function () { b.textContent = was; }, 1600);
+      }).catch(function () {});
+    });
+  });
+
+  /* Buy (§5.7) — disable, say "Opening…", record, then leave. A failed
+     recording is invisible to the shopper: the redirect happens anyway.
+     The lock is what absorbs the in-app browser's double tap. */
+  document.querySelectorAll('[data-buy]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (b.getAttribute('aria-busy') === 'true') return;
+      var was = b.textContent;
+      b.setAttribute('aria-busy', 'true');
+      b.textContent = 'Opening…';
+      /* the tap event would post here, fire-and-forget */
+      setTimeout(function () {              /* stands in for the redirect */
+        b.removeAttribute('aria-busy');
+        b.textContent = was;
+      }, 1400);
+    });
+  });
+
+  /* Copy code (§5.8) — inline confirmation, never a toast: in-app
+     browsers clip them. A clipboard denial stays silent; the code is
+     printed on the button, so the shopper can always read it. */
+  document.querySelectorAll('.code').forEach(function (b) {
+    var label = b.querySelector('em'), original = label.textContent;
+    b.addEventListener('click', function () {
+      navigator.clipboard.writeText(b.dataset.code).then(function () {
+        b.dataset.copied = '';
+        label.textContent = 'Copied';
+        setTimeout(function () { delete b.dataset.copied; label.textContent = original; }, 2000);
+      }).catch(function () {});
+    });
+  });
+})();
+</script>
+<script src="creator-prefs.js" defer></script>
+<script src="tweaks.js" defer></script>
+</body>
+</html>
