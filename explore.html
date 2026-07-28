@@ -306,75 +306,7 @@ body[data-state="cold"]          .wallhead,
 <div class="rolerail" aria-hidden="true"></div>
 <a class="skip" href="#wall">Skip to posts</a>
 
-<header class="inner">
-  <nav class="nav" aria-label="Primary">
-    <a class="mark" href="/" aria-label="Plugfolio home">
-      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
-        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
-        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
-        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
-      </g></svg>
-      <span class="mark-name">plugfolio</span>
-    </a>
-    <!-- "How it works" and "For business" are acquisition doors: they answer
-         questions someone asks BEFORE signing up. Once signed in they are
-         noise in the one row that should be navigation, so they stand down
-         and "For business" reappears inside the account menu as an action
-         rather than a pitch. Following takes their place. -->
-    <div class="nav-mid">
-      <a class="nav-link" href="/explore" aria-current="page">Explore</a>
-      <a class="nav-link v-anon" href="/#how">How it works</a>
-      <a class="nav-link v-anon" href="/collabs">For business</a>
-      <a class="nav-link v-signedin" href="/following">Following</a>
-    </div>
-    <div class="nav-end">
-      <a class="searchbtn" href="#search" aria-label="Search creators and products">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        <span>Search</span>
-      </a>
-      <a class="btn btn--ghost v-anon" href="/signin">Log in</a>
-      <a class="btn btn--primary v-anon" href="/join?as=creator">Create your page</a>
-      <!-- ONE control: names the current mode, carries the avatar, and opens
-           the switchboard. Same slot in every chrome. -->
-      <span class="acctwrap v-signedin">
-        <button class="acctbtn" type="button" aria-expanded="false" aria-haspopup="true"
-                aria-controls="acctmenu" data-acct>
-          <img src="images/avatars/nia.jpg" alt="">
-          <span class="acctbtn-c"><span class="roleslot-dot" aria-hidden="true"></span>Shopping
-            <span aria-hidden="true">▾</span></span>
-          <span class="skip">Your account and roles</span>
-        </button>
-
-        <div class="acctmenu" id="acctmenu" role="menu" hidden>
-          <div class="acctmenu-id">
-            <b>Nia Okafor</b>
-            <span>@niaeveryday · nia@email.com</span>
-          </div>
-
-          <h6>You are here</h6>
-          <a role="menuitem" href="/following"><span class="dot dot--shop"></span>Shopping
-            <span class="sub">Following</span></a>
-
-          <h6>Creator · 2 of 5 profiles</h6>
-          <a role="menuitem" href="/dashboard?profile=maya">
-            <img class="av" src="images/avatars/maya.jpg" alt="">@mayamoves
-            <span class="sub">Dashboard</span></a>
-          <a role="menuitem" href="/dashboard?profile=rhea">
-            <img class="av" src="images/avatars/rhea.jpg" alt="">@rheamakes
-            <span class="sub">Manager</span></a>
-
-          <hr>
-          <!-- No business on this account, so it is an action, not a locked row. -->
-          <a role="menuitem" href="/join?as=business"><span class="dot dot--business"></span>Create a business</a>
-          <a role="menuitem" href="/account">Account settings</a>
-          <a role="menuitem" href="/support">Help</a>
-          <hr>
-          <button role="menuitem" type="button" data-signout>Sign out</button>
-        </div>
-      </span>
-    </div>
-  </nav>
-</header>
+<div data-chrome="top"></div>
 
 <main>
 
@@ -751,12 +683,7 @@ body[data-state="cold"]          .wallhead,
   </div>
 </footer>
 
-<nav class="tabs" aria-label="Sections">
-  <a class="tab" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V21H3z"/></svg>Home</a>
-  <a class="tab" href="/explore" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Shop</a>
-  <a class="tab" href="/following"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.3a5 5 0 0 0 0-7.1z"/></svg>Following</a>
-  <a class="tab" href="/account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>Account</a>
-</nav>
+<div data-chrome="tabs"></div>
 
 <script>
 /* ── URL params ────────────────────────────────────────────
@@ -803,35 +730,7 @@ body[data-state="cold"]          .wallhead,
   });
 })();
 
-/* The account menu — a real product control, not review chrome. */
-(function () {
-  var btn = document.querySelector('[data-acct]');
-  var menu = document.getElementById('acctmenu');
-  if (!btn || !menu) return;
-
-  function open(v) {
-    menu.hidden = !v;
-    btn.setAttribute('aria-expanded', String(v));
-  }
-  btn.addEventListener('click', function (e) {
-    e.stopPropagation();
-    open(menu.hidden);
-  });
-  /* Dismiss the way a menu is expected to: outside tap, or Escape. */
-  document.addEventListener('click', function (e) {
-    if (!menu.hidden && !menu.contains(e.target)) open(false);
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !menu.hidden) { open(false); btn.focus(); }
-  });
-  /* Sign out is the one destructive-ish action here, so it gets the busy
-     state every action button gets — in-app browsers double-fire taps. */
-  var out = menu.querySelector('[data-signout]');
-  out.addEventListener('click', function () {
-    out.textContent = 'Signing out…';
-    out.setAttribute('aria-disabled', 'true');
-  });
-})();
+window.CHROME = { nav: 'explore', tab: 'shop' };
 
 /* Review chrome only — never ships. */
 window.PROTO = {
@@ -858,6 +757,7 @@ window.PROTO = {
   ]
 };
 </script>
+<script src="chrome.js" defer></script>
 <script src="proto-panel.js" defer></script>
 </body>
 </html>
