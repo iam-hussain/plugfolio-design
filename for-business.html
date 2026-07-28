@@ -30,7 +30,7 @@
    validate a currency, and a "$" example would read wrong to an Indian brand. */
 .brief { background: var(--paper); border-radius: var(--r-paper); padding: 22px 24px;
   box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); transform: rotate(-1.2deg);
-  max-width: 420px; color: var(--on-white); }
+  max-width: 460px; color: var(--on-white); }
 .brief .micro { color: var(--ink-3); }
 .brief b { display: block; font-family: Sora, system-ui, sans-serif; font-weight: 700;
   font-size: var(--t-title); letter-spacing: -.02em; margin: 8px 0 8px; }
@@ -42,7 +42,7 @@
 
 /* One thread. A shape, not a screenshot — it says "this is where it all
    happens" without inventing a conversation. */
-.thread { display: grid; gap: 10px; margin-top: clamp(22px, 3vw, 32px); max-width: 520px; }
+.thread { display: grid; gap: 10px; margin-top: clamp(22px, 3vw, 32px); }
 .bub { border-radius: var(--r-tile); padding: 13px 17px; font-size: var(--t-copy);
   line-height: 1.5; max-width: 82%; }
 .bub--them { background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); }
@@ -113,7 +113,7 @@
       whichever currency you already work in, and nothing forces a format on you.</p>
   </section>
 
-  <section class="mk-band">
+  <section class="mk-band mk-band--split">
     <h2 class="title">One thread, start to agreed.</h2>
     <p class="copy">Terms, revisions and the yes all happen in the same place, so there's no
       hunting through email to find what was actually agreed.</p>

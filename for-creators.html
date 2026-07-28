@@ -27,7 +27,7 @@
    connected social — so it is stated, not dramatised. */
 .hclaim { display: flex; align-items: center; gap: 2px; margin-top: clamp(20px, 3vw, 28px);
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-chip);
-  padding: 6px 8px 6px 20px; max-width: 460px; min-height: 62px; }
+  padding: 6px 8px 6px 20px; min-height: 62px; }
 .hclaim-p { font-size: var(--t-copy); color: var(--ink-3); white-space: nowrap; }
 .hclaim-h { font-size: var(--t-copy); font-weight: 700; color: var(--ink); }
 .hclaim .btn { margin-left: auto; white-space: nowrap; }
@@ -35,7 +35,7 @@
 /* Attribution: one post, one measured number, one honesty label. */
 .proof { display: flex; gap: 16px; align-items: center; margin-top: clamp(20px, 3vw, 28px);
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-tile);
-  padding: 14px 18px 14px 14px; max-width: 460px; }
+  padding: 16px 20px 16px 16px; }
 .proof img { width: 64px; height: 64px; border-radius: var(--r-image); object-fit: cover; flex: none; }
 .proof b { display: block; font-family: Sora, system-ui, sans-serif; font-weight: 700;
   font-size: var(--t-title); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
@@ -113,7 +113,7 @@
     </ol>
   </section>
 
-  <section class="mk-band">
+  <section class="mk-band mk-band--split">
     <h2 class="title">Claim your handle before someone else does.</h2>
     <p class="copy">You can only claim a name you can prove you own, by connecting the social it
       belongs to. That's what stops anyone squatting yours.</p>
@@ -122,11 +122,11 @@
       <span class="hclaim-h">yourhandle</span>
       <a class="btn btn--primary" href="/join?as=creator">Claim it</a>
     </div>
-    <p class="copy" style="margin-top:14px">Your page works immediately with a temporary name, so
+    <p class="copy">Your page works immediately with a temporary name, so
       nothing waits on this.</p>
   </section>
 
-  <section class="mk-band">
+  <section class="mk-band mk-band--split">
     <h2 class="title">Point at one post and say "that one worked".</h2>
     <p class="copy">Every outbound tap is counted against the post and the product it came from.
       Nothing is estimated, inferred or modelled.</p>
@@ -135,12 +135,18 @@
       <span><b>128</b><span class="micro">taps from this post</span></span>
       <span class="proof-flag">Tracked</span>
     </div>
-    <p class="copy" style="margin-top:16px">Where something genuinely can't be measured — someone
+    <p class="copy">Where something genuinely can't be measured — someone
       using an in-store code at a till — it says so rather than guessing. You should be able to
       trust the numbers you act on.</p>
+  </section>
+
+  <section class="mk-band">
+    <h2 class="title">Room for more than one you.</h2>
+    <p class="copy">Caps are stated as facts, not as a plan you upgrade out of. If you're planning
+      to run ten brands, better to know now.</p>
     <div class="mk-facts">
       <div class="mk-fact"><b>Up to 5 profiles on one account</b>
-        <p>Separate pages for separate audiences, all under one login.</p></div>
+        <p>Separate pages for separate audiences, all under one login and one password.</p></div>
       <div class="mk-fact"><b>Up to 3 managers per profile</b>
         <p>Hand tagging to someone else without handing over your account.</p></div>
     </div>

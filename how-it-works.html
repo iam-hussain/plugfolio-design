@@ -33,12 +33,25 @@
 .loop-n { display: grid; place-items: center; width: 26px; height: 26px; flex: none;
   border-radius: 50%; background: var(--ink); color: var(--surface);
   font-size: var(--t-micro); font-weight: 700; }
-/* The retailer step is deliberately not a Plugfolio surface — the card goes
-   plain to show where the product's job ends. */
-.loop-out { display: grid; place-items: center; aspect-ratio: 4/3;
-  border: 1px dashed var(--line); border-radius: var(--r-image); background: var(--canvas);
-  text-align: center; padding: 20px; }
-.loop-out span { font-size: var(--t-copy); color: var(--ink-2); line-height: 1.5; }
+/* The retailer step is deliberately NOT a Plugfolio surface, and the first
+   attempt said so with an empty dashed box — which read as a card that had
+   failed to load rather than as a boundary. It now shows the thing you
+   actually land on: the product, on someone else's shop, with their own
+   buy button. The dashed edge stays as the only cue that this frame is not
+   ours. */
+/* The image fills the frame rather than sitting inset, so there is no inner
+   radius to derive — one documented radius on the frame does the whole job. */
+.loop-out { position: relative; border: 1px dashed var(--line); border-radius: var(--r-image);
+  background: var(--canvas); overflow: hidden; }
+.loop-out img { display: block; width: 100%; aspect-ratio: 4/3; height: auto; object-fit: cover; }
+.loop-out-bar { display: flex; align-items: center; gap: 10px; padding: 13px 15px 14px; }
+.loop-out-bar b { font-size: var(--t-copy); font-weight: 700; }
+.loop-out-bar .micro { color: var(--ink-3); }
+/* Their button, not ours — outlined and quiet, so it never reads as a
+   Plugfolio action a shopper could take from this page. */
+.loop-out-buy { margin-left: auto; border: 1px solid var(--line); border-radius: var(--r-chip);
+  padding: 7px 14px; font-size: var(--t-micro); font-weight: 700; color: var(--ink-2);
+  white-space: nowrap; }
 
 .faq { margin-top: clamp(20px, 3vw, 30px); border-top: 1px solid var(--line); }
 .faq details { border-bottom: 1px solid var(--line); }
@@ -114,8 +127,11 @@
 
       <div>
         <div class="loop-out">
-          <span><b>The retailer's own site</b><br>Amazon, Nykaa, Myntra, a brand's own store —
-            wherever the creator's link points.</span>
+          <img src="images/products/serum.jpg" alt="The product on the retailer's own site" width="900" height="675">
+          <div class="loop-out-bar">
+            <span><b>The retailer</b><br><span class="micro">their site · their checkout</span></span>
+            <span class="loop-out-buy">Add to basket</span>
+          </div>
         </div>
         <div class="loop-cap"><span class="loop-n">3</span>
           <span><b>You buy there, not here</b>
@@ -144,7 +160,7 @@
     </div>
   </section>
 
-  <section class="mk-band">
+  <section class="mk-band mk-band--split">
     <h2 class="title">What we can and can't see.</h2>
     <p class="copy">A creator earns from these links, so it's fair to know what gets counted. This
       is the full list.</p>
@@ -158,7 +174,7 @@
       <div class="mk-track-r"><span>An in-store code you used at a till</span>
         <span class="mk-flag mk-flag--no">Not tracked</span></div>
     </div>
-    <p class="copy" style="margin-top:16px">The last two are the honest part. We could guess at
+    <p class="copy">The last two are the honest part. We could guess at
       them; other tools do. We'd rather a creator trust the numbers we do show.</p>
   </section>
 
