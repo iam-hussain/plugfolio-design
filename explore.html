@@ -32,14 +32,8 @@
 /* No max-width on .ex-head itself — it also carries .inner, whose auto
    margins would centre the whole head and knock it out of alignment with
    the content below. Cap the individual blocks instead. */
-.vswitch { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 0 0; }
-.vswitch a { text-decoration: none; border: 1px solid var(--line); background: var(--surface);
-  color: var(--ink-2); border-radius: var(--r-chip); padding: 9px 15px; min-height: 44px;
-  display: inline-flex; align-items: center; font-size: var(--t-label); font-weight: 600; }
-.vswitch a[aria-current="page"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 .ex-head { padding-block: clamp(18px, 2.4vw, 28px) 0; }
 .ex-head .headline { max-width: 15ch; }
-.ex-head .lede { margin-top: 10px; max-width: 54ch; }
 
 /* The honesty label — a product feature, not fine print. Canvas by default,
    because that is what a signed-out visitor sees; the gradient variants are
@@ -373,17 +367,9 @@ body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adsl
 <!-- The gradient hero, shared with auth and (later) the dashboard. Its colour
      follows the viewer's current MODE, never the page's content. -->
 <div class="rolehero">
-  <nav class="vswitch inner" aria-label="Explore variants">
-    <a href="/explore.html" aria-current="page">A · Wall</a>
-    <a href="/explore-b.html">B · Shelves</a>
-    <a href="/explore-c.html">C · Feed</a>
-  </nav>
-
   <div class="inner ex-head">
    <div class="ex-say">
     <h1 class="headline">Everything your favourites post.</h1>
-    <p class="lede">Browse the posts, not a catalogue. Whatever's in them is already tagged with its
-      price — tap the tag to go straight to the retailer.</p>
 
     <p class="guestnote v-anon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
