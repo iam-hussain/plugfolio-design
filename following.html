@@ -109,6 +109,34 @@
   font-size: var(--t-micro); font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
   white-space: nowrap; }
 
+/* ── what's actually new ───────────────────────────────────
+   A count says "4 new posts"; it does not say whether they are worth
+   opening. These are the posts the count is counting, with their tags on,
+   so the row shows its evidence instead of asserting a number.
+
+   Still not a feed: a strip belongs to ONE creator's row, tapping goes to
+   that creator's page or that product, and nothing here merges people
+   together into a stream. */
+.strip { display: flex; gap: 8px; width: 100%; overflow-x: auto; scrollbar-width: none;
+  scroll-snap-type: x proximity; padding: 2px 0 2px; margin-top: 12px; }
+.strip::-webkit-scrollbar { display: none; }
+.strip > * { flex: 0 0 auto; scroll-snap-align: start; }
+.strip .shot { width: 108px; }
+.strip .shot img { width: 108px; height: 108px; object-fit: cover;
+  border-radius: var(--r-image); background: var(--line); display: block; }
+.strip .tag { left: var(--x); top: var(--y); padding: 4px 9px; min-height: 30px; }
+.strip .tag .tag-price { font-size: var(--t-micro); }
+.strip .tag .tag-dot { width: 6px; height: 6px; }
+.tag-dot--plain { background: var(--ink-3); }
+/* The last tile is the way in, so a strip never dead-ends. */
+.strip-more { width: 108px; height: 108px; display: grid; place-items: center; text-align: center;
+  border: 1px dashed var(--line); border-radius: var(--r-image); text-decoration: none;
+  color: var(--ink-2); font-size: var(--t-micro); font-weight: 700; padding: 8px; }
+.strip-more:hover { border-color: var(--violet); color: var(--violet-deep); }
+/* Only rows with something new carry a strip — a quiet creator showing
+   three old thumbnails would be padding, not information. */
+.frow[data-gone="yes"] .strip { display: none; }
+
 /* ── unfollow: undo, not "are you sure?" ───────────────────
    A confirm dialog taxes every deliberate unfollow to protect the rare
    accidental one, and on a phone it is a modal over the thing you were
@@ -227,7 +255,17 @@ body:not([data-state="caught"]) .caughtline { display: none; }
         <span class="newbadge">4 new posts</span>
         <button class="unfollow" type="button">Following</button>
         <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
-      </div>
+
+        <span class="strip">
+          <a class="shot" href="/mayamoves/post/1"><img src="images/posts/skincare.jpg" alt="" width="216" height="216" loading="lazy">
+            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot tag-dot--offer"></span><span class="tag-price">₹1,299</span></span></a>
+          <a class="shot" href="/mayamoves/post/5"><img src="images/posts/beauty.jpg" alt="" width="216" height="216" loading="lazy">
+            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot tag-dot--plain"></span><span class="tag-price">$36</span></span></a>
+          <a class="shot" href="/mayamoves/post/9"><img src="images/posts/p9.jpg" alt="" width="216" height="216" loading="lazy">
+            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot"></span><span class="tag-price">₹1,450</span></span></a>
+          <a class="strip-more" href="/mayamoves">1 more →</a>
+        </span>
+            </div>
 
       <div class="frow">
         <a class="frow-a" href="/arjunbuilds">
@@ -238,7 +276,14 @@ body:not([data-state="caught"]) .caughtline { display: none; }
         <span class="newbadge">2 new posts</span>
         <button class="unfollow" type="button">Following</button>
         <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
-      </div>
+
+        <span class="strip">
+          <a class="shot" href="/arjunbuilds/post/2"><img src="images/posts/desk.jpg" alt="" width="216" height="216" loading="lazy">
+            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot tag-dot--plain"></span><span class="tag-price">$48</span></span></a>
+          <a class="shot" href="/arjunbuilds/post/10"><img src="images/posts/p10.jpg" alt="" width="216" height="216" loading="lazy">
+            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot tag-dot--offer"></span><span class="tag-price">$19</span></span></a>
+        </span>
+            </div>
 
       <div class="frow">
         <a class="frow-a" href="/rheamakes">
@@ -249,7 +294,12 @@ body:not([data-state="caught"]) .caughtline { display: none; }
         <span class="newbadge">1 new post</span>
         <button class="unfollow" type="button">Following</button>
         <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
-      </div>
+
+        <span class="strip">
+          <a class="shot" href="/rheamakes/post/4"><img src="images/posts/shelf.jpg" alt="" width="216" height="216" loading="lazy">
+            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot"></span><span class="tag-price">£38</span></span></a>
+        </span>
+            </div>
     </section>
 
     <!-- Shown only when nothing is new. An "all caught up" line is worth

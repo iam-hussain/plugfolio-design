@@ -109,10 +109,60 @@ body[data-state="results"] .wallhead { margin-top: clamp(18px, 2vw, 26px); }
 body[data-tab="creators"] .wallhead,
 body[data-tab="creators"] .wall,
 body[data-tab="creators"] .adslot,
+/* Things is its own view, not the posts wall relabelled. Previously ?tab=
+   things showed the identical wall as ?tab=posts, so the two chips did the
+   same thing — a scope control that does not scope. Products get a grid of
+   product cards; posts keep the wall. */
 body[data-tab="posts"] .fanhead,
 body[data-tab="posts"] .fan,
 body[data-tab="things"] .fanhead,
-body[data-tab="things"] .fan { display: none; }
+body[data-tab="things"] .fan,
+/* :not(.thingshead) matters — the Things heading reuses .wallhead for its
+   styling, so hiding .wallhead in this scope was hiding the heading of the
+   very view it was switching to. The ad goes too: it was positioned inside
+   the wall, so with the wall gone it floats between unrelated things. */
+body[data-tab="things"] .wallhead:not(.thingshead),
+body[data-tab="things"] .wall,
+body[data-tab="things"] .adslot,
+body:not([data-tab="things"]) .thingsgrid,
+body:not([data-tab="things"]) .thingshead { display: none; }
+
+/* ── product cards ─────────────────────────────────────────
+   Per §5.3: image, an active-coupon chip carrying the code, an own-store
+   marker, title, by-line, price (absent when unknown — never "$0"), and an
+   action label that reads Buy for an affiliate link or Shop for the
+   creator's own. The whole card goes to the PRODUCT page: it never taps
+   out to the retailer, because the outbound tap belongs one screen later
+   where the coupon and the honesty line are. */
+.thingsgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+  padding-bottom: clamp(20px, 3vw, 30px); }
+@media (min-width: 700px)  { .thingsgrid { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
+@media (min-width: 1080px) { .thingsgrid { grid-template-columns: repeat(4, 1fr); } }
+.thing-c { display: flex; flex-direction: column; background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--r-card); padding: 10px 10px 14px;
+  text-decoration: none; color: inherit;
+  transition: transform .25s var(--ease), box-shadow .25s var(--ease); }
+.thing-c:hover { transform: translateY(-4px);
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-raise); border-color: transparent; }
+.thing-c-media { position: relative; }
+.thing-c img { width: 100%; aspect-ratio: 1; height: auto; object-fit: cover;
+  border-radius: var(--r-image); background: var(--line); }
+/* Lime still means "there is an offer here", and it prints the code so a
+   shopper knows what they are getting before the tap. */
+.thing-flag { position: absolute; top: 8px; left: 8px; background: var(--lime);
+  color: var(--on-white); border-radius: var(--r-chip); padding: 4px 10px;
+  font-size: var(--t-micro); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.thing-own { position: absolute; top: 8px; left: 8px; background: var(--violet-wash);
+  color: var(--violet-deep); border-radius: var(--r-chip); padding: 4px 10px;
+  font-size: var(--t-micro); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.thing-c b { display: block; margin-top: 12px; font-size: var(--t-label); font-weight: 700;
+  line-height: 1.3; }
+.thing-c .by { display: block; margin-top: 3px; font-size: var(--t-micro); color: var(--ink-3); }
+.thing-c-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-top: auto; padding-top: 12px; }
+.thing-c .price { font-size: var(--t-copy); }
+/* No price line at all when the price is unknown — never a zero. */
+.thing-c .go { font-size: var(--t-label); font-weight: 700; color: var(--ink-2); }
 
 /* Scoped to creators, the fan stops being a teaser rail and becomes the
    result list: a grid that wraps, no overlap, no tilt. A rail says "there
@@ -640,6 +690,62 @@ body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adsl
       </a>
     </article>
 
+  </div>
+
+  <!-- ?tab=things — the products view. Same data, different unit: here a
+       thing is the thing, rather than something pinned onto a post. -->
+  <div class="wallhead thingshead">
+    <h2 class="title">Things</h2>
+    <p class="micro">36 tagged across 240 posts</p>
+  </div>
+  <div class="thingsgrid">
+    <a class="thing-c" href="/mayamoves/product/1">
+      <span class="thing-c-media">
+        <img src="images/products/serum.jpg" alt="" width="400" height="400" loading="lazy">
+        <span class="thing-flag">Code SAVE10</span>
+      </span>
+      <b>Brightening serum</b><span class="by">by @mayamoves</span>
+      <span class="thing-c-foot"><span class="price">₹1,299</span><span class="go">Buy →</span></span>
+    </a>
+    <a class="thing-c" href="/niaeveryday/product/4">
+      <span class="thing-c-media">
+        <img src="images/products/sneakers.jpg" alt="" width="400" height="400" loading="lazy">
+        <span class="thing-own">Their own</span>
+      </span>
+      <b>Training mat</b><span class="by">by @niaeveryday</span>
+      <span class="thing-c-foot"><span class="price">$32.00</span><span class="go">Shop →</span></span>
+    </a>
+    <a class="thing-c" href="/arjunbuilds/product/3">
+      <span class="thing-c-media">
+        <img src="images/products/lamp.jpg" alt="" width="400" height="400" loading="lazy">
+      </span>
+      <b>Desk lamp</b><span class="by">by @arjunbuilds</span>
+      <span class="thing-c-foot"><span class="price">$48.00</span><span class="go">Buy →</span></span>
+    </a>
+    <a class="thing-c" href="/arjunbuilds/product/13">
+      <span class="thing-c-media">
+        <img src="images/products/keyboard.jpg" alt="" width="400" height="400" loading="lazy">
+      </span>
+      <b>Mechanical keyboard</b><span class="by">by @arjunbuilds</span>
+      <!-- Price unknown: the line is absent, not a zero. -->
+      <span class="thing-c-foot"><span class="go">Buy →</span></span>
+    </a>
+    <a class="thing-c" href="/niaeveryday/product/5">
+      <span class="thing-c-media">
+        <img src="images/products/bottle.jpg" alt="" width="400" height="400" loading="lazy">
+        <span class="thing-flag">Code HYDRATE</span>
+      </span>
+      <b>Steel bottle</b><span class="by">by @niaeveryday</span>
+      <span class="thing-c-foot"><span class="price">₹890</span><span class="go">Buy →</span></span>
+    </a>
+    <a class="thing-c" href="/mayamoves/product/8">
+      <span class="thing-c-media">
+        <img src="images/posts/beauty.jpg" alt="" width="400" height="400" loading="lazy">
+        <span class="thing-own">Their own</span>
+      </span>
+      <b>Everyday palette</b><span class="by">by @mayamoves</span>
+      <span class="thing-c-foot"><span class="price">$36.00</span><span class="go">Shop →</span></span>
+    </a>
   </div>
 
   <!-- The wall has to end somewhere. Exactly one of these shows. -->
