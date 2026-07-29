@@ -24,14 +24,14 @@
 <link rel="stylesheet" href="styles.css">
 <style>
 .fw { padding-block: clamp(20px, 3vw, 34px) clamp(48px, 7vw, 88px); }
-.fw-head .headline { max-width: 14ch; }
-.fw-head .lede { margin-top: 10px; max-width: 52ch; }
-
-/* "You last looked N days ago" is the honest frame for every count below
-   it. Without it, "3 new" is a number with no denominator. */
-.since { display: inline-flex; align-items: center; gap: 9px; margin-top: 16px;
+/* Title and timestamp share a baseline row: the page needs a name, not a
+   headline block. */
+.fw-title { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+/* "Last looked N days ago" is the denominator for every count below it.
+   Without it, "4 new" is a number with nothing to measure against. */
+.since { display: inline-flex; align-items: center; gap: 9px;
   background: var(--violet-wash); color: var(--violet-deep); border-radius: var(--r-chip);
-  padding: 9px 16px; font-size: var(--t-micro); font-weight: 700;
+  padding: 8px 14px; font-size: var(--t-micro); font-weight: 700;
   letter-spacing: .04em; text-transform: uppercase; }
 .since svg { width: 15px; height: 15px; flex: none; }
 
@@ -109,13 +109,40 @@
   font-size: var(--t-micro); font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
   white-space: nowrap; }
 
-/* Unfollow is a toggle, optimistic, and it does not shout. Someone tidying
-   a follow list is not performing a destructive act. */
+/* ── unfollow: undo, not "are you sure?" ───────────────────
+   A confirm dialog taxes every deliberate unfollow to protect the rare
+   accidental one, and on a phone it is a modal over the thing you were
+   reading. Undo does the reverse: the deliberate case costs one tap, and
+   the accidental one is recoverable for as long as the row is on screen.
+
+   The row is the reason this works. If unfollowing removed it, the mistake
+   would be unrecoverable in practice — you cannot re-follow someone you
+   can no longer find in a list of hundreds. So the row STAYS, dimmed, until
+   the page is left. That is what makes the dialog unnecessary rather than
+   just skipped. */
 .unfollow { border: 1px solid var(--line); background: var(--surface); color: var(--ink);
   border-radius: var(--r-chip); padding: 10px 18px; min-height: 44px; cursor: pointer;
   font: inherit; font-size: var(--t-label); font-weight: 700; white-space: nowrap; }
 .unfollow:hover { border-color: var(--violet); color: var(--violet-deep); }
-.unfollow[aria-pressed="false"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+.frow[data-gone="yes"] { background: var(--canvas); border-style: dashed; }
+.frow[data-gone="yes"] .frow-a { opacity: .5; }
+.frow[data-gone="yes"] :is(.newbadge, .quietbadge, .unfollow) { display: none; }
+.gone { display: none; align-items: center; gap: 12px; margin-left: auto; }
+.frow[data-gone="yes"] .gone { display: flex; }
+.gone .micro { color: var(--ink-2); }
+.gone button { border: 1px solid var(--ink); background: var(--ink); color: var(--surface);
+  border-radius: var(--r-chip); padding: 10px 18px; min-height: 44px; cursor: pointer;
+  font: inherit; font-size: var(--t-label); font-weight: 700; }
+
+/* ── scale ─────────────────────────────────────────────────
+   A follow list is the one place a shopper accumulates without pruning, so
+   hundreds is the normal case, not the edge. Search and the filter counts
+   do the narrowing; this pages the remainder rather than rendering it all. */
+.more { display: grid; justify-items: center; gap: 10px; padding: clamp(26px,3vw,36px) 0 0;
+  text-align: center; }
+.more .btn { min-width: 220px; }
+.more .micro { color: var(--ink-2); }
 
 .empty { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r-bay);
   padding: clamp(34px, 6vw, 64px) 28px; text-align: center; margin-top: 26px; }
@@ -141,15 +168,20 @@ body:not([data-state="caught"]) .caughtline { display: none; }
 
 <main class="inner fw">
 
+  <!-- No explainer. Someone signed in, on a page called Following, reached
+       from a tab called Following, already knows what this is — telling
+       them costs a screenful and teaches them the page talks down. The only
+       line that stays is the one carrying information they do not have:
+       when they last looked, which is the denominator for every count
+       below. -->
   <div class="fw-head">
-    <p class="micro" style="color:var(--ink-2)">Following</p>
-    <h1 class="headline">The people you follow.</h1>
-    <p class="lede">Tap anyone to open their page. Nothing here is a feed — their posts stay on
-      their own page, where the tags are.</p>
-    <p class="since">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
-      You last looked 6 days ago
-    </p>
+    <div class="fw-title">
+      <h1 class="headline">Following</h1>
+      <p class="since">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+        Last looked 6 days ago
+      </p>
+    </div>
   </div>
 
   <div class="ctrl">
@@ -193,7 +225,8 @@ body:not([data-state="caught"]) .caughtline { display: none; }
             <span class="micro">18 posts · 42 things · followed 4 months ago</span></span>
         </a>
         <span class="newbadge">4 new posts</span>
-        <button class="unfollow" type="button" aria-pressed="true">Following</button>
+        <button class="unfollow" type="button">Following</button>
+        <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
       </div>
 
       <div class="frow">
@@ -203,7 +236,8 @@ body:not([data-state="caught"]) .caughtline { display: none; }
             <span class="micro">24 posts · 51 things · followed 2 weeks ago</span></span>
         </a>
         <span class="newbadge">2 new posts</span>
-        <button class="unfollow" type="button" aria-pressed="true">Following</button>
+        <button class="unfollow" type="button">Following</button>
+        <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
       </div>
 
       <div class="frow">
@@ -213,7 +247,8 @@ body:not([data-state="caught"]) .caughtline { display: none; }
             <span class="micro">11 posts · 20 things · followed 8 months ago</span></span>
         </a>
         <span class="newbadge">1 new post</span>
-        <button class="unfollow" type="button" aria-pressed="true">Following</button>
+        <button class="unfollow" type="button">Following</button>
+        <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
       </div>
     </section>
 
@@ -240,7 +275,8 @@ body:not([data-state="caught"]) .caughtline { display: none; }
             <span class="micro">6 posts · 9 things · followed 3 days ago</span></span>
         </a>
         <span class="quietbadge">Nothing new</span>
-        <button class="unfollow" type="button" aria-pressed="true">Following</button>
+        <button class="unfollow" type="button">Following</button>
+        <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
       </div>
 
       <div class="frow">
@@ -250,7 +286,8 @@ body:not([data-state="caught"]) .caughtline { display: none; }
             <span class="micro">9 posts · 14 things · followed 1 year ago</span></span>
         </a>
         <span class="quietbadge">Quiet 3 months</span>
-        <button class="unfollow" type="button" aria-pressed="true">Following</button>
+        <button class="unfollow" type="button">Following</button>
+        <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
       </div>
 
       <div class="frow">
@@ -260,7 +297,12 @@ body:not([data-state="caught"]) .caughtline { display: none; }
             <span class="micro">3 posts · 4 things · followed 1 year ago</span></span>
         </a>
         <span class="quietbadge">Quiet 7 months</span>
-        <button class="unfollow" type="button" aria-pressed="true">Following</button>
+        <button class="unfollow" type="button">Following</button>
+        <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
+      </div>
+      <div class="more">
+        <a class="btn btn--ghost" href="/following?page=2" rel="next">Load 20 more</a>
+        <p class="micro">Showing 6 of 128 · search or filter to narrow instead</p>
       </div>
     </section>
 
@@ -301,15 +343,26 @@ body:not([data-state="caught"]) .caughtline { display: none; }
 <div data-chrome="tabs"></div>
 
 <script>
-/* Unfollow: optimistic and reversible in place. Per §5.4 the toggle flips
-   immediately and an unfollow that was already gone is a quiet no-op — a
-   follow list is not somewhere to make someone confirm a decision. */
+/* Unfollow: optimistic, with the row kept and an Undo offered rather than
+   a confirmation asked. See the CSS note — the row surviving is what makes
+   this safe, because re-following someone you can no longer find in a list
+   of hundreds is not actually possible. */
 document.addEventListener('click', function (e) {
   var b = e.target.closest('.unfollow');
-  if (!b) return;
-  var on = b.getAttribute('aria-pressed') === 'true';
-  b.setAttribute('aria-pressed', String(!on));
-  b.textContent = on ? 'Follow' : 'Following';
+  if (b) {
+    var row = b.closest('.frow');
+    row.dataset.gone = 'yes';
+    /* Announce it, since the visible change is a dimming rather than a
+       message — a screen reader would otherwise get nothing. */
+    row.querySelector('.gone .micro').setAttribute('role', 'status');
+    return;
+  }
+  var u = e.target.closest('[data-undo]');
+  if (u) {
+    var r = u.closest('.frow');
+    r.dataset.gone = 'no';
+    r.querySelector('.unfollow').focus();
+  }
 });
 
 /* Filter chips are single-select here; the counts stay visible either way
