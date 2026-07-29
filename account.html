@@ -1,0 +1,444 @@
+<!doctype html>
+<!-- Plugfolio — /account, the one settings page every role shares.
+
+     Scope boundary, and it matters: this page is ACCOUNT-level — who you
+     are, how you sign in, and which roles this email holds. Profile-level
+     settings (the public page, its links, its managers) live at
+     /dashboard/settings and are Admin-gated per profile. Mixing them is how
+     a shopper ends up looking at controls for a page they don't have.
+
+     One page, three roles. The sections are identical for everyone; what
+     changes is which role blocks have content and which offer a way in.
+     A shopper has no profile, so "Creator" is an invitation rather than a
+     locked row — and the invitation states the real prerequisite, which is
+     a connected social, instead of pretending it is one click.
+
+     Account deletion is deliberately NOT a self-serve button: the spec
+     routes it through support so a person confirms before anything is
+     removed. -->
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Account — Plugfolio</title>
+<meta name="description" content="Your Plugfolio account: how you sign in, how you appear in comments, and which roles this email holds.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── shell ─────────────────────────────────────────────────
+   A settings page is long, so the sections get a rail rather than making
+   someone scroll to find out what exists. It also fills the measure, which
+   a single centred column on this page would not. */
+.acc { display: grid; gap: clamp(24px, 3vw, 40px);
+  padding-block: clamp(20px, 3vw, 34px) clamp(48px, 7vw, 88px); }
+@media (min-width: 900px) { .acc { grid-template-columns: 210px minmax(0, 1fr);
+  column-gap: clamp(36px, 5vw, 72px); align-items: start; } }
+
+.acc-nav { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  padding-bottom: 4px; scroll-snap-type: x proximity; }
+.acc-nav::-webkit-scrollbar { display: none; }
+.acc-nav a { flex: none; scroll-snap-align: start; text-decoration: none;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+  border-radius: var(--r-chip); padding: 10px 16px; min-height: 44px;
+  display: inline-flex; align-items: center; white-space: nowrap;
+  font-size: var(--t-label); font-weight: 600; }
+.acc-nav a:hover { border-color: var(--violet); color: var(--violet-deep); }
+@media (min-width: 900px) {
+  .acc-nav { position: sticky; top: 96px; flex-direction: column; overflow: visible; gap: 2px; }
+  .acc-nav a { border: 0; background: none; padding: 11px 14px; border-radius: var(--r-image);
+    width: 100%; }
+  .acc-nav a:hover { background: var(--violet-wash); }
+}
+
+/* ── identity card ─────────────────────────────────────────
+   The member handle is the name on comments — not a creator username and
+   never the email. Saying so here is the only place a shopper learns it. */
+.who { display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card);
+  padding: 20px 22px; }
+.who img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; flex: none;
+  background: var(--violet-wash); }
+.who-id { min-width: 0; }
+.who-id b { display: block; font-family: Sora, system-ui, sans-serif; font-weight: 700;
+  font-size: var(--t-title); letter-spacing: -.02em; }
+.who-id span { display: block; font-size: var(--t-copy); color: var(--ink-2); margin-top: 3px; }
+.who .btn { margin-left: auto; }
+
+/* ── a settings section ────────────────────────────────────── */
+.sec { padding-top: clamp(30px, 4vw, 46px); }
+.sec > .title { margin-bottom: 4px; }
+.sec > .copy { max-width: 58ch; margin-bottom: 16px; }
+
+/* A row: what it is, what it's set to, one action. */
+.rows { border: 1px solid var(--line); border-radius: var(--r-tile);
+  background: var(--surface); overflow: hidden; }
+.row-i { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 16px 20px; }
+.row-i + .row-i { border-top: 1px solid var(--line); }
+.row-i dt { font-size: var(--t-label); font-weight: 700; min-width: 148px; }
+.row-i dd { margin: 0; font-size: var(--t-copy); color: var(--ink-2); min-width: 0;
+  overflow-wrap: anywhere; }
+.row-i dd .micro { display: block; color: var(--ink-3); margin-top: 3px;
+  text-transform: none; letter-spacing: 0; }
+.row-act { margin-left: auto; border: 1px solid var(--line); background: var(--surface);
+  border-radius: var(--r-chip); padding: 9px 16px; min-height: 44px; cursor: pointer;
+  display: inline-flex; align-items: center; text-decoration: none; color: var(--ink);
+  font: inherit; font-size: var(--t-label); font-weight: 700; white-space: nowrap; }
+.row-act:hover { border-color: var(--violet); color: var(--violet-deep); }
+
+/* ── role blocks ───────────────────────────────────────────
+   Every role gets the same block shape whether it is held or offered, so
+   the page does not visibly reshuffle when someone gains a role. */
+.hat { border: 1px solid var(--line); border-radius: var(--r-tile); background: var(--surface);
+  padding: 20px 22px; }
+.hat + .hat { margin-top: 12px; }
+.hat-h { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; }
+.hat-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.hat-dot--shop { background: var(--role-shopper); }
+.hat-dot--creator { background: var(--role-creator); }
+.hat-dot--business { background: var(--role-business); }
+.hat-h b { font-family: Sora, system-ui, sans-serif; font-weight: 700;
+  font-size: var(--t-title); letter-spacing: -.02em; }
+.hat-h .micro { color: var(--ink-3); }
+.hat-h .btn, .hat-h .row-act { margin-left: auto; }
+.hat > p { margin: 8px 0 0; font-size: var(--t-copy); color: var(--ink-2); line-height: 1.55;
+  max-width: 60ch; }
+
+/* Profiles inside the creator block. */
+.profs { margin-top: 16px; display: grid; gap: 8px; }
+.prof { display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+  border: 1px solid var(--line); border-radius: var(--r-image);
+  text-decoration: none; color: inherit; }
+.prof:hover { border-color: var(--violet); }
+.prof img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex: none; }
+.prof b { display: block; font-size: var(--t-label); font-weight: 700; }
+.prof .micro { display: block; color: var(--ink-3); margin-top: 2px;
+  text-transform: none; letter-spacing: 0; }
+.prof-role { margin-left: auto; font-size: var(--t-micro); font-weight: 700;
+  color: var(--ink-2); white-space: nowrap; }
+/* The cap is a fact, not a paywall — say the number rather than hiding it. */
+.prof-new { display: flex; align-items: center; gap: 12px; padding: 13px 14px;
+  border: 1px dashed var(--line); border-radius: var(--r-image);
+  text-decoration: none; color: var(--ink-2); font-size: var(--t-label); font-weight: 600; }
+.prof-new:hover { border-color: var(--violet); color: var(--violet-deep); }
+
+/* The prerequisite, stated. Creating a profile needs a connected social —
+   that is what makes a handle un-squattable, so it cannot be skipped and
+   should not be discovered as an error two screens later. */
+.pre { display: flex; gap: 11px; margin-top: 14px; padding: 13px 16px;
+  background: var(--violet-wash); border-radius: var(--r-image);
+  font-size: var(--t-copy); color: var(--violet-deep); line-height: 1.5; }
+.pre svg { width: 17px; height: 17px; flex: none; margin-top: 2px; }
+
+/* ── connections ───────────────────────────────────────────── */
+.conn { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 16px 20px; }
+.conn + .conn { border-top: 1px solid var(--line); }
+.conn-ico { width: 40px; height: 40px; border-radius: var(--r-image); flex: none;
+  display: grid; place-items: center; background: var(--violet-wash); color: var(--violet-deep); }
+.conn-ico svg { width: 20px; height: 20px; }
+.conn b { display: block; font-size: var(--t-label); font-weight: 700; }
+.conn .micro { display: block; color: var(--ink-3); margin-top: 2px;
+  text-transform: none; letter-spacing: 0; }
+.conn .row-act { margin-left: auto; }
+.pill { border-radius: var(--r-chip); padding: 4px 10px; font-size: var(--t-micro);
+  font-weight: 700; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+.pill--on { background: var(--lime); color: var(--on-white); }
+.pill--off { background: var(--line); color: var(--ink-2); }
+
+/* ── leaving ───────────────────────────────────────────────
+   Sign out is ordinary. Deletion is not a button here at all: the spec
+   routes it through support so a person confirms first, which also means a
+   locked-out user can still ask for it. */
+.leave { margin-top: clamp(30px, 4vw, 46px); border-top: 1px solid var(--line); padding-top: 24px;
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.leave .copy { flex: 1 1 320px; margin: 0; }
+
+/* ── which hats this account holds ──────────────────────────
+   Hide-By-Exclusion, one rule, one declaration block. */
+body[data-creator="no"]  .if-creator,
+body[data-creator="yes"] .if-no-creator,
+body[data-business="no"]  .if-business,
+body[data-business="yes"] .if-no-business,
+body[data-social="none"] .if-social,
+body:not([data-social="none"]) .if-no-social { display: none; }
+</style>
+</head>
+<body data-viewer="shopper" data-role="shopper" data-creator="yes" data-business="no" data-social="google">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#identity">Skip to your details</a>
+
+<div data-chrome="top"></div>
+
+<main class="inner acc">
+
+  <nav class="acc-nav" aria-label="Account sections">
+    <a href="#identity">You</a>
+    <a href="#signin">Signing in</a>
+    <a href="#roles">Your roles</a>
+    <a href="#connections">Connections</a>
+    <a href="#leaving">Leaving</a>
+  </nav>
+
+  <div>
+    <p class="micro" style="color:var(--ink-2)">Account</p>
+    <h1 class="headline" style="margin:8px 0 20px">Your account</h1>
+
+    <!-- ══ identity ══════════════════════════════════════ -->
+    <section id="identity">
+      <div class="who">
+        <img src="images/avatars/nia.jpg" alt="" width="144" height="144">
+        <span class="who-id">
+          <b>Nia Okafor</b>
+          <span>@niaeveryday · nia@email.com</span>
+        </span>
+        <button class="btn btn--ghost" type="button">Change photo</button>
+      </div>
+
+      <div class="sec">
+        <h2 class="title">You</h2>
+        <p class="copy">How you appear when you act as yourself — following a creator, or leaving a
+          comment.</p>
+        <dl class="rows">
+          <div class="row-i">
+            <dt>Name</dt>
+            <dd>Nia Okafor</dd>
+            <button class="row-act" type="button">Change</button>
+          </div>
+          <div class="row-i">
+            <dt>Member handle</dt>
+            <dd>@niaeveryday
+              <span class="micro">The name on your comments. Not a creator page, and never your
+                email — that stays private.</span></dd>
+            <button class="row-act" type="button">Change</button>
+          </div>
+          <div class="row-i">
+            <dt>Profile photo</dt>
+            <dd>Set
+              <span class="micro">Shown beside your comments and in the account menu.</span></dd>
+            <button class="row-act" type="button">Replace</button>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ══ signing in ════════════════════════════════════ -->
+    <section class="sec" id="signin">
+      <h2 class="title">Signing in</h2>
+      <p class="copy">Your email is your login — there is no username to remember, and no magic
+        link to wait for. One email, one password, one step.</p>
+      <dl class="rows">
+        <div class="row-i">
+          <dt>Email</dt>
+          <dd>nia@email.com
+            <span class="micro">This is your login ID. Changing it needs the new address
+              verified before it takes effect.</span></dd>
+          <button class="row-act" type="button">Change email</button>
+        </div>
+        <div class="row-i">
+          <dt>Password</dt>
+          <dd>Last changed 4 months ago
+            <span class="micro">At least 8 characters.</span></dd>
+          <button class="row-act" type="button">Change password</button>
+        </div>
+        <div class="row-i">
+          <dt>Locked out?</dt>
+          <dd>If you can't reach nia@email.com any more, support can move you across.
+            <span class="micro">You don't need to be signed in to ask.</span></dd>
+          <a class="row-act" href="/support?category=lost_email_access">Get help</a>
+        </div>
+      </dl>
+    </section>
+
+    <!-- ══ roles ═════════════════════════════════════════ -->
+    <section class="sec" id="roles">
+      <h2 class="title">Your roles</h2>
+      <p class="copy">One account, as many hats as you want. These aren't separate logins or
+        separate plans — they're things this same email can do.</p>
+
+      <!-- Shopping: always held, never optional, nothing to switch on. -->
+      <div class="hat">
+        <div class="hat-h">
+          <span class="hat-dot hat-dot--shop"></span>
+          <b>Shopping</b>
+          <span class="micro">Always on</span>
+          <a class="row-act" href="/following">Following</a>
+        </div>
+        <p>Follow creators and leave comments as @niaeveryday. Buying never needed this account
+          and still doesn't.</p>
+      </div>
+
+      <!-- Creator: held -->
+      <div class="hat if-creator">
+        <div class="hat-h">
+          <span class="hat-dot hat-dot--creator"></span>
+          <b>Creator</b>
+          <span class="micro">2 of 5 profiles used</span>
+          <a class="row-act" href="/dashboard">Open dashboard</a>
+        </div>
+        <p>Each profile is its own page with its own username. A profile's public details, links
+          and managers are edited in that profile's own settings, not here.</p>
+        <div class="profs">
+          <a class="prof" href="/dashboard?profile=maya">
+            <img src="images/avatars/maya.jpg" alt="" width="80" height="80">
+            <span><b>@mayamoves</b><span class="micro">18 posts · 42 things</span></span>
+            <span class="prof-role">Admin</span>
+          </a>
+          <a class="prof" href="/dashboard?profile=rhea">
+            <img src="images/avatars/rhea.jpg" alt="" width="80" height="80">
+            <span><b>@rheamakes</b><span class="micro">11 posts · 20 things</span></span>
+            <span class="prof-role">Manager</span>
+          </a>
+          <a class="prof-new" href="/dashboard/profiles/new">+ New profile · 3 left</a>
+        </div>
+      </div>
+
+      <!-- Creator: not held. An invitation, not a locked row — and it states
+           the real prerequisite instead of pretending it is one click. -->
+      <div class="hat if-no-creator">
+        <div class="hat-h">
+          <span class="hat-dot hat-dot--creator"></span>
+          <b>Creator</b>
+          <span class="micro">Not set up</span>
+        </div>
+        <p>Turn your posts into a page where everything is shoppable. Free to start, and Plugfolio
+          never handles your money.</p>
+        <div class="pre if-no-social">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8v.5"/></svg>
+          <span>You'll connect a Google or Meta account first. That's what proves a handle is
+            yours, so nobody else can take it.</span>
+        </div>
+        <div class="mk-cta" style="margin-top:16px">
+          <a class="btn btn--primary if-social" href="/dashboard/profiles/new">Create your first profile</a>
+          <a class="btn btn--primary if-no-social" href="#connections">Connect a social to start</a>
+          <a class="btn btn--ghost" href="/for-creators">What creators get</a>
+        </div>
+      </div>
+
+      <!-- Business: held -->
+      <div class="hat if-business">
+        <div class="hat-h">
+          <span class="hat-dot hat-dot--business"></span>
+          <b>Business</b>
+          <span class="micro">Acme · one business per account</span>
+          <a class="row-act" href="/collabs">Open collabs</a>
+        </div>
+        <p>Post briefs to the open board and run collab threads. Payment settles off-platform —
+          Plugfolio takes no cut.</p>
+      </div>
+
+      <!-- Business: not held -->
+      <div class="hat if-no-business">
+        <div class="hat-h">
+          <span class="hat-dot hat-dot--business"></span>
+          <b>Business</b>
+          <span class="micro">Not set up</span>
+        </div>
+        <p>Hiring creators rather than being one? A business lets you post briefs and negotiate in
+          one thread. One business per account.</p>
+        <div class="mk-cta" style="margin-top:16px">
+          <a class="btn btn--primary" href="/join?as=business">Create a business</a>
+          <a class="btn btn--ghost" href="/for-business">What businesses get</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ connections ═══════════════════════════════════ -->
+    <section class="sec" id="connections">
+      <h2 class="title">Connected accounts</h2>
+      <p class="copy">Connecting proves who you are so a handle can't be squatted. It is not a
+        login — you'll still sign in with your email and password.</p>
+      <div class="rows">
+        <div class="conn">
+          <span class="conn-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg>
+          </span>
+          <span><b>Google · YouTube</b>
+            <span class="micro if-social">Connected as nia@gmail.com · 1 channel</span>
+            <span class="micro if-no-social">Not connected</span></span>
+          <span class="pill pill--on if-social">Connected</span>
+          <span class="pill pill--off if-no-social">Not connected</span>
+          <button class="row-act" type="button">
+            <span class="if-social">Manage</span><span class="if-no-social">Connect</span></button>
+        </div>
+        <div class="conn">
+          <span class="conn-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </span>
+          <span><b>Meta · Instagram</b>
+            <span class="micro">Coming next — there's no Instagram gateway yet.</span></span>
+          <span class="pill pill--off">Not available</span>
+        </div>
+      </div>
+      <p class="copy" style="margin-top:14px">A connection can't be removed while a profile
+        depends on it. Delete those profiles first, and we'll say which they are.</p>
+    </section>
+
+    <!-- ══ leaving ═══════════════════════════════════════ -->
+    <section class="sec" id="leaving">
+      <h2 class="title">Leaving</h2>
+      <div class="leave">
+        <p class="copy">Signing out ends this session on this device. Nothing is removed.</p>
+        <button class="btn btn--ghost" type="button" data-signout-page>Sign out</button>
+      </div>
+      <div class="leave">
+        <p class="copy">Deleting your account and its data is handled by a person, not a button —
+          so we can confirm it's really you and tell you exactly what goes.</p>
+        <a class="btn btn--ghost" href="/support?category=delete_account">Request deletion</a>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg><span class="mark-name">plugfolio</span></a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/how-it-works">How it works</a>
+      <a class="foot-link" href="/for-creators">For creators</a>
+      <a class="foot-link" href="/support">Help</a>
+    </div>
+  </div>
+</footer>
+
+<div data-chrome="tabs"></div>
+
+<script>
+(function () {
+  var out = document.querySelector('[data-signout-page]');
+  if (out) out.addEventListener('click', function () {
+    out.textContent = 'Signing out…';
+    out.setAttribute('aria-disabled', 'true');
+  });
+})();
+
+window.CHROME = { nav: null, tab: 'account' };
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: '/account',
+  groups: [
+    { label: 'Creator', options: [
+      { name: 'Has profiles', note: '2 of 5 used, one as Manager',   set: { creator: 'yes' } },
+      { name: 'None yet',     note: 'The shopper → creator path',    set: { creator: 'no'  } }
+    ]},
+    { label: 'Business', options: [
+      { name: 'Has a business', note: 'Links to collabs',            set: { business: 'yes' } },
+      { name: 'None yet',       note: 'Offered, never locked',       set: { business: 'no'  } }
+    ]},
+    { label: 'Connected social', options: [
+      { name: 'Google connected', note: 'Profile creation unlocked', set: { social: 'google' } },
+      { name: 'None connected',   note: 'States the prerequisite',   set: { social: 'none'   } }
+    ]}
+  ]
+};
+</script>
+<script src="chrome.js" defer></script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>
