@@ -1,0 +1,520 @@
+<!doctype html>
+<!--
+  Plugfolio — /dashboard/analytics.
+  Spec: design-handoff §5.18 lists a dedicated analytics route and a
+  time-range selector under [LATER]. Both are built here; the honesty
+  rules that govern the summary govern this page unchanged.
+
+  Mode: OPERATE. Two questions bring a creator here — "is this going up"
+  and "which thing is doing it" — so the page is a chart and two tables,
+  and nothing else competes with them.
+
+  WHAT IS NOT HERE, deliberately:
+    · revenue, conversions, or any figure derived from a sale. v1 handles
+      no money and never sees a checkout, so a number like that could
+      only be modelled, and PRODUCT.md forbids modelled numbers.
+    · unique visitors, sessions, bounce, time-on-page. None of those are
+      measured today. An analytics page is exactly where a plausible
+      number does the most damage, because it is the page people quote.
+  Every figure below is a counted event: a page opening, an outbound tap,
+  a code copy. Where a count exists but does not mean what a creator
+  would want it to mean — in-store redemption — it says so on the row.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analytics · @mayamoves — Plugfolio</title>
+<meta name="description" content="Views and taps across your posts and products.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── The range ──────────────────────────────────────────────
+   Not a dropdown. Five options that get compared constantly want to be
+   one press apart, and the chosen one has to be readable at a glance
+   when someone screenshots this. */
+.ranges { display: flex; gap: 4px; padding: 4px; border-radius: var(--r-chip);
+  border: 1px solid var(--line); background: var(--surface); overflow-x: auto;
+  scrollbar-width: none; }
+.ranges::-webkit-scrollbar { display: none; }
+.range { flex: none; min-height: 38px; padding: 9px 16px; border: 0;
+  border-radius: var(--r-chip); background: none; color: var(--ink-2);
+  cursor: pointer; font: inherit; font-size: var(--t-micro); font-weight: 700; }
+.range[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+
+/* ── Headline figures ───────────────────────────────────────
+   The delta is the reason a range selector exists: 20,410 views means
+   nothing until you know it was 17,880 last month. It is measured the
+   same way — this period's count against the previous period's — so it
+   carries no more claim than the counts do. */
+.heads { display: grid; gap: 12px; margin-top: 16px; }
+@media (min-width: 760px) { .heads { grid-template-columns: repeat(3, 1fr); } }
+.delta { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px;
+  font-size: var(--t-micro); font-weight: 700; }
+.delta svg { width: 13px; height: 13px; }
+.delta--up { color: var(--violet-deep); }
+.delta--down { color: var(--ink-3); }
+.delta em { font-style: normal; color: var(--ink-3); font-weight: 600; }
+
+/* ── The chart ──────────────────────────────────────────────
+   Views and taps on one grid, not two charts. They are the same story at
+   two magnitudes, and separating them hides the only thing worth seeing:
+   whether taps followed views or diverged from them.
+
+   Taps are the smaller series by an order of magnitude, so they get
+   their own right-hand scale. That is a real distortion and the axis
+   labels say so rather than letting the two lines look comparable. */
+.chart { margin-top: 18px; }
+.chart-svg { display: block; width: 100%; height: 220px; overflow: visible; }
+.chart-grid { stroke: var(--line); stroke-width: 1; }
+.chart-views { fill: rgb(var(--violet-rgb) / .14); stroke: var(--violet); stroke-width: 2;
+  stroke-linejoin: round; }
+.chart-taps { fill: none; stroke: var(--lime); stroke-width: 2.5;
+  stroke-linejoin: round; stroke-linecap: round; }
+.chart-x { font-size: var(--t-micro); fill: var(--ink-3); font-weight: 600; }
+.chart-y { font-size: var(--t-micro); font-weight: 700; }
+.chart-y--v { fill: var(--violet-deep); }
+.chart-y--t { fill: var(--ink-2); }
+.chart-dot { r: 3.5; stroke-width: 2; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 7px;
+  font-size: var(--t-micro); font-weight: 700; color: var(--ink-2); }
+.legend i { width: 14px; height: 3px; border-radius: var(--r-chip); display: block; }
+.legend .l-v { background: var(--violet); }
+.legend .l-t { background: var(--lime); }
+
+/* ── The tables ─────────────────────────────────────────────
+   The substance of the page. Sortable, because "my best post" and "my
+   worst tap-through" are different questions and a creator asks both. */
+.tbl-wrap { overflow-x: auto; margin-top: 4px; }
+.tbl { width: 100%; border-collapse: collapse; min-width: 560px; }
+.tbl th { text-align: right; padding: 10px 12px; font-size: var(--t-micro);
+  font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-3); border-bottom: 1px solid var(--line); white-space: nowrap; }
+.tbl th:first-child { text-align: left; }
+.tbl th button { display: inline-flex; align-items: center; gap: 5px; border: 0;
+  background: none; padding: 0; color: inherit; cursor: pointer; font: inherit;
+  letter-spacing: inherit; text-transform: inherit; }
+.tbl th button:hover { color: var(--accent); }
+.tbl th svg { width: 11px; height: 11px; opacity: 0; }
+.tbl th[aria-sort] button { color: var(--ink); }
+.tbl th[aria-sort] svg { opacity: 1; }
+.tbl th[aria-sort="ascending"] svg { transform: rotate(180deg); }
+.tbl td { padding: 12px; font-size: var(--t-label); text-align: right;
+  font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--line); }
+.tbl td:first-child { text-align: left; font-weight: 600; }
+.tbl tr:last-child td { border-bottom: 0; }
+.tbl tbody tr:hover { background: var(--canvas); }
+.t-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.t-name img { width: 34px; height: 34px; border-radius: var(--r-image);
+  object-fit: cover; flex: none; background: var(--violet-wash); }
+.t-name a { color: inherit; text-decoration: none; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.t-name a:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.t-sub { display: block; font-size: var(--t-micro); font-weight: 500; color: var(--ink-3); }
+/* The rate is the column people scan for, so it gets the only weight. */
+.t-rate { font-weight: 800; }
+.t-dim { color: var(--ink-3); }
+
+/* A bar behind the number, so a column of figures reads as a shape
+   before it reads as digits. */
+.t-bar { position: relative; }
+.t-bar::before { content: ""; position: absolute; right: 8px; top: 50%;
+  transform: translateY(-50%); height: 22px; width: var(--w, 0%);
+  border-radius: var(--r-paper); background: var(--violet-wash); z-index: 0; }
+.t-bar span { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body data-page="analytics" data-role="creator" data-content="full">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#posts">Skip to the tables</a>
+
+<div data-dash="shell"></div>
+
+<main class="inner">
+  <div class="ph">
+    <div class="ph-t">
+      <p class="ph-eyebrow">@mayamoves</p>
+      <h1>Analytics</h1>
+    </div>
+    <div class="ph-act">
+      <div class="ranges" role="group" aria-label="Time range">
+        <button class="range" type="button" data-r="day"   aria-pressed="false">Day</button>
+        <button class="range" type="button" data-r="week"  aria-pressed="false">Week</button>
+        <button class="range" type="button" data-r="month" aria-pressed="true">Month</button>
+        <button class="range" type="button" data-r="year"  aria-pressed="false">Year</button>
+        <button class="range" type="button" data-r="all"   aria-pressed="false">All time</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dbody is-full">
+
+    <!-- ── Headline ── -->
+    <div class="card">
+      <div class="card-h">
+        <h2 id="rangeTitle">This month</h2>
+        <span class="micro" id="rangeSub">1&ndash;30 June 2026 &middot; compared with May</span>
+      </div>
+
+      <div class="heads">
+        <div class="stat">
+          <span class="stat-l">Views</span>
+          <b id="hViews">20,410</b>
+          <span class="tracked">Tracked</span>
+          <span class="delta delta--up" id="dViews">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            14.2% <em>vs 17,880</em>
+          </span>
+          <p>Your page, posts and product pages opening.</p>
+        </div>
+        <div class="stat">
+          <span class="stat-l">Taps</span>
+          <b id="hTaps">1,284</b>
+          <span class="tracked">Tracked</span>
+          <span class="delta delta--up" id="dTaps">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            9.1% <em>vs 1,177</em>
+          </span>
+          <p>Someone leaving for a retailer.</p>
+        </div>
+        <div class="stat">
+          <span class="stat-l">Tap-through</span>
+          <b id="hRate">6.3<i>%</i></b>
+          <span class="micro" style="color:var(--ink-3)">taps &divide; views</span>
+          <span class="delta delta--down" id="dRate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            0.3pts <em>vs 6.6%</em>
+          </span>
+          <p>More people looked than last month; slightly fewer of them moved.</p>
+        </div>
+      </div>
+
+      <!-- ── Chart ── -->
+      <div class="chart">
+        <svg class="chart-svg" id="chart" viewBox="0 0 720 220" preserveAspectRatio="none"
+             role="img" aria-labelledby="chartTitle">
+          <title id="chartTitle">Views and taps over the selected range</title>
+        </svg>
+        <div class="legend">
+          <span><i class="l-v"></i>Views <em class="micro" style="color:var(--ink-3);font-style:normal">left scale</em></span>
+          <span><i class="l-t"></i>Taps <em class="micro" style="color:var(--ink-3);font-style:normal">right scale</em></span>
+        </div>
+        <!-- The two series differ by an order of magnitude. Sharing one
+             axis would flatten taps into the baseline; separate scales
+             keep both readable, and saying so stops the lines being read
+             as directly comparable heights. -->
+        <p class="note" style="margin-top:8px">Two scales &mdash; taps are roughly a twentieth of
+          views, so the lines show shape, not size.</p>
+      </div>
+    </div>
+
+    <!-- ── Every post ── -->
+    <div class="card" id="posts">
+      <div class="card-h">
+        <h2>Every post</h2>
+        <span class="micro" id="postCount">8 posts</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl" data-sortable>
+          <thead>
+            <tr>
+              <th scope="col">Post</th>
+              <th scope="col" data-k="views" aria-sort="descending"><button type="button">Views
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th scope="col" data-k="taps"><button type="button">Taps
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th scope="col" data-k="rate"><button type="button">Tap-through
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+            </tr>
+          </thead>
+          <tbody id="postRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Every product ── -->
+    <div class="card">
+      <div class="card-h">
+        <h2>Every product</h2>
+        <span class="micro" id="prodCount">6 products</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl" data-sortable>
+          <thead>
+            <tr>
+              <th scope="col">Product</th>
+              <th scope="col" data-k="views" aria-sort="descending"><button type="button">Views
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th scope="col" data-k="taps"><button type="button">Taps
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th scope="col" data-k="rate"><button type="button">Tap-through
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+              <th scope="col" data-k="copies"><button type="button">Code copies
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></th>
+            </tr>
+          </thead>
+          <tbody id="prodRows"></tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:14px">Code copies are counted when someone copies the code.
+        Whether it was used at a checkout or a counter happens on the retailer&rsquo;s side, where
+        Plugfolio cannot see it &mdash; an in-store product can show copies and no taps, and that is
+        the whole picture we have of it.</p>
+    </div>
+
+  </div>
+
+  <!-- Zero is a beginning. A creator on day one should not meet a page of
+       dashes and an empty chart. -->
+  <div class="dbody is-empty">
+    <div class="empty">
+      <b>Nothing measured yet</b>
+      <p>Views count the moment someone opens your page. Taps count when they leave for a shop.
+        Share your link and both start filling in here.</p>
+      <a class="btn btn--accent" href="/mayamoves">View your page</a>
+    </div>
+  </div>
+</main>
+
+<script>
+window.DASH = { tab: 'analytics', profile: '@mayamoves' };
+</script>
+<script src="dash-chrome.js" defer></script>
+<script>
+(function () {
+  'use strict';
+
+  /* Measured counts, per range. In the product this is one query grouped
+     by bucket; here it stands in for it. Nothing is generated randomly —
+     a chart that redraws differently on every reload is a chart you
+     cannot screenshot and discuss. */
+  var DATA = {
+    day:   { title: 'Today', sub: 'Hour by hour · compared with yesterday',
+             labels: ['00','03','06','09','12','15','18','21'],
+             views: [41, 28, 96, 210, 288, 244, 331, 190],
+             taps:  [2, 1, 5, 14, 19, 15, 22, 11],
+             totals: { views: 1428, taps: 89, prevViews: 1310, prevTaps: 84 } },
+    week:  { title: 'This week', sub: '22–28 June 2026 · compared with the week before',
+             labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+             views: [612, 704, 588, 811, 1042, 1330, 1180],
+             taps:  [38, 44, 33, 51, 68, 92, 79],
+             totals: { views: 6267, taps: 405, prevViews: 5820, prevTaps: 401 } },
+    month: { title: 'This month', sub: '1–30 June 2026 · compared with May',
+             labels: ['W1','W2','W3','W4','W5'],
+             views: [4120, 3980, 4460, 5180, 2670],
+             taps:  [268, 241, 279, 331, 165],
+             totals: { views: 20410, taps: 1284, prevViews: 17880, prevTaps: 1177 } },
+    year:  { title: 'This year', sub: 'Jan–Jun 2026 · compared with 2025',
+             labels: ['Jan','Feb','Mar','Apr','May','Jun'],
+             views: [9800, 11200, 13400, 15900, 17880, 20410],
+             taps:  [540, 660, 812, 1010, 1177, 1284],
+             totals: { views: 88590, taps: 5483, prevViews: 41200, prevTaps: 2390 } },
+    all:   { title: 'All time', sub: 'Since you created this profile',
+             labels: ['2024 H2','2025 H1','2025 H2','2026 H1'],
+             views: [6400, 18300, 22900, 88590],
+             taps:  [310, 980, 1410, 5483],
+             totals: { views: 136190, taps: 8183, prevViews: null, prevTaps: null } }
+  };
+
+  /* Per-item counts scale with the range so the tables agree with the
+     headline instead of contradicting it. */
+  var SCALE = { day: 0.07, week: 0.31, month: 1, year: 4.34, all: 6.67 };
+
+  var POSTS = [
+    { t: 'The desk reset',             img: 'images/posts/p6.jpg',       href: '/post-edit.html?post=4',  v: 4880, p: 312 },
+    { t: 'Gym kit that lasted a year', img: 'images/posts/gym.jpg',      href: '/post-edit.html?post=1',  v: 4101, p: 268 },
+    { t: 'Two tubes and a gua sha',    img: 'images/posts/skincare.jpg', href: '/post-edit.html?post=3',  v: 3442, p: 190 },
+    { t: 'Everyday face, five things', img: 'images/posts/beauty.jpg',   href: '/post-edit.html?post=5',  v: 2986, p: 144 },
+    { t: 'The white desk flat-lay',    img: 'images/posts/desk.jpg',     href: '/post-edit.html?post=2',  v: 2140, p: 118 },
+    { t: 'Shelf styling, finally',     img: 'images/posts/shelf.jpg',    href: '/post-edit.html?post=7',  v: 1655, p: 96  },
+    { t: 'Morning coffee setup',       img: 'images/posts/p14.jpg',      href: '/post-edit.html?post=14', v: 806,  p: 0, note: 'No products connected' },
+    { t: 'Living room corner',         img: 'images/posts/p10.jpg',      href: '/post-edit.html?post=9',  v: 400,  p: 0, note: 'No products connected' }
+  ];
+
+  var PRODUCTS = [
+    { t: 'Warm-white desk lamp',   img: 'images/products/lamp.jpg',     href: '/product-edit.html?product=7',  v: 3120, p: 274, c: 0,  sub: 'Affiliate · Amazon' },
+    { t: 'Brightening serum',      img: 'images/products/serum.jpg',    href: '/product-edit.html?product=1',  v: 2740, p: 221, c: 71, sub: 'Affiliate · Nykaa' },
+    { t: 'Keychron K3 Pro',        img: 'images/products/keyboard.jpg', href: '/product-edit.html?product=13', v: 2510, p: 183, c: 0,  sub: 'Affiliate · Amazon' },
+    { t: 'Everyday white trainers',img: 'images/products/sneakers.jpg', href: '/product-edit.html?product=2',  v: 2090, p: 150, c: 0,  sub: 'Affiliate · Myntra' },
+    { t: 'Court trainers',         img: 'images/products/sneakers.jpg', href: '/product-edit.html?product=11', v: 1460, p: 98,  c: 44, sub: 'Their own · mayarao.co' },
+    { t: 'Insulated 750ml bottle', img: 'images/products/bottle.jpg',   href: '/product-edit.html?product=21', v: 980,  p: 0,   c: 31, sub: 'In-store only · no link', instore: true }
+  ];
+
+  var range = 'month';
+  var sort = { posts: { k: 'views', dir: -1 }, prods: { k: 'views', dir: -1 } };
+  var n = function (x) { return x.toLocaleString('en-US'); };
+  var scaled = function (x) { return Math.round(x * SCALE[range]); };
+
+  /* ── The chart ────────────────────────────────────────────
+     Drawn by hand rather than pulled in: a charting library for two
+     series is a lot of bytes and a lot of default styling to fight, and
+     this needs exactly one shape. */
+  function draw() {
+    var d = DATA[range];
+    var W = 720, H = 220, padL = 46, padR = 46, padT = 14, padB = 26;
+    var iw = W - padL - padR, ih = H - padT - padB;
+    var maxV = Math.max.apply(null, d.views) * 1.12;
+    var maxT = Math.max.apply(null, d.taps) * 1.12;
+    var step = d.labels.length > 1 ? iw / (d.labels.length - 1) : 0;
+    var x = function (i) { return padL + i * step; };
+    var yV = function (v) { return padT + ih - (v / maxV) * ih; };
+    var yT = function (t) { return padT + ih - (t / maxT) * ih; };
+
+    var parts = ['<title id="chartTitle">Views and taps over ' + d.title.toLowerCase() + '</title>'];
+
+    /* four gridlines, labelled on both scales */
+    for (var g = 0; g <= 3; g++) {
+      var gy = padT + (ih / 3) * g;
+      parts.push('<line class="chart-grid" x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '"/>');
+      parts.push('<text class="chart-y chart-y--v" x="' + (padL - 8) + '" y="' + (gy + 3) + '" text-anchor="end">' +
+                 n(Math.round(maxV * (1 - g / 3))) + '</text>');
+      parts.push('<text class="chart-y chart-y--t" x="' + (W - padR + 8) + '" y="' + (gy + 3) + '">' +
+                 n(Math.round(maxT * (1 - g / 3))) + '</text>');
+    }
+
+    /* views as a filled area — the bigger, quieter series */
+    var area = 'M' + padL + ',' + (padT + ih);
+    d.views.forEach(function (v, i) { area += ' L' + x(i) + ',' + yV(v); });
+    area += ' L' + (padL + step * (d.views.length - 1)) + ',' + (padT + ih) + ' Z';
+    parts.push('<path class="chart-views" d="' + area + '"/>');
+
+    /* taps as a line on top — the series being read */
+    var line = '';
+    d.taps.forEach(function (t, i) { line += (i ? ' L' : 'M') + x(i) + ',' + yT(t); });
+    parts.push('<path class="chart-taps" d="' + line + '"/>');
+    d.taps.forEach(function (t, i) {
+      parts.push('<circle class="chart-dot" cx="' + x(i) + '" cy="' + yT(t) + '" r="3.5" ' +
+        'fill="var(--canvas)" stroke="var(--lime)"><title>' + d.labels[i] + ': ' +
+        n(d.views[i]) + ' views, ' + n(t) + ' taps</title></circle>');
+    });
+
+    d.labels.forEach(function (l, i) {
+      parts.push('<text class="chart-x" x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle">' + l + '</text>');
+    });
+
+    document.getElementById('chart').innerHTML = parts.join('');
+  }
+
+  function pct(a, b) { return b ? (a / b * 100) : 0; }
+
+  function headline() {
+    var d = DATA[range], t = d.totals;
+    document.getElementById('rangeTitle').textContent = d.title;
+    document.getElementById('rangeSub').innerHTML = d.sub;
+    document.getElementById('hViews').textContent = n(t.views);
+    document.getElementById('hTaps').textContent = n(t.taps);
+    document.getElementById('hRate').innerHTML = pct(t.taps, t.views).toFixed(1) + '<i>%</i>';
+
+    function delta(el, now, prev, unit) {
+      var box = document.getElementById(el);
+      /* All-time has nothing to compare against, and inventing a
+         baseline for it would be the one dishonest number on the page. */
+      if (prev === null) { box.hidden = true; return; }
+      box.hidden = false;
+      var up = now >= prev;
+      var val = unit === 'pts'
+        ? Math.abs(pct(DATA[range].totals.taps, DATA[range].totals.views) -
+                   pct(prev, DATA[range].totals.prevViews)).toFixed(1) + 'pts'
+        : (prev ? Math.abs((now - prev) / prev * 100).toFixed(1) : '0.0') + '%';
+      box.className = 'delta ' + (up ? 'delta--up' : 'delta--down');
+      box.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true">' +
+        (up ? '<path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/>'
+            : '<path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/>') +
+        '</svg> ' + val + ' <em>vs ' + n(prev) + (unit === 'pts' ? '' : '') + '</em>';
+    }
+    delta('dViews', t.views, t.prevViews);
+    delta('dTaps', t.taps, t.prevTaps);
+
+    var rd = document.getElementById('dRate');
+    if (t.prevViews === null) { rd.hidden = true; }
+    else {
+      rd.hidden = false;
+      var now = pct(t.taps, t.views), was = pct(t.prevTaps, t.prevViews);
+      var up = now >= was;
+      rd.className = 'delta ' + (up ? 'delta--up' : 'delta--down');
+      rd.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true">' +
+        (up ? '<path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/>'
+            : '<path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/>') +
+        '</svg> ' + Math.abs(now - was).toFixed(1) + 'pts <em>vs ' + was.toFixed(1) + '%</em>';
+    }
+  }
+
+  function rows(list, tbody, which, hasCopies) {
+    var s = sort[which];
+    var data = list.map(function (r) {
+      var v = scaled(r.v), p = scaled(r.p);
+      return { r: r, views: v, taps: p, rate: pct(p, v), copies: scaled(r.c || 0) };
+    });
+    data.sort(function (a, b) { return (a[s.k] - b[s.k]) * s.dir; });
+    var maxV = Math.max.apply(null, data.map(function (d) { return d.views; })) || 1;
+
+    document.getElementById(tbody).innerHTML = data.map(function (d) {
+      var r = d.r;
+      return '<tr>' +
+        '<td><span class="t-name"><img src="' + r.img + '" alt="" loading="lazy">' +
+          '<span style="min-width:0"><a href="' + r.href + '">' + r.t + '</a>' +
+          (r.sub || r.note ? '<span class="t-sub">' + (r.sub || r.note) + '</span>' : '') +
+          '</span></span></td>' +
+        '<td class="t-bar" style="--w:' + (d.views / maxV * 100).toFixed(1) + '%"><span>' + n(d.views) + '</span></td>' +
+        '<td' + (d.taps ? '' : ' class="t-dim"') + '>' + (d.taps ? n(d.taps) : '—') + '</td>' +
+        '<td class="t-rate' + (d.taps ? '' : ' t-dim') + '">' +
+          (d.taps ? d.rate.toFixed(1) + '%' : (r.instore ? 'no link' : '—')) + '</td>' +
+        (hasCopies ? '<td' + (d.copies ? '' : ' class="t-dim"') + '>' +
+          (d.copies ? n(d.copies) : '—') + '</td>' : '') +
+        '</tr>';
+    }).join('');
+  }
+
+  function render() { draw(); headline(); rows(POSTS, 'postRows', 'posts'); rows(PRODUCTS, 'prodRows', 'prods', true); }
+
+  document.querySelectorAll('.range').forEach(function (b) {
+    b.addEventListener('click', function () {
+      range = b.dataset.r;
+      document.querySelectorAll('.range').forEach(function (o) {
+        o.setAttribute('aria-pressed', String(o === b));
+      });
+      render();
+    });
+  });
+
+  /* Sorting. aria-sort is what a screen reader announces, so it is the
+     source of truth rather than a class. */
+  document.querySelectorAll('.tbl').forEach(function (tbl, idx) {
+    var which = idx === 0 ? 'posts' : 'prods';
+    tbl.querySelectorAll('th[data-k]').forEach(function (th) {
+      th.querySelector('button').addEventListener('click', function () {
+        var k = th.dataset.k, s = sort[which];
+        s.dir = (s.k === k) ? -s.dir : -1;
+        s.k = k;
+        tbl.querySelectorAll('th[data-k]').forEach(function (o) { o.removeAttribute('aria-sort'); });
+        th.setAttribute('aria-sort', s.dir === -1 ? 'descending' : 'ascending');
+        rows(which === 'posts' ? POSTS : PRODUCTS,
+             which === 'posts' ? 'postRows' : 'prodRows', which, which === 'prods');
+      });
+    });
+  });
+
+  render();
+})();
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: '/dashboard/analytics',
+  groups: [
+    { label: 'Content', options: [
+      { name: 'Measured', note: 'Six months of counts', set: { content: 'full'  } },
+      { name: 'Day one',  note: 'Nothing counted yet',  set: { content: 'empty' } }
+    ]}
+  ]
+};
+</script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

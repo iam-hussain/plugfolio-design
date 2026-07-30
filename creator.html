@@ -107,6 +107,20 @@ body[data-ctx="on"] .ctx { opacity: 1; transform: none; pointer-events: auto; }
 .social:hover { border-color: var(--accent); color: var(--accent); background: var(--violet-wash); }
 .social svg { width: 17px; height: 17px; }
 
+/* ── Share, under the identity ─────────────────────────────
+   Two named ways rather than one verb. "Share" alone made a visitor
+   guess what would happen; Link and QR each say it. Quieter than the
+   socials above them — passing the page on is a secondary act next to
+   following it. */
+.pshare { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+.pshare-l { color: var(--ink-3); margin-right: 2px; }
+.pshare-b { display: inline-flex; align-items: center; gap: 7px; min-height: 36px;
+  padding: 8px 14px; border-radius: var(--r-chip); border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-2); cursor: pointer; font: inherit;
+  font-size: var(--t-micro); font-weight: 700; }
+.pshare-b:hover { border-color: var(--accent); color: var(--accent); background: var(--violet-wash); }
+.pshare-b svg { width: 15px; height: 15px; }
+
 /* ── Inline claim band — Follow never walls the page ──────── */
 
 /* ── Category chips ───────────────────────────────────────── */
@@ -144,6 +158,45 @@ body[data-ctx="on"] .ctx { opacity: 1; transform: none; pointer-events: auto; }
   padding: 5px 9px; font-size: var(--t-micro); font-weight: 700;
   font-variant-numeric: tabular-nums; box-shadow: var(--sh-tag); }
 .tile-n svg { width: 11px; height: 11px; color: var(--accent); }
+
+/* ── Two kinds of thing, one wall ──────────────────────────
+   A creator page is not only posts. A shelf can hold products the creator
+   sells or recommends directly, with no post behind them — which of the
+   two a shelf carries is the creator's own setup, not a viewer filter.
+
+   So the grid is mixed, and the tile has to say which it is at a glance
+   without a badge reading "POST" / "PRODUCT". The corner chip does it:
+   a POST shows how many products are tagged inside it, a PRODUCT shows
+   its price. Both answer "what do I get if I tap this", which is the only
+   question the tile is being asked. */
+.tile-pr { position: absolute; right: 8px; top: 8px; display: inline-flex; align-items: center;
+  background: var(--ink); color: var(--surface); border-radius: var(--r-chip);
+  padding: 5px 10px; font-size: var(--t-micro); font-weight: 800;
+  font-variant-numeric: tabular-nums; box-shadow: var(--sh-tag); }
+/* No price chip when the price is unknown — never a zero. The tile then
+   leans on its action word instead. */
+/* A product can carry two at once — own-store AND a code — so they stack
+   as a column rather than each claiming the same corner. */
+.tile-flags { position: absolute; left: 8px; top: 8px; display: grid; gap: 4px;
+  justify-items: start; max-width: calc(100% - 70px); }
+.tile-flag { border-radius: var(--r-chip);
+  padding: 5px 9px; font-size: var(--t-micro); font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase; box-shadow: var(--sh-tag); }
+.tile-flag--offer { background: var(--lime); color: var(--on-white); }
+.tile-flag--own { background: var(--surface); color: var(--accent); }
+/* An ended offer is not an error and it does not remove the product — it
+   goes quiet and the tile reverts to its no-coupon self (§5.9). */
+.tile-flag--ended { background: var(--surface); color: var(--ink-3); box-shadow: 0 0 0 1px var(--line); }
+/* An in-store code has no link to open. The tile must not look broken:
+   the code IS the action, so it says so instead of saying Buy. */
+.tile-flag--store { background: var(--ink); color: var(--surface); }
+
+/* The redemption note, when the offer is in-store. Only where words fit. */
+.tile-note { display: none; }
+
+/* Description and action ride with the title: present in the two layouts
+   that have room for words, absent in the tight photo grid. */
+.tile-d, .tile-go { display: none; }
 
 /* ── Comments ─────────────────────────────────────────────── */
 .cm-wrap { padding-block: 34px 44px; border-top: 1px solid var(--line); margin-top: 34px; }
@@ -196,13 +249,54 @@ body[data-ctx="on"] .ctx { opacity: 1; transform: none; pointer-events: auto; }
 .cm-thread .cm { padding-left: 16px; }
 .cm-thread .cm-av { width: 26px; height: 26px; }
 
-#cmPanel { border: 0; padding: 0; background: var(--canvas); color: var(--ink);
-  width: min(560px, 100%); max-width: 100%; height: 100dvh; max-height: 100dvh;
+/* ── The drawer ─────────────────────────────────────────────────────
+   One shell, three panels (comments, customiser, share). Side drawer on
+   desktop, bottom sheet on a phone — the pattern shadcn's Sheet uses, on
+   this system's tokens. It was previously written once for comments and
+   the customiser had forked its own; now there is one.
+
+   --dw sizes it per panel: the customiser is narrow because the page
+   behind it IS the preview and must stay readable while you drag a
+   control; comments are wide because they are the content. */
+.drawer { border: 0; padding: 0; background: var(--canvas); color: var(--ink);
+  width: min(var(--dw, 560px), 100%); max-width: 100%; height: 100dvh; max-height: 100dvh;
   margin: 0 0 0 auto; box-shadow: -20px 0 60px -20px rgb(var(--shadow-ink) / .4); }
-#cmPanel::backdrop { background: rgb(var(--shadow-ink) / .5); }
+.drawer::backdrop { background: rgb(var(--shadow-ink) / .5); }
+.drawer[open] { animation: drawerIn .3s cubic-bezier(.2,.9,.25,1); }
+.drawer::backdrop { animation: sheetFade .3s ease; }
+@keyframes drawerIn { from { transform: translateX(100%); } to { transform: none; } }
+/* The customiser's backdrop stays light: a sheet that dims the result
+   would make live editing pointless. */
+#czSheet { --dw: 400px; }
+#czSheet::backdrop { background: rgb(var(--shadow-ink) / .22); }
+/* ── The modal ──────────────────────────────────────────────────
+   Share is not a drawer. A drawer stands beside the page because you are
+   working ON the page — that is the customiser's whole argument, and the
+   comments thread is the page's content. Share is neither: it is a short,
+   self-contained errand that ends when you close it, so it takes the
+   middle of the screen and gives it straight back.
+
+   No drag handle either. That grip belongs to something you pull up from
+   an edge; on a centred modal it is a control that points nowhere. */
+.modal { border: 0; padding: 0; background: var(--canvas); color: var(--ink);
+  width: min(440px, calc(100% - 32px)); max-width: 100%; max-height: min(88dvh, 760px);
+  margin: auto; border-radius: var(--r-bay);
+  box-shadow: 0 30px 80px -24px rgb(var(--shadow-ink) / .55); }
+.modal::backdrop { background: rgb(var(--shadow-ink) / .5); }
+.modal[open] { animation: modalIn .22s cubic-bezier(.2,.9,.25,1); }
+.modal::backdrop { animation: sheetFade .22s ease; }
+@keyframes modalIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .modal[open], .modal::backdrop { animation: none; } }
+/* The panel shell is shared with the drawers; only the body scrolls. */
+.modal .pn { max-height: inherit; }
 @media (max-width: 640px) {
-  #cmPanel { width: 100%; height: 92dvh; max-height: 92dvh; margin: auto 0 0;
+  .drawer { width: 100%; height: 92dvh; max-height: 92dvh; margin: auto 0 0;
     border-radius: var(--r-bay) var(--r-bay) 0 0; }
+  #czSheet { height: 72dvh; max-height: 72dvh; }
+  .drawer[open] { animation: sheetUp .34s cubic-bezier(.2,.9,.25,1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer[open], .drawer::backdrop { animation: none; }
 }
 .pn { display: flex; flex-direction: column; height: 100%; }
 .pn-h { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
@@ -255,15 +349,10 @@ body[data-ctx="on"] .ctx { opacity: 1; transform: none; pointer-events: auto; }
   .pn-grab { display: grid; place-items: center; width: 100%; padding: 10px 0 2px;
     border: 0; background: none; cursor: grab; touch-action: none; }
   .pn-grab span { width: 44px; height: 5px; border-radius: 999px; background: var(--line); display: block; }
-  #cmPanel[open] { animation: sheetUp .34s cubic-bezier(.2,.9,.25,1); }
-  #cmPanel::backdrop { animation: sheetFade .34s ease; }
 }
 @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
 @keyframes sheetFade { from { opacity: 0; } to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) {
-  #cmPanel[open], #cmPanel::backdrop { animation: none; }
-  .rep-toggle svg { transition: none; }
-}
+@media (prefers-reduced-motion: reduce) { .rep-toggle svg { transition: none; } }
 
 
 /* Signed-out composer stand-in (§5.4). Inline on desktop; the sheet
@@ -285,28 +374,59 @@ body[data-ctx="on"] .ctx { opacity: 1; transform: none; pointer-events: auto; }
 /* ═══ Creator-set page (creator-prefs.js) ═══════════════════════════ */
 .ch-greet { margin: 0 0 4px; font-size: var(--t-label); font-weight: 600; color: var(--accent); }
 
-/* Post layouts the creator picks. The tile, its photo and its tag count
-   are the same object in all three — only the frame around them moves. */
+/* Layouts the creator picks. The tile, its photo and its corner chip are
+   the same object in all three — only the frame around them moves. */
 .tile-t { display: none; }
 body[data-layout="card"] .grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
 body[data-layout="card"] .tile { aspect-ratio: auto; padding: 10px; background: var(--surface);
   border-radius: var(--r-tile); box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); }
 body[data-layout="card"] .tile img { aspect-ratio: 4 / 3; border-radius: var(--r-image); }
-body[data-layout="card"] .tile-n { right: 18px; top: 18px; }
+body[data-layout="card"] :is(.tile-n, .tile-pr) { right: 18px; top: 18px; }
+body[data-layout="card"] .tile-flags { left: 18px; top: 18px; }
 body[data-layout="card"] .tile-t { display: block; padding: 10px 4px 2px;
   font-size: var(--t-label); font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+/* Two lines, clamped. A post description is written to be read in full on
+   the post page; here it only has to earn the tap. */
+body[data-layout="card"] .tile-d { display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden; padding: 2px 4px 0;
+  font-size: var(--t-micro); line-height: 1.5; color: var(--ink-2); }
+body[data-layout="card"] .tile-go { display: block; padding: 8px 4px 2px;
+  font-size: var(--t-micro); font-weight: 700; color: var(--accent); }
+body[data-layout="card"] .tile-note { display: block; padding: 6px 4px 0;
+  font-size: var(--t-micro); line-height: 1.45; color: var(--ink-3); }
 
 body[data-layout="list"] .grid { grid-template-columns: 1fr; gap: 8px; }
 /* Three explicit tracks: thumbnail, title, count. Left to auto-placement
    the title falls into the 64px image column and wraps a word per line. */
-body[data-layout="list"] .tile { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px;
-  align-items: center; aspect-ratio: auto; padding: 8px; background: var(--surface);
+/* Three explicit tracks and two rows: thumbnail, the words, the chip.
+   Left to auto-placement the title falls into the 64px image column and
+   wraps a word per line. */
+body[data-layout="list"] .tile { display: grid; grid-template-columns: 64px 1fr auto;
+  grid-template-rows: auto auto; gap: 2px 14px; align-items: center; aspect-ratio: auto;
+  padding: 8px; background: var(--surface);
   border-radius: var(--r-tile); box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); }
-body[data-layout="list"] .tile img { aspect-ratio: 1; border-radius: var(--r-image); }
-body[data-layout="list"] .tile-t { display: block; grid-column: 2; grid-row: 1; align-self: center;
+body[data-layout="list"] .tile img { aspect-ratio: 1; border-radius: var(--r-image);
+  grid-column: 1; grid-row: 1 / -1; }
+body[data-layout="list"] .tile-t { display: block; grid-column: 2; grid-row: 1; align-self: end;
   font-size: var(--t-label); font-weight: 700; color: var(--ink); }
-body[data-layout="list"] .tile-n { position: static; grid-column: 3; grid-row: 1;
-  align-self: center; margin-right: 8px; }
+body[data-layout="list"] .tile-d { display: -webkit-box; -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical; overflow: hidden; grid-column: 2; grid-row: 2; align-self: start;
+  font-size: var(--t-micro); color: var(--ink-2); }
+body[data-layout="list"] :is(.tile-n, .tile-pr) { position: static; grid-column: 3;
+  grid-row: 1 / -1; align-self: center; margin-right: 8px; }
+/* The flags have no photo corner to sit in once the image is a 64px
+   thumbnail, but they must not vanish: dropping them made List the one
+   layout where you could not tell an own-store product from an affiliate
+   one, or a live coupon from an ended one. They move to the right-hand
+   track and sit under the price, so the row reads name-and-words on the
+   left, commercial facts on the right. */
+body[data-layout="list"] .tile-flags { position: static; grid-column: 3; grid-row: 2;
+  align-self: start; justify-items: end; justify-self: end; max-width: none;
+  margin-right: 8px; gap: 3px; }
+body[data-layout="list"] .tile-flag { box-shadow: none; padding: 3px 7px; }
+body[data-layout="list"] .tile-flag--own { box-shadow: 0 0 0 1px var(--line); }
+body[data-layout="list"] :is(.tile-n, .tile-pr) { grid-row: 1; align-self: end; }
+body[data-layout="list"] .tile-go { display: none; }
 body[data-layout="list"] .tile:hover, body[data-layout="list"] .tile:focus-visible { transform: none; }
 
 /* ── Comment identity (§5.10) ──────────────────────────────────── */
@@ -330,57 +450,132 @@ body[data-layout="list"] .tile:hover, body[data-layout="list"] .tile:focus-visib
 .as-menu em { display: block; font-style: normal; font-size: var(--t-micro); color: var(--ink-2); }
 .as-menu [aria-selected="true"] { background: var(--violet-wash); }
 
-/* ── The customiser ────────────────────────────────────────────── */
-.cz { margin-top: 14px; padding: 18px; border: 1px solid var(--accent); border-radius: var(--r-tile);
-  background: var(--surface); display: grid; gap: 16px; }
+/* ── The customiser, compact ────────────────────────────────────
+   Sized for a 400px drawer standing beside the thing it edits, not for a
+   full-width band. Options were 180px cards two-up; at drawer width one
+   card per row turned six choices into a page of scrolling. They are
+   segmented controls now — the whole set visible without moving. */
+.cz { display: grid; gap: 14px; }
 .cz[hidden] { display: none; }
-.cz-note { margin: 0; font-size: var(--t-micro); color: var(--ink-2); }
+.cz-note { margin: 0; font-size: var(--t-micro); line-height: 1.5; color: var(--ink-2); }
 .cz-note a { color: var(--accent); }
-.cz-row { display: grid; gap: 8px; }
-.cz-lab { font-size: var(--t-micro); font-weight: 700; letter-spacing: .07em;
-  text-transform: uppercase; color: var(--ink-2); }
-.cz-input { width: 100%; min-height: 44px; padding: 11px 14px; border-radius: var(--r-image);
-  border: 1px solid var(--line); background: var(--canvas); color: var(--ink); font: inherit;
+.cz-row { display: grid; gap: 6px; }
+.cz-lab { font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-3); }
+.cz-input { width: 100%; min-height: 40px; padding: 9px 12px; border-radius: var(--r-image);
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit;
   font-size: var(--t-label); }
-textarea.cz-input { min-height: 76px; resize: vertical; }
+textarea.cz-input { min-height: 64px; resize: vertical; line-height: 1.5; }
 .cz-input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
-.cz-seg { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.cz-opt { flex: 1 1 180px; min-height: 44px; padding: 10px 14px; border-radius: var(--r-image);
-  border: 1px solid var(--line); background: var(--canvas); color: var(--ink); cursor: pointer;
-  font: inherit; text-align: left; }
-.cz-opt s { display: block; text-decoration: none; font-size: var(--t-label); font-weight: 700; }
-.cz-opt em { display: block; font-style: normal; margin-top: 2px; font-size: var(--t-micro); color: var(--ink-2); }
-.cz-opt[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.cz-opt--tog { flex: 0 0 auto; }
-.cz-opt--tog[aria-pressed="false"] { color: var(--ink-3); text-decoration: line-through; }
-.cz-sw { display: flex; flex-wrap: wrap; gap: 10px; }
-.cz-chip { width: 44px; height: 44px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+
+/* Segmented: one track, equal thirds, the pressed one filled. */
+.cz-seg { display: flex; gap: 3px; padding: 3px; border-radius: var(--r-image);
+  border: 1px solid var(--line); background: var(--surface); }
+.cz-opt { flex: 1 1 0; min-width: 0; min-height: 38px; padding: 7px 8px; border: 0;
+  border-radius: var(--r-nest); background: none; color: var(--ink-2);
+  cursor: pointer; font: inherit; text-align: center; }
+.cz-opt s { display: block; text-decoration: none; font-size: var(--t-micro); font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The note is the reason to pick one. At drawer width it cannot sit inside
+   a third of a track, so only the pressed option explains itself, under
+   the control. */
+.cz-opt em { display: none; }
+.cz-opt[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.cz-why { margin: 0; font-size: var(--t-micro); color: var(--ink-3); line-height: 1.45; }
+
+.cz-sw { display: flex; flex-wrap: wrap; gap: 8px; }
+.cz-chip { width: 34px; height: 34px; border-radius: 50%; border: 2px solid transparent;
+  cursor: pointer; padding: 0; }
 .cz-chip[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 3px var(--canvas) inset; }
+
+/* Socials read as the icons they are on the page, not as four word chips.
+   A creator scanning for "the TikTok one" finds the glyph faster than the
+   label, and the row now matches what it is switching. */
+.cz-socs { display: grid; gap: 4px; }
+.cz-soc { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px;
+  padding: 5px 8px; border: 0; border-radius: var(--r-image); background: none;
+  color: var(--ink); cursor: pointer; font: inherit; text-align: left; }
+.cz-soc:hover { background: var(--violet-wash); }
+.cz-soc-i { display: grid; place-items: center; width: 30px; height: 30px; flex: none;
+  border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); }
+.cz-soc-i svg { width: 15px; height: 15px; }
+.cz-soc b { flex: 1; font-size: var(--t-label); font-weight: 600; }
+/* A real switch, because this is on/off — not a chip that happens to be dark. */
+.cz-sw-t { flex: none; width: 38px; height: 22px; border-radius: 999px; background: var(--line);
+  position: relative; transition: background-color .18s var(--ease); }
+.cz-sw-t::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--surface); box-shadow: var(--sh-rest);
+  transition: transform .18s var(--ease); }
+.cz-soc[aria-pressed="true"] .cz-sw-t { background: var(--accent); }
+.cz-soc[aria-pressed="true"] .cz-sw-t::after { transform: translateX(16px); }
+.cz-soc[aria-pressed="false"] :is(.cz-soc-i, b) { color: var(--ink-3); }
+@media (prefers-reduced-motion: reduce) { .cz-sw-t, .cz-sw-t::after { transition: none; } }
+
 .cz-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.cz-pic { display: flex; align-items: center; gap: 10px; }
+.cz-pic .btn { min-height: 40px; padding: 9px 14px; font-size: var(--t-micro); }
 .cz-link { background: none; border: 0; cursor: pointer; color: var(--ink-2); font: inherit;
-  font-size: var(--t-label); font-weight: 600; text-decoration: underline; text-underline-offset: 3px;
-  min-height: 44px; padding: 0 6px; }
+  font-size: var(--t-micro); font-weight: 600; text-decoration: underline; text-underline-offset: 3px;
+  min-height: 40px; padding: 0 4px; }
 .cz-link:hover { color: var(--accent); }
 
-/* ── Customiser as a sheet on phones ───────────────────────────────
-   Held at 66dvh, not the comments sheet's 92dvh, and under a lighter
-   backdrop: the page behind IS the preview, so it has to stay readable
-   while you drag a control. A sheet that covers the result would make
-   the live editing pointless. */
-#czSheet { display: none; }
-@media (max-width: 780px) {
-  #czSheet[open] { display: block; animation: sheetUp .34s cubic-bezier(.2,.9,.25,1); }
-  #czSheet { border: 0; padding: 0; width: 100%; max-width: 100%;
-    height: 66dvh; max-height: 66dvh; margin: auto 0 0;
-    background: var(--canvas); color: var(--ink);
-    border-radius: var(--r-bay) var(--r-bay) 0 0; }
-  #czSheet::backdrop { background: rgb(var(--shadow-ink) / .22); animation: sheetFade .34s ease; }
-  /* In the sheet the panel is the sheet — it drops its own frame. */
-  #czBody .cz { margin: 0; border: 0; border-radius: 0; background: transparent; padding: 4px 0 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  #czSheet[open], #czSheet::backdrop { animation: none; }
-}
+/* ── Share ──────────────────────────────────────────────────────
+   A creator does not share this page the way a shopper shares a post.
+   They paste the link into a bio once and it has to survive there, so
+   the panel leads with the link itself and shows what it becomes when
+   pasted — the unfurl is the thing that actually gets judged. */
+.sh { display: grid; gap: 18px; }
+/* One panel, two modes — the two the strip offers. A tab set rather than
+   a long scroll, because a creator opens this knowing which of the two
+   they came for. */
+.sh-modes { display: flex; gap: 3px; padding: 3px; border-radius: var(--r-image);
+  border: 1px solid var(--line); background: var(--surface); }
+.sh-mode { flex: 1; min-height: 38px; border: 0; border-radius: var(--r-nest);
+  background: none; color: var(--ink-2); cursor: pointer; font: inherit;
+  font-size: var(--t-micro); font-weight: 700; }
+.sh-mode[aria-selected="true"] { background: var(--ink); color: var(--surface); }
+.sh-pane[hidden] { display: none; }
+.sh-pane { display: grid; gap: 18px; }
+.sh-plate { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 16px;
+  border: 1px solid var(--line); border-radius: var(--r-chip); background: var(--surface); }
+.sh-url { flex: 1; min-width: 0; font-size: var(--t-label); font-weight: 600;
+  letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sh-url b { color: var(--accent); font-weight: 700; }
+.sh-copy { flex: none; min-height: 40px; padding: 10px 16px; border-radius: var(--r-chip);
+  border: 0; background: var(--ink); color: var(--surface); cursor: pointer;
+  font: inherit; font-size: var(--t-micro); font-weight: 700; }
+.sh-copy[data-done="yes"] { background: var(--lime); color: var(--on-white); }
+
+/* The unfurl. Built from the page's own avatar, name and counts, so it
+   cannot drift from what actually renders. */
+.sh-card { border: 1px solid var(--line); border-radius: var(--r-tile); overflow: hidden;
+  background: var(--surface); }
+.sh-card-img { display: block; width: 100%; height: 96px; object-fit: cover; }
+.sh-card-b { display: flex; align-items: center; gap: 10px; padding: 11px 13px; }
+.sh-card-b img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex: none; }
+.sh-card-t { min-width: 0; }
+.sh-card-t b { display: block; font-size: var(--t-label); font-weight: 700; }
+.sh-card-t span { display: block; font-size: var(--t-micro); color: var(--ink-2); }
+
+/* Where it goes. Instagram first, deliberately: the bio link is the one
+   that matters and it is the one that needs the URL on the clipboard. */
+.sh-ways { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.sh-way { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 10px 13px;
+  border: 1px solid var(--line); border-radius: var(--r-image); background: var(--surface);
+  color: var(--ink); cursor: pointer; font: inherit; text-align: left; text-decoration: none; }
+.sh-way:hover { border-color: var(--accent); color: var(--accent); }
+.sh-way svg { width: 18px; height: 18px; flex: none; }
+.sh-way s { text-decoration: none; font-size: var(--t-micro); font-weight: 700; }
+.sh-native { display: none; grid-column: 1 / -1; }
+body[data-canshare="yes"] .sh-native { display: flex; }
+
+/* The code. For a phone held up at a market stall or filmed into a story —
+   the one share that needs no clipboard at all. */
+.sh-qr { display: grid; justify-items: center; gap: 12px; padding: 22px;
+  border: 1px dashed var(--line); border-radius: var(--r-tile); }
+.sh-qr canvas { width: min(220px, 60vw); height: min(220px, 60vw); image-rendering: pixelated;
+  border-radius: var(--r-image); background: #FFFFFF; }
+.sh-qr p { margin: 0; font-size: var(--t-micro); color: var(--ink-3); text-align: center; }
 
 /* ═══ One page, four viewers (§5.4) ═══
    Only the header action slot, the bands and the comment footer change.
@@ -411,8 +606,6 @@ body[data-viewer="anon"] .composer { display: none !important; }
   margin-top: 18px; padding: 16px 18px; border-radius: var(--r-tile); }
 .band-v p { margin: 0; flex: 1 1 240px; font-size: var(--t-copy); }
 .band-v b { display: block; font-size: var(--t-label); font-weight: 700; }
-.band-owner { background: var(--violet-wash); border: 1px solid var(--accent); }
-.band-owner p { color: var(--ink-2); }
 .band-biz { display: block; background: var(--surface); border: 1px solid var(--line); }
 .band-biz-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 10px; }
 .band-biz-h b { flex: 1 1 auto; }
@@ -445,8 +638,22 @@ body[data-header="minimal"] .ch { margin-top: -30px; padding-bottom: 12px; }
 body[data-header="minimal"] .ch-id, body[data-header="minimal"] .ch-act { padding-top: 32px; }
 body[data-header="minimal"] .ch-av { width: 58px; height: 58px; }
 body[data-header="minimal"] .ch-name { font-size: var(--t-title); }
-body[data-header="minimal"] .ch-bio,
-body[data-header="minimal"] .socials { display: none; }
+/* Compact TIGHTENS, it never deletes. Hiding .ch-bio and .socials outright
+   meant a creator who had just switched Instagram on in the customiser
+   watched it vanish, with nothing saying why — a layout preset silently
+   overruling an explicit per-item choice. Two controls disagreeing, and the
+   one the creator touched last losing.
+
+   The bio clamps to a line and the socials shrink instead. The header still
+   comes down by roughly the same amount, because most of its height was the
+   cover and the avatar, not these. */
+body[data-header="minimal"] .ch-bio { margin-top: 8px; font-size: var(--t-micro);
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+  overflow: hidden; }
+body[data-header="minimal"] .socials { margin-top: 10px; gap: 6px; }
+body[data-header="minimal"] .social { width: 32px; height: 32px; }
+body[data-header="minimal"] .social svg { width: 14px; height: 14px; }
+body[data-header="minimal"] .pshare { margin-top: 10px; }
 
 /* Balanced (default) needs no overrides. */
 
@@ -481,36 +688,20 @@ body[data-state="empty-category"] .chip-f[data-c="under"] { background: var(--ac
 </head>
 <body data-header="balanced" data-state="full" data-role="shopper">
 <div class="rolerail" aria-hidden="true"></div>
-<a class="skip" href="#grid">Skip to posts</a>
+<a class="skip" href="#grid">Skip to the shop</a>
 
-<header class="inner">
-  <nav class="nav" aria-label="Primary">
-    <a class="mark" href="/" aria-label="Plugfolio home">
-      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
-        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
-        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
-        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
-      </g></svg>
-      <span class="mark-name">plugfolio</span>
-    </a>
-    <div class="ctx">
-      <img class="ctx-av" src="images/avatars/maya.jpg" alt="" width="60" height="60">
-      <span class="ctx-id"><b>Maya Rao</b><i>@mayamoves</i></span>
-      <button class="btn btn--accent v-anon" type="button" data-follow>Follow</button>
-      <button class="btn btn--accent v-shopper" type="button" data-toggle-follow>Follow</button>
-      <button class="btn btn--accent v-business" type="button" data-toggle-follow>Follow</button>
-      <a class="btn btn--ghost v-owner" href="/dashboard/settings">Edit profile</a>
-    </div>
-    <div class="nav-end">
-      <a class="searchbtn" href="/explore" aria-label="Search creators and products">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        <span>Search</span>
-      </a>
-      <a class="btn btn--ghost v-anon" href="/signin">Log in</a>
-      <a class="acct v-signedin" href="/account" aria-label="Your account"><img src="images/avatars/nia.jpg" alt=""></a>
-    </div>
-  </nav>
-</header>
+<!-- The bar is chrome.js's, identical to every other page — same links,
+     same account dropdown. The creator strip below is this page's one
+     bespoke element and chrome.js moves it in beside the mark. -->
+<div data-chrome="top"></div>
+<div class="ctx" data-chrome-slot>
+  <img class="ctx-av" src="images/avatars/maya.jpg" alt="" width="60" height="60">
+  <span class="ctx-id"><b>Maya Rao</b><i>@mayamoves</i></span>
+  <button class="btn btn--accent v-anon" type="button" data-follow>Follow</button>
+  <button class="btn btn--accent v-shopper" type="button" data-toggle-follow>Follow</button>
+  <button class="btn btn--accent v-business" type="button" data-toggle-follow>Follow</button>
+  <button class="btn btn--ghost v-owner" type="button" data-customise>Customise</button>
+</div>
 
 <main>
   <div class="cover"><img src="images/cover.jpg" alt="" width="1600" height="600"></div>
@@ -538,14 +729,28 @@ body[data-state="empty-category"] .chip-f[data-c="under"] { background: var(--ac
           <a class="social" href="https://mayarao.co" target="_blank" rel="noopener" aria-label="mayarao.co" data-social="site">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></svg></a>
         </div>
+
+        <!-- Share sits with the identity it shares, not in the action slot
+             where it competed with Follow. Two ways, named: the link to
+             paste, and the code to point a camera at. Same for every
+             viewer — anyone can pass a creator page on. -->
+        <div class="pshare">
+          <span class="micro pshare-l">Share this page</span>
+          <button class="pshare-b" type="button" data-share="link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.1 0l2.4-2.4a5 5 0 0 0-7.1-7.1L11 4.9"/><path d="M14 11a5 5 0 0 0-7.1 0L4.5 13.4a5 5 0 0 0 7.1 7.1l1.4-1.4"/></svg>
+            Link</button>
+          <button class="pshare-b" type="button" data-share="qr">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/></svg>
+            QR</button>
+        </div>
       </div>
       <div class="ch-act">
         <button class="btn btn--accent v-anon" type="button" data-follow aria-expanded="false">Follow</button>
         <button class="btn btn--accent v-shopper" type="button" data-toggle-follow>Follow</button>
         <button class="btn btn--accent v-business" type="button" data-toggle-follow>Follow</button>
         <span class="owner-tools v-owner">
-          <button class="btn btn--ghost" type="button" data-share>Share</button>
-          <a class="btn btn--accent" href="/dashboard/settings">Edit profile</a>
+          <a class="btn btn--ghost" href="/dashboard">Dashboard</a>
+          <button class="btn btn--accent" type="button" data-customise>Customise</button>
         </span>
       </div>
     </div>
@@ -561,14 +766,7 @@ body[data-state="empty-category"] .chip-f[data-c="under"] { background: var(--ac
       </div>
     </div>
 
-    <!-- Bands that belong to one viewer only. Everything below them is identical for all four. -->
-    <div class="band-v band-owner v-owner">
-      <p><b>This is your page — visitors see exactly this.</b>
-        Customise it right here — every change shows the moment you make it.</p>
-      <button class="btn btn--accent" type="button" id="customise" aria-expanded="false">Customise page</button>
-      <a class="btn btn--ghost" href="/dashboard">Dashboard</a>
-    </div>
-
+    <!-- A band that belongs to one viewer only. Everything below it is identical for all four. -->
     <div class="band-v band-biz v-business">
       <div class="band-biz-h">
         <b>You run a brand — want Maya to make something?</b>
@@ -597,23 +795,25 @@ body[data-state="empty-category"] .chip-f[data-c="under"] { background: var(--ac
   <!-- 4 · Post grid -->
   <section class="inner grid-wrap" id="grid" aria-labelledby="posts-h">
     <div class="grid-h">
-      <h2 class="sec-h" id="posts-h">Posts</h2>
-      <span class="micro">12 posts · 41 products tagged</span>
+      <h2 class="sec-h" id="posts-h">Shop</h2>
+      <span class="micro">8 posts &middot; 6 products &middot; 41 things tagged</span>
     </div>
 
     <ul class="grid">
-      <li><a class="tile" href="/mayamoves/post/1"><img src="images/posts/gym.jpg" alt="Trainers, a bottle and a sweatshirt on a yellow background."><span class="tile-n" aria-label="4 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>4</span><span class="tile-t">Gym kit that lasted a year</span></a></li>
-      <li><a class="tile" href="/mayamoves/post/2"><img src="images/posts/desk.jpg" alt="A white desk flat-lay with a keyboard, tablet and controller." loading="lazy"><span class="tile-n" aria-label="3 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>3</span><span class="tile-t">The white desk flat-lay</span></a></li>
-      <li><a class="tile" href="/mayamoves/post/3"><img src="images/posts/skincare.jpg" alt="Two skincare tubes and a jade gua sha on stone." loading="lazy"><span class="tile-n" aria-label="3 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>3</span><span class="tile-t">Two tubes and a gua sha</span></a></li>
-      <li><a class="tile" href="/mayamoves/post/4"><img src="images/posts/p6.jpg" alt="A home office desk with a lamp and notebook." loading="lazy"><span class="tile-n" aria-label="5 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>5</span><span class="tile-t">The desk reset</span></a></li>
-      <li><a class="tile" href="/mayamoves/post/5"><img src="images/posts/beauty.jpg" alt="Make-up brushes and lip colours arranged with flowers." loading="lazy"><span class="tile-n" aria-label="6 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>6</span><span class="tile-t">Everyday face, five things</span></a></li>
-      <li><a class="tile" href="/mayamoves/post/6"><img src="images/posts/p10.jpg" alt="A cosy living room corner." loading="lazy"><span class="tile-t">Living room corner</span></a></li>
-      <li><a class="tile" href="/mayamoves/post/7"><img src="images/posts/shelf.jpg" alt="A styled wall shelf with a plant and clock." loading="lazy"><span class="tile-n" aria-label="5 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>5</span><span class="tile-t">Shelf styling, finally</span></a></li>
-      <li><a class="tile" href="/mayamoves/post/8"><img src="images/posts/p14.jpg" alt="A morning coffee flat-lay." loading="lazy"><span class="tile-n" aria-label="2 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>2</span><span class="tile-t">Morning coffee setup</span></a></li>
-      <li><a class="tile" href="/mayamoves/post/9"><img src="images/posts/p7.jpg" alt="A minimal desk setup from above." loading="lazy"><span class="tile-n" aria-label="4 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>4</span><span class="tile-t">Desk from above</span></a></li>
-      <li><a class="tile" href="/mayamoves/post/10"><img src="images/posts/p11.jpg" alt="A living room with soft daylight." loading="lazy"><span class="tile-t">Soft daylight living room</span></a></li>
-      <li><a class="tile" href="/mayamoves/post/11"><img src="images/posts/p15.jpg" alt="Coffee and a notebook on a table." loading="lazy"><span class="tile-n" aria-label="3 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>3</span><span class="tile-t">Coffee and a notebook</span></a></li>
-      <li><a class="tile" href="/mayamoves/post/12"><img src="images/posts/p8.jpg" alt="A desk with a monitor and plant." loading="lazy"><span class="tile-n" aria-label="7 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>7</span><span class="tile-t">Monitor and a plant</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/1"><img src="images/posts/gym.jpg" alt="Trainers, a bottle and a sweatshirt on a yellow background."><span class="tile-n" aria-label="4 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>4</span><span class="tile-t">Gym kit that lasted a year</span><span class="tile-d">A year of four-a-week sessions and all of this survived. What went, and what I replaced it with.</span><span class="tile-go">Open post &rarr;</span></a></li>
+      <li><a class="tile tile--pr" href="/mayamoves/product/1"><img src="images/products/serum.jpg" alt="A glass dropper bottle of brightening serum." loading="lazy"><span class="tile-pr">&#8377;1,299</span><span class="tile-flags"><span class="tile-flag tile-flag--offer">Code SAVE30</span></span><span class="tile-t">Brightening serum</span><span class="tile-d">The one I actually finish the bottle of. Every night, no exceptions.</span><span class="tile-go">Copy code, then buy &rarr;</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/2"><img src="images/posts/desk.jpg" alt="A white desk flat-lay with a keyboard, tablet and controller." loading="lazy"><span class="tile-n" aria-label="3 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>3</span><span class="tile-t">The white desk flat-lay</span><span class="tile-d">Everything on the desk right now, including the two things I would not buy again.</span><span class="tile-go">Open post &rarr;</span></a></li>
+      <li><a class="tile tile--pr" href="/mayamoves/product/3"><img src="images/products/lamp.jpg" alt="A matte desk lamp lit at night." loading="lazy"><span class="tile-pr">$48.00</span><span class="tile-t">Desk lamp</span><span class="tile-d">Warm at night, bright enough to work under. The one in every desk photo.</span><span class="tile-go">Buy &rarr;</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/3"><img src="images/posts/skincare.jpg" alt="Two skincare tubes and a jade gua sha on stone." loading="lazy"><span class="tile-n" aria-label="3 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>3</span><span class="tile-t">Two tubes and a gua sha</span><span class="tile-d">The whole routine is three steps. This is what is in them and roughly what it costs.</span><span class="tile-go">Open post &rarr;</span></a></li>
+      <li><a class="tile tile--pr" href="/mayamoves/product/11"><img src="images/products/sneakers.jpg" alt="White court trainers held over a shoebox." loading="lazy"><span class="tile-pr">$32.00</span><span class="tile-flags"><span class="tile-flag tile-flag--own">Their own</span><span class="tile-flag tile-flag--offer">Code MAYA15</span></span><span class="tile-t">Court trainers</span><span class="tile-d">My own line, made in the same factory as the pair I wore out.</span><span class="tile-go">Copy code, then shop &rarr;</span></a></li>
+      <li><a class="tile tile--pr" href="/mayamoves/product/21"><img src="images/products/bottle.jpg" alt="A brushed steel water bottle." loading="lazy"><span class="tile-pr">&#8377;890</span><span class="tile-flags"><span class="tile-flag tile-flag--store">In-store code</span></span><span class="tile-t">Steel bottle</span><span class="tile-d">Holds cold all day, fits a cup holder, and the lid has not leaked once.</span><span class="tile-go">Get the code &rarr;</span><span class="tile-note">Show the code at the counter. In-store redemption is not tracked.</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/4"><img src="images/posts/p6.jpg" alt="A home office desk with a lamp and notebook." loading="lazy"><span class="tile-n" aria-label="5 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>5</span><span class="tile-t">The desk reset</span><span class="tile-d">Once a season I take everything off and only put back what I used. Here is what came back.</span><span class="tile-go">Open post &rarr;</span></a></li>
+      <li><a class="tile tile--pr" href="/mayamoves/product/24"><img src="images/products/serum.jpg" alt="A second skincare serum bottle." loading="lazy"><span class="tile-pr">&#8377;2,400</span><span class="tile-flags"><span class="tile-flag tile-flag--ended">Offer ended</span></span><span class="tile-t">Night oil</span><span class="tile-d">Two drops is plenty. The winter one, not an all-year thing.</span><span class="tile-go">Buy &rarr;</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/5"><img src="images/posts/beauty.jpg" alt="Make-up brushes and lip colours arranged with flowers." loading="lazy"><span class="tile-n" aria-label="6 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>6</span><span class="tile-t">Everyday face, five things</span><span class="tile-d">Five minutes, five products. The list people ask me for most.</span><span class="tile-go">Open post &rarr;</span></a></li>
+      <li><a class="tile tile--pr" href="/mayamoves/product/26"><img src="images/products/keyboard.jpg" alt="A low-profile mechanical keyboard on a marble desk." loading="lazy"><span class="tile-pr">&#8377;6,900</span><span class="tile-flags"><span class="tile-flag tile-flag--own">Their own</span></span><span class="tile-t">The keyboard</span><span class="tile-d">Made this myself after three years of not finding the right one.</span><span class="tile-go">Shop their store &rarr;</span></a></li>
+      <li><a class="tile tile--pr" href="/mayamoves/product/13"><img src="images/products/lamp.jpg" alt="A second lamp, brass." loading="lazy"><span class="tile-t">Brass task lamp</span><span class="tile-d">Price swings a lot on this one, so check it before you tap.</span><span class="tile-go">Buy &rarr;</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/7"><img src="images/posts/shelf.jpg" alt="A styled wall shelf with a plant and clock." loading="lazy"><span class="tile-n" aria-label="5 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>5</span><span class="tile-t">Shelf styling, finally</span><span class="tile-d">Three attempts before this one worked. What changed was the spacing, not the objects.</span><span class="tile-go">Open post &rarr;</span></a></li>
+      <li><a class="tile" href="/mayamoves/post/8"><img src="images/posts/p14.jpg" alt="A morning coffee flat-lay." loading="lazy"><span class="tile-n" aria-label="2 products tagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>2</span><span class="tile-t">Morning coffee setup</span><span class="tile-d">Grinder, scale, one cup. The cheapest setup I would still recommend.</span><span class="tile-go">Open post &rarr;</span></a></li>
     </ul>
 
     <div class="empty empty--posts">
@@ -699,19 +899,103 @@ body[data-state="empty-category"] .chip-f[data-c="under"] { background: var(--ac
   </section>
 </main>
 
-<!-- Comments panel: full-height sheet on mobile, right drawer on desktop -->
-<dialog id="czSheet" aria-label="Customise page">
+<!-- Three panels, one shell: side drawer on desktop, bottom sheet on a phone. -->
+<dialog class="drawer" id="czSheet" aria-label="Customise page">
   <div class="pn">
     <button class="pn-grab" type="button" id="czGrab" aria-label="Drag down to close"><span></span></button>
     <div class="pn-h">
-      <h2>Customise page</h2>
-      <button class="pn-x" type="button" id="czClose" aria-label="Close customiser">✕</button>
+      <h2>Customise</h2>
+      <button class="pn-x" type="button" id="czClose" aria-label="Close customiser">&#10005;</button>
     </div>
     <div class="pn-body" id="czBody"></div>
   </div>
 </dialog>
 
-<dialog id="cmPanel" aria-label="Comments">
+<dialog class="modal" id="shSheet" aria-label="Share this page">
+  <div class="pn">
+    <div class="pn-h">
+      <h2>Share</h2>
+      <button class="pn-x" type="button" id="shClose" aria-label="Close share">&#10005;</button>
+    </div>
+    <div class="pn-body">
+      <div class="sh">
+
+        <div class="sh-modes" role="tablist" aria-label="How to share">
+          <button class="sh-mode" type="button" role="tab" id="shTabLink"
+                  aria-selected="true" aria-controls="shPaneLink">Link</button>
+          <button class="sh-mode" type="button" role="tab" id="shTabQr"
+                  aria-selected="false" aria-controls="shPaneQr">QR code</button>
+        </div>
+
+        <!-- ── Link ── -->
+        <div class="sh-pane" id="shPaneLink" role="tabpanel" aria-labelledby="shTabLink">
+          <div class="sh-plate">
+            <span class="sh-url">plugfolio.com/<b>mayamoves</b></span>
+            <button class="sh-copy" type="button" id="shCopy">Copy</button>
+          </div>
+
+          <!-- What the link becomes once it is pasted. This is the part that
+               gets judged in a bio or a DM, and the part nobody can normally
+               see before sending it. -->
+          <div>
+            <span class="cz-lab" style="display:block;margin-bottom:6px">Pasted, it looks like this</span>
+            <div class="sh-card">
+              <img class="sh-card-img" src="images/cover.jpg" alt="" width="800" height="300" loading="lazy">
+              <div class="sh-card-b">
+                <img src="images/avatars/maya.jpg" alt="" width="68" height="68">
+                <span class="sh-card-t">
+                  <b>Maya Rao &middot; @mayamoves</b>
+                  <span>12 posts &middot; 41 products tagged</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <span class="cz-lab" style="display:block;margin-bottom:6px">Send it</span>
+            <div class="sh-ways">
+              <button class="sh-way" type="button" data-copyfor="bio">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+                <s>Copy for bio</s></button>
+              <a class="sh-way" href="https://wa.me/?text=https%3A%2F%2Fplugfolio.com%2Fmayamoves" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a9 9 0 0 1-13.3 7.9L3 21l1.2-4.6A9 9 0 1 1 21 12z"/></svg>
+                <s>WhatsApp</s></a>
+              <a class="sh-way" href="https://x.com/intent/post?url=https%3A%2F%2Fplugfolio.com%2Fmayamoves" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l16 16M20 4L4 20"/></svg>
+                <s>X</s></a>
+              <a class="sh-way" href="mailto:?body=https%3A%2F%2Fplugfolio.com%2Fmayamoves">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
+                <s>Email</s></a>
+              <button class="sh-way sh-native" type="button" id="shNative">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4"/><path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg>
+                <s>More apps&hellip;</s></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── QR ── the share that needs no clipboard at all. -->
+        <div class="sh-pane" id="shPaneQr" role="tabpanel" aria-labelledby="shTabQr" hidden>
+          <div class="sh-qr">
+            <canvas id="shQr" width="37" height="37" role="img"
+                    aria-label="QR code for plugfolio.com/mayamoves"></canvas>
+            <p>Point a camera at it &mdash; it opens plugfolio.com/mayamoves.</p>
+          </div>
+          <div class="sh-ways">
+            <button class="sh-way" type="button" id="shSave">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+              <s>Save as image</s></button>
+            <button class="sh-way" type="button" data-copyfor="qr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>
+              <s>Copy the link</s></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="drawer" id="cmPanel" aria-label="Comments">
   <div class="pn">
     <button class="pn-grab" type="button" id="cmGrab" aria-label="Drag down to close"><span></span></button>
     <div class="pn-h">
@@ -726,13 +1010,7 @@ body[data-state="empty-category"] .chip-f[data-c="under"] { background: var(--ac
   </div>
 </dialog>
 
-<!-- Mobile bottom tab bar (§5.1) -->
-<nav class="tabs" aria-label="Sections">
-  <a class="tab" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5V21H3z"/></svg>Home</a>
-  <a class="tab" href="/explore" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Shop</a>
-  <a class="tab" href="/following"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.3a5 5 0 0 0 0-7.1z"/></svg>Following</a>
-  <a class="tab" href="/account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>Account</a>
-</nav>
+<div data-chrome="tabs"></div>
 
 <footer class="foot">
   <div class="inner foot-inner">
@@ -753,6 +1031,9 @@ body[data-state="empty-category"] .chip-f[data-c="under"] { background: var(--ac
   </div>
 </footer>
 
+<!-- Not deferred, and ahead of the behaviour script: that script calls
+     window.qrMatrix while it runs. -->
+<script src="qr.js"></script>
 <script>
 /* Product behaviour, not review chrome: Follow reveals the claim band inline. */
 (function () {
@@ -900,19 +1181,89 @@ body[data-state="empty-category"] .chip-f[data-c="under"] { background: var(--ac
   }
 
 
-  /* Share: native sheet where it exists, clipboard everywhere else */
-  document.querySelectorAll('[data-share]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var url = location.origin + '/mayamoves';
-      if (navigator.share) { navigator.share({ title: 'Maya Rao on Plugfolio', url: url }).catch(function () {}); return; }
-      navigator.clipboard.writeText(url).then(function () {
-        var was = b.textContent; b.textContent = 'Link copied'; b.disabled = true;
-        setTimeout(function () { b.textContent = was; b.disabled = false; }, 1600);
-      }).catch(function () {});
+  /* ── Share ──────────────────────────────────────────────────────
+     It used to fire navigator.share immediately, or silently copy. Both
+     hid the one thing a creator actually wants to check before pasting a
+     link into a bio: what the link turns into. So it opens a panel — the
+     URL, the unfurl, the channels, and a code — and the native sheet is
+     one option inside it rather than the whole feature. */
+  var SHARE_URL = 'https://plugfolio.com/mayamoves';
+  var sh = document.getElementById('shSheet');
+  if (navigator.share) document.body.dataset.canshare = 'yes';
+
+  function flash(el, text) {
+    var was = el.textContent;
+    el.textContent = text; el.dataset.done = 'yes';
+    setTimeout(function () { el.textContent = was; el.dataset.done = ''; }, 1600);
+  }
+  function copy(el, text) {
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(SHARE_URL).then(function () { flash(el, text); }).catch(function () {});
+  }
+
+  /* The strip's two buttons open the same panel on their own mode, so
+     "QR" never lands you on the link pane and vice versa. */
+  var MODES = { link: ['shTabLink', 'shPaneLink'], qr: ['shTabQr', 'shPaneQr'] };
+  function mode(which) {
+    Object.keys(MODES).forEach(function (k) {
+      var on = k === which;
+      document.getElementById(MODES[k][0]).setAttribute('aria-selected', String(on));
+      document.getElementById(MODES[k][1]).hidden = !on;
     });
+  }
+  Object.keys(MODES).forEach(function (k) {
+    document.getElementById(MODES[k][0]).addEventListener('click', function () { mode(k); });
   });
+  document.querySelectorAll('[data-share]').forEach(function (b) {
+    b.addEventListener('click', function () { mode(b.dataset.share || 'link'); sh.showModal(); });
+  });
+  document.getElementById('shClose').addEventListener('click', function () { sh.close(); });
+  sh.addEventListener('click', function (e) { if (e.target === sh) sh.close(); });
+  document.getElementById('shCopy').addEventListener('click', function () { copy(this, 'Copied'); });
+  document.querySelectorAll('[data-copyfor]').forEach(function (b) {
+    b.addEventListener('click', function () { copy(b.querySelector('s'), 'Copied'); });
+  });
+  document.getElementById('shNative').addEventListener('click', function () {
+    navigator.share({ title: 'Maya Rao on Plugfolio', url: SHARE_URL }).catch(function () {});
+  });
+
+  /* The code encodes the real URL — see qr.js and its test. Drawn at one
+     device pixel per module and scaled up by CSS with pixelated rendering,
+     so it stays crisp and cannot pick up interpolation blur. */
+  var qc = document.getElementById('shQr');
+  if (qc && window.qrMatrix) {
+    var m = window.qrMatrix(SHARE_URL);
+    if (m) {
+      var quiet = 4, n = m.length + quiet * 2;
+      qc.width = qc.height = n;
+      var g = qc.getContext('2d');
+      g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, n, n);
+      g.fillStyle = '#101014';
+      for (var y = 0; y < m.length; y++) for (var x = 0; x < m.length; x++) {
+        if (m[y][x]) g.fillRect(x + quiet, y + quiet, 1, 1);
+      }
+      /* Exported at 12× so it survives being printed or dropped into a
+         story frame. The on-screen canvas stays 1px-per-module. */
+      document.getElementById('shSave').addEventListener('click', function () {
+        var S = 12, out = document.createElement('canvas');
+        out.width = out.height = n * S;
+        var o = out.getContext('2d');
+        o.imageSmoothingEnabled = false;
+        o.fillStyle = '#FFFFFF'; o.fillRect(0, 0, out.width, out.height);
+        o.drawImage(qc, 0, 0, out.width, out.height);
+        var a = document.createElement('a');
+        a.href = out.toDataURL('image/png');
+        a.download = 'mayamoves-plugfolio-qr.png';
+        a.click();
+      });
+    } else {
+      qc.closest('.sh-qr').hidden = true;
+    }
+  }
 })();
 </script>
+<script>window.CHROME = { nav: null, tab: 'shop' };</script>
+<script src="chrome.js" defer></script>
 <script src="creator-prefs.js" defer></script>
 <script src="tweaks.js" defer></script>
 </body>

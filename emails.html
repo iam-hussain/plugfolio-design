@@ -1,0 +1,260 @@
+<!doctype html>
+<!--
+  Plugfolio — the three transactional emails. Spec: design-handoff §7.
+
+  These are the account lifeline. Every one carries a one-time,
+  24-hour, single-use link, and if it does not arrive or is not believed,
+  the person is locked out with no other route in.
+
+  SO THEY ARE WRITTEN TO SURVIVE SUSPICION, not to look like marketing:
+
+  · No images, no logos loaded from a CDN, no tracking pixel. Mail
+    clients block remote images by default, so a design that depends on
+    them arrives broken — and a blocked pixel in a security email is
+    exactly what a phishing filter scores against you.
+  · The link is shown as a button AND printed as text. Buttons do not
+    render everywhere, and a person deciding whether to trust a link
+    wants to read where it goes before pressing it.
+  · Expiry and single-use are stated on every one, because "this link
+    expires in 24 hours" is what separates a real security email from a
+    forged one in a reader's mind.
+  · A did-not-expect-this line on every one. It is the only defence a
+    person has against someone else typing their address into a form.
+  · Plain sender identity and a reply-to that reaches a human.
+
+  RENDERED HERE in a phone-width frame so the copy can be judged at the
+  size it is read. The production template is table-based HTML with
+  inline styles; this file is the content and voice decision, and the
+  markup below deliberately mirrors the constraints above rather than
+  the class vocabulary the rest of the product uses.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emails — Plugfolio</title>
+<meta name="description" content="Verification, password reset and Manager invite.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.mails { display: grid; gap: clamp(20px, 3vw, 30px); padding-block: clamp(20px, 3vw, 32px) clamp(48px, 7vw, 88px); }
+@media (min-width: 1000px) { .mails { grid-template-columns: repeat(3, 1fr); align-items: start; } }
+
+.mail { border-radius: var(--r-tile); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); overflow: hidden; }
+/* The client chrome, so the subject and sender are judged as part of the
+   design. Most of the decision to open or trust an email happens here,
+   before a single word of the body is read. */
+.mail-hd { padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--canvas); }
+.mail-from { display: flex; align-items: baseline; gap: 8px; font-size: var(--t-micro); }
+.mail-from b { font-weight: 700; }
+.mail-from span { color: var(--ink-3); }
+.mail-subj { margin: 6px 0 0; font-size: var(--t-label); font-weight: 700; }
+
+/* The body. System stack on purpose: a webfont in a transactional email
+   is a remote request that half of mail clients refuse. */
+.mail-b { padding: 22px 20px; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px; line-height: 1.6; color: var(--ink); }
+.mail-b p { margin: 0 0 14px; }
+.mail-b p:last-child { margin-bottom: 0; }
+.mail-h1 { margin: 0 0 14px !important; font-size: 20px; font-weight: 700; line-height: 1.3; }
+.mail-cta { display: inline-block; padding: 13px 24px; border-radius: 8px;
+  background: var(--violet); color: #FFFFFF !important; text-decoration: none;
+  font-weight: 700; font-size: 15px; }
+/* Printed as text under the button. A person deciding whether to trust a
+   link reads where it goes; a client that will not render the button
+   still has to work. */
+.mail-url { margin: 14px 0 0 !important; padding: 11px 13px; border-radius: 8px;
+  background: var(--canvas); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px; line-height: 1.5; color: var(--ink-2); word-break: break-all; }
+.mail-meta { margin-top: 18px !important; padding-top: 16px; border-top: 1px solid var(--line);
+  font-size: 13px; color: var(--ink-2); }
+.mail-meta b { color: var(--ink); }
+.mail-foot { padding: 14px 20px 18px; font-size: 12px; color: var(--ink-3);
+  border-top: 1px solid var(--line); line-height: 1.5;
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+.why { margin-top: 10px; }
+.why summary { cursor: pointer; font-size: var(--t-micro); font-weight: 700;
+  color: var(--ink-3); letter-spacing: .05em; text-transform: uppercase; }
+.why summary:hover { color: var(--accent); }
+.why p { margin: 10px 0 0; font-size: var(--t-micro); color: var(--ink-2); line-height: 1.55; }
+</style>
+</head>
+<body data-page="emails" data-role="shopper" data-viewer="anon">
+<div class="rolerail" aria-hidden="true"></div>
+
+<div data-chrome="top"></div>
+
+<main class="inner">
+  <div class="ph">
+    <div class="ph-t">
+      <p class="ph-eyebrow">Content assets &middot; §7</p>
+      <h1>Transactional emails</h1>
+    </div>
+  </div>
+
+  <p class="hint" style="max-width:66ch">Three emails, each carrying a one-time link that expires in
+    24 hours. They are the only way back into an account, so they are written to be believed:
+    no images, no tracking pixel, the destination printed as text, and a line telling you what to
+    do if you didn&rsquo;t ask for it.</p>
+
+  <div class="mails">
+
+    <!-- ═══ 1 · Verification ═══════════════════════════════════
+         Sent once at registration. The account cannot sign in until the
+         link is used, so the email has to say that plainly — someone who
+         thinks it is optional will try to log in, fail, and blame the
+         password. -->
+    <div class="mail">
+      <div class="mail-hd">
+        <p class="mail-from"><b>Plugfolio</b> <span>hello@plugfolio.com</span></p>
+        <p class="mail-subj">Confirm your email to finish signing up</p>
+      </div>
+      <div class="mail-b">
+        <p class="mail-h1">One tap and you&rsquo;re in.</p>
+        <p>You created a Plugfolio account with this address. Confirm it and you can sign in.</p>
+        <p><a class="mail-cta" href="#">Confirm my email</a></p>
+        <p class="mail-url">https://plugfolio.com/verify?t=8f2a1c9e4b7d0a3f6e5c2b8d1a4f7c0e</p>
+        <p class="mail-meta">
+          This link works <b>once</b> and expires in <b>24 hours</b>.
+          You can&rsquo;t sign in until it&rsquo;s used &mdash; if it runs out, start a new sign-up
+          with the same address and we&rsquo;ll send a fresh one.
+        </p>
+        <p class="mail-meta" style="border:0;padding-top:8px;margin-top:8px !important">
+          Didn&rsquo;t sign up? Someone typed this address by mistake. Ignore this and nothing
+          happens &mdash; no account is created without this link.
+        </p>
+      </div>
+      <div class="mail-foot">
+        Plugfolio &middot; Reply to this email and a person reads it.<br>
+        You received this because someone used this address to sign up.
+      </div>
+    </div>
+
+    <!-- ═══ 2 · Password reset ═════════════════════════════════
+         Sent from /forgot — which never reveals whether an account
+         exists. That promise only holds if this email is written for
+         BOTH readers: the one who has an account, and the one whose
+         address was typed by a stranger. -->
+    <div class="mail">
+      <div class="mail-hd">
+        <p class="mail-from"><b>Plugfolio</b> <span>hello@plugfolio.com</span></p>
+        <p class="mail-subj">Reset your Plugfolio password</p>
+      </div>
+      <div class="mail-b">
+        <p class="mail-h1">Set a new password.</p>
+        <p>Someone asked to reset the password for the Plugfolio account on this address.</p>
+        <p><a class="mail-cta" href="#">Choose a new password</a></p>
+        <p class="mail-url">https://plugfolio.com/reset?t=3c9d5e1f7a2b8c4d0e6f3a9b5c1d7e2f</p>
+        <p class="mail-meta">
+          This link works <b>once</b> and expires in <b>24 hours</b>.
+          Your current password keeps working until you set a new one.
+        </p>
+        <p class="mail-meta" style="border:0;padding-top:8px;margin-top:8px !important">
+          Didn&rsquo;t ask for this? Ignore it &mdash; nothing changes, and your password stays as
+          it is. If it keeps happening, reply and tell us.
+        </p>
+      </div>
+      <div class="mail-foot">
+        Plugfolio &middot; Reply to this email and a person reads it.<br>
+        We never ask for your password by email.
+      </div>
+    </div>
+
+    <!-- ═══ 3 · Manager invite ═════════════════════════════════
+         Only to an invitee with no password yet — someone who has never
+         heard of us and is being handed access to another person's
+         profile. So this one leads with WHO invited them and WHAT they
+         will be able to do, before it asks for anything. The link
+         doubles as the first-password screen and verifies the address. -->
+    <div class="mail">
+      <div class="mail-hd">
+        <p class="mail-from"><b>Plugfolio</b> <span>hello@plugfolio.com</span></p>
+        <p class="mail-subj">Maya Rao added you as a Manager on @mayamoves</p>
+      </div>
+      <div class="mail-b">
+        <p class="mail-h1">Maya added you to @mayamoves.</p>
+        <p>You can post on that profile and tag products onto posts. Its settings, connections and
+          other Managers stay Maya&rsquo;s.</p>
+        <p>Set a password and the profile is waiting in your dashboard.</p>
+        <p><a class="mail-cta" href="#">Set my password</a></p>
+        <p class="mail-url">https://plugfolio.com/reset?t=b6e0d4a8f2c7913e5d0b8a6f4c2e9d1b</p>
+        <p class="mail-meta">
+          This link works <b>once</b> and expires in <b>24 hours</b>. It confirms your email at the
+          same time, so there&rsquo;s nothing else to click.
+        </p>
+        <p class="mail-meta" style="border:0;padding-top:8px;margin-top:8px !important">
+          Don&rsquo;t know Maya? Ignore this. You&rsquo;ll get no further email about it, and no
+          account is created without this link.
+        </p>
+      </div>
+      <div class="mail-foot">
+        Plugfolio &middot; Reply to this email and a person reads it.<br>
+        Maya Rao (maya@email.com) invited you.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card" style="margin-bottom:clamp(48px,7vw,88px)">
+    <div class="card-h"><h2>Why they look like this</h2></div>
+    <div class="two" style="display:grid;gap:14px">
+      <details class="why" open>
+        <summary>No images and no tracking pixel</summary>
+        <p>Mail clients block remote images by default, so a design that leans on them arrives
+          broken for most readers. Worse, a blocked pixel in a security email is one of the things
+          spam filters score against you &mdash; and these three are the emails that must not land
+          in a spam folder.</p>
+      </details>
+      <details class="why">
+        <summary>The link is printed as text</summary>
+        <p>Buttons do not render everywhere, and a person deciding whether to trust a link wants to
+          read where it goes before pressing it. Both, always &mdash; one for convenience, one for
+          the reader who is being careful.</p>
+      </details>
+      <details class="why">
+        <summary>Expiry and single-use, every time</summary>
+        <p>&ldquo;Works once, expires in 24 hours&rdquo; is what separates a real security email
+          from a forged one in a reader&rsquo;s mind. It also sets the expectation before the link
+          runs out, rather than after.</p>
+      </details>
+      <details class="why">
+        <summary>A line for the person who didn&rsquo;t ask</summary>
+        <p>Every one of these can reach someone whose address a stranger typed. That reader needs to
+          know that ignoring it is safe and sufficient &mdash; and the reset email has to read
+          sensibly for them too, because <b>/forgot</b> never reveals whether an account exists.</p>
+      </details>
+      <details class="why">
+        <summary>A reply-to that reaches a person</summary>
+        <p>These are the emails people reply to when they are locked out and frightened.
+          <b>no-reply@</b> on an account-recovery email tells someone with no other route in that
+          there is no route in.</p>
+      </details>
+      <details class="why">
+        <summary>System fonts, inline styles, tables in production</summary>
+        <p>A webfont is a remote request most mail clients refuse. The rendering above uses the
+          product&rsquo;s type so the copy can be judged in context; the shipped template is
+          table-based HTML with inline styles and a system stack.</p>
+      </details>
+    </div>
+  </div>
+</main>
+
+<div data-chrome="tabs"></div>
+
+<script>
+window.CHROME = { nav: null, tab: null };
+window.PROTO = { title: 'Emails · §7', groups: [
+  { label: 'Appearance', options: [
+    { name: 'Light', note: 'How most clients render', set: {} },
+    { name: 'Dark',  note: 'Dark-mode mail clients',  set: {} }
+  ]}
+]};
+</script>
+<script src="chrome.js" defer></script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

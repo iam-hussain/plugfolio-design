@@ -1,0 +1,557 @@
+<!doctype html>
+<!--
+  Plugfolio — /[handle]/product/[productId]. Spec: design-handoff §5.6.
+  Mode: OPERATE. This is the last screen before the sale, so everything on
+  it either helps the decision or gets out of the way of the button.
+
+  The order is the spec's and it is not cosmetic: price and channel BEFORE
+  the coupon, coupon BEFORE the button. A shopper who taps out first and
+  reads the code second has already left, so the code has to be above the
+  thing that takes them away.
+
+  Components are shared, not forked: .pc / .back / .own / .coupon / .code /
+  .offplat all live in styles.css alongside the post page's copies.
+
+  ⚠ NEW SCOPE — not in §5.6, needs backend before it is real:
+    · the "others who tapped this" line (no such counter exists)
+  IN SPEC and built: every §5.9 variant · coupon-above-button order ·
+  Buy → "Opening…" (§5.7) · "From this post" · comments + report (§5.10) ·
+  no-price, in-store-only, expired-coupon and 404 states.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brightening serum · @mayamoves · Plugfolio</title>
+<meta name="description" content="Brightening serum, tagged by Maya Rao. Tap through to the retailer — no account needed, ever.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── The product, side by side ─────────────────────────────
+   Image left, decision right. On a phone they stack and the image leads,
+   because the photo is what a shopper arrived recognising. */
+/* Only a top inset here — the comments section below supplies the page's
+   bottom padding, so adding it twice would double the gap. */
+.prodwrap { padding-block: 20px 0; }
+.pr { display: grid; gap: clamp(20px, 3vw, 34px); padding-block: 8px 0; }
+@media (min-width: 860px) { .pr { grid-template-columns: minmax(0, 46%) minmax(0, 1fr);
+  align-items: start; gap: clamp(28px, 4vw, 52px); } }
+
+.pr-media { border-radius: var(--r-bay); overflow: hidden; background: var(--violet-wash);
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); }
+.pr-media img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; }
+/* A product with no image is not broken — plenty of retailers give none. */
+.pr-noimg { display: grid; place-items: center; aspect-ratio: 1; color: var(--ink-3);
+  background: var(--surface); }
+.pr-noimg svg { width: 46px; height: 46px; }
+
+.pr-h { margin: 0; font-family: Sora, system-ui, sans-serif; font-weight: 800;
+  font-size: var(--t-name); line-height: 1.15; letter-spacing: -.03em; }
+/* The price is the largest thing on the page after the title. It is the
+   number the whole screen exists to hand over. */
+.pr-price { margin: 14px 0 0; font-family: Sora, system-ui, sans-serif; font-weight: 800;
+  font-size: var(--t-name-lg); line-height: 1; letter-spacing: -.035em;
+  font-variant-numeric: tabular-nums; }
+/* Hidden when unknown — never "$0" (PRODUCT.md). The channel line below
+   carries on regardless, so the block never collapses to nothing. */
+body[data-price="none"] .pr-price { display: none; }
+.pr-where { margin: 10px 0 0; font-size: var(--t-copy); font-weight: 600; color: var(--ink-2); }
+.pr-where b { color: var(--ink); font-weight: 700; }
+
+.pr-buy { margin-top: 22px; }
+.pr-buy .btn { width: 100%; justify-content: center; padding: 17px 28px; font-size: var(--t-label); }
+/* In-store-only: there is no link, so there is no button. The screen must
+   not read as broken — the code above IS the action, and this says so. */
+body[data-kind="instore"] .pr-buy { display: none; }
+.pr-instore { display: none; margin-top: 20px; padding: 15px 17px; border-radius: var(--r-tile);
+  background: var(--violet-wash); border: 1px solid var(--accent); }
+body[data-kind="instore"] .pr-instore { display: block; }
+.pr-instore b { display: block; font-size: var(--t-label); font-weight: 700; }
+.pr-instore p { margin: 5px 0 0; font-size: var(--t-copy); color: var(--ink-2); }
+
+/* ── Where it came from ────────────────────────────────────
+   The source post, when it is known. A product tagged straight onto a
+   shelf has none, and the block simply is not there. */
+.src { display: flex; align-items: center; gap: 14px; margin-top: 26px; padding: 12px;
+  border-radius: var(--r-tile); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--card-edge); text-decoration: none; color: inherit; }
+.src:hover { box-shadow: 0 0 0 1px var(--accent); }
+.src img { width: 58px; height: 58px; border-radius: var(--r-image); object-fit: cover; flex: none; }
+.src-t { min-width: 0; flex: 1; }
+.src-t span { display: block; font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-3); }
+.src-t b { display: block; margin-top: 3px; font-size: var(--t-label); font-weight: 700; }
+.src-go { flex: none; color: var(--ink-3); }
+.src-go svg { width: 18px; height: 18px; }
+body[data-src="none"] .src { display: none; }
+
+/* ── Comments (§5.10) ──────────────────────────────────────
+   A product has its own thread, separate from the profile's. */
+.cmw { padding-block: clamp(34px, 5vw, 54px) clamp(40px, 6vw, 72px); }
+.cmw-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 16px;
+  padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.cmw-h h2 { margin: 0; font-size: var(--t-title); font-weight: 800; letter-spacing: -.02em; }
+.cmw-h .micro { color: var(--ink-3); }
+.cmw-rep { margin-left: auto; font-size: var(--t-micro); font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-2); text-decoration: none; }
+.cmw-rep:hover { color: var(--accent); }
+.thread { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 18px; }
+.c { display: grid; grid-template-columns: 36px 1fr; gap: 12px; }
+.c img, .c .c-av { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+.c .c-av { display: grid; place-items: center; background: var(--violet-wash);
+  color: var(--violet-deep); font-size: var(--t-micro); font-weight: 800; }
+.c-b { min-width: 0; }
+.c-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.c-who b { font-size: var(--t-label); font-weight: 700; }
+.c-badge { padding: 2px 8px; border-radius: var(--r-chip); background: var(--violet-wash);
+  color: var(--violet-deep); font-size: var(--t-micro); font-weight: 700; }
+.c-when { font-size: var(--t-micro); color: var(--ink-3); }
+.c-t { margin: 5px 0 0; font-size: var(--t-copy); color: var(--ink-2); line-height: 1.55; }
+
+.say { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 24px;
+  padding: 14px 16px; border-radius: var(--r-tile); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--card-edge); }
+.say img, .say .c-av { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex: none; }
+.say input { flex: 1 1 220px; min-height: 44px; padding: 11px 14px; border-radius: var(--r-image);
+  border: 1px solid var(--line); background: var(--canvas); color: var(--ink);
+  font: inherit; font-size: var(--t-label); }
+.say input::placeholder { color: var(--ink-3); }
+.say input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
+.say p { margin: 0; flex: 1 1 200px; font-size: var(--t-copy); color: var(--ink-2); }
+
+/* ── Viewer states — §5.4's rule, applied here ─────────────── */
+body:not([data-viewer="anon"])     .v-anon,
+body:not([data-viewer="shopper"])  .v-shopper,
+body:not([data-viewer="business"]) .v-business,
+body:not([data-viewer="owner"])    .v-owner,
+body[data-viewer="anon"]           .v-signedin { display: none; }
+.btn--following { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.btn--following:hover { border-color: var(--accent); color: var(--accent); }
+.btn[aria-busy="true"] { opacity: .6; pointer-events: none; }
+
+/* Owner band: taps are why tagging exists. */
+.band-v { display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  margin-bottom: 20px; padding: 16px 18px; border-radius: var(--r-tile);
+  background: var(--violet-wash); border: 1px solid var(--accent); }
+.band-v p { margin: 0; flex: 1 1 240px; font-size: var(--t-copy); color: var(--ink-2); }
+.band-v b { display: block; font-size: var(--t-label); font-weight: 700; color: var(--ink); }
+.band-v b span { font-variant-numeric: tabular-nums; }
+
+/* ── Product kind → what the coupon block and button say ────
+   One attribute drives the whole variant matrix (§5.9), so a state can
+   never be half-applied: the label, the block and the button move
+   together or not at all. Hide by exclusion, never by flat display:none. */
+body:not([data-kind="own"])      .k-own,
+body:not([data-kind="affiliate"]) .k-affiliate,
+body:not([data-kind="instore"])  .k-instore,
+/* "linked" is the union of own and affiliate — both have somewhere to go. */
+body[data-kind="instore"]        .k-linked,
+/* The coupon's channel is its own axis. A product can have a link AND an
+   in-store code (§5.9's "both channels" row), so deriving the channel
+   label from the product kind made that row unreachable. */
+/* One media kind at a time, by exclusion. */
+body:not([data-media="still"])     .m-still,
+body:not([data-media="youtube"])   .m-youtube,
+body:not([data-media="instagram"]) .m-instagram,
+body:not([data-media="tiktok"])    .m-tiktok,
+body:not([data-channel="online"])  .ch-online,
+body:not([data-channel="instore"]) .ch-instore,
+body:not([data-channel="both"])    .ch-both,
+/* The counter instruction belongs to any channel that reaches a counter,
+   which is two of the three — so it gets its own class rather than being
+   spelled as an exception to the other two. */
+body[data-channel="online"]        .ch-hasstore,
+body:not([data-coupon="live"])   .coupon--live,
+body:not([data-coupon="ended"])  .coupon--dead,
+body[data-coupon="none"]         .coupon { display: none; }
+
+/* ── 404 ───────────────────────────────────────────────────── */
+body:not([data-state="gone"]) .gone404,
+body[data-state="gone"] :is(.pr, .src, .cmw) { display: none; }
+.gone404 { text-align: center; padding: clamp(48px, 9vw, 110px) 24px; }
+.gone404 b { display: block; font-family: Sora, system-ui, sans-serif;
+  font-size: var(--t-title); font-weight: 800; letter-spacing: -.02em; }
+.gone404 p { margin: 10px auto 0; max-width: 42ch; font-size: var(--t-copy); color: var(--ink-2); }
+.gone404 .btn { margin-top: 22px; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body data-page="product" data-viewer="anon" data-state="full"
+      data-kind="affiliate" data-coupon="live" data-channel="online" data-media="still" data-price="known" data-src="known" data-role="shopper">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#buy">Skip to the buy button</a>
+
+<div data-chrome="top"></div>
+
+<main>
+  <section class="inner prodwrap">
+    <a class="back" href="/mayamoves">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      All of @mayamoves
+    </a>
+
+    <!-- Whose product this is. Identity, not a profile. -->
+    <div class="pc">
+      <img class="pc-av" src="images/avatars/maya.jpg" alt="">
+      <span class="pc-id">
+        <a class="pc-name" href="/mayamoves">Maya Rao</a>
+        <span class="pc-handle">@mayamoves</span>
+      </span>
+      <span class="pc-act">
+        <button class="btn btn--accent v-anon" type="button" data-follow>Follow</button>
+        <button class="btn btn--accent v-shopper" type="button" data-toggle-follow>Follow</button>
+        <button class="btn btn--accent v-business" type="button" data-toggle-follow>Follow</button>
+        <a class="btn btn--accent v-owner" href="/dashboard/products">Edit product</a>
+      </span>
+    </div>
+
+    <!-- Follow opens this inline. Nothing on this page ever blocks a buy. -->
+    <div class="claim" id="claim" role="region" aria-label="Create an account to follow">
+      <p class="claim-h">Following needs an account — buying never does.</p>
+      <p class="claim-p">The button below works exactly the same whether you sign up or not.</p>
+      <div class="claim-row">
+        <input type="email" placeholder="you@email.com" aria-label="Email address" autocomplete="email">
+        <button class="btn btn--accent" type="button">Create account</button>
+        <button class="claim-x" type="button" id="claimX">Not now</button>
+      </div>
+    </div>
+
+    <div class="band-v v-owner">
+      <p><b><span>128</span> taps tracked &middot; <span>46</span> code copies</b>
+        Copies are counted; whether a code was redeemed in a shop is not.</p>
+      <a class="btn btn--accent" href="/dashboard">See all traffic</a>
+    </div>
+
+    <div class="pr">
+      <!-- A still, or the clip the creator filmed it in. Same component
+           as the post page's, same click-to-load rule. -->
+      <div class="pr-media m-still">
+        <img src="images/products/serum.jpg" alt="A glass dropper bottle of brightening serum on a pale background." width="900" height="900">
+      </div>
+      <div class="m-youtube">
+        <div class="embed" data-embed="youtube" data-src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1">
+        <img class="embed-poster" src="images/products/serum.jpg" alt="Still from the serum review." width="1200" height="800">
+        <span class="embed-scrim" aria-hidden="true"></span>
+        <span class="embed-src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg>YouTube</span>
+        <button class="embed-play" type="button">
+          <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+          <b>Play on YouTube</b>
+        </button>
+      </div>
+      <a class="embed-out" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+        Watch on YouTube instead
+      </a>
+      </div>
+      <div class="m-instagram m-portrait">
+        <div class="embed" data-embed="instagram" data-src="https://www.instagram.com/reel/CxAmPl3/embed/">
+        <img class="embed-poster" src="images/products/serum.jpg" alt="Still from the serum reel." width="1200" height="800">
+        <span class="embed-scrim" aria-hidden="true"></span>
+        <span class="embed-src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram</span>
+        <button class="embed-play" type="button">
+          <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+          <b>Play on Instagram</b>
+        </button>
+      </div>
+      <a class="embed-out" href="https://www.instagram.com/reel/CxAmPl3/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+        Watch on Instagram instead
+      </a>
+      </div>
+      <div class="m-tiktok m-portrait">
+        <div class="embed" data-embed="tiktok" data-src="https://www.tiktok.com/embed/v2/7300000000000000000">
+        <img class="embed-poster" src="images/products/serum.jpg" alt="Still from the serum clip." width="1200" height="800">
+        <span class="embed-scrim" aria-hidden="true"></span>
+        <span class="embed-src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3v11a4 4 0 1 1-4-4"/><path d="M14 6.5c1 1.6 2.6 2.5 4.5 2.5"/></svg>TikTok</span>
+        <button class="embed-play" type="button">
+          <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+          <b>Play on TikTok</b>
+        </button>
+      </div>
+      <a class="embed-out" href="https://www.tiktok.com/@mayamoves/video/7300000000000000000" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+        Watch on TikTok instead
+      </a>
+      </div>
+
+      <div>
+        <!-- The trust cue, above the name: whose shelf you are actually on. -->
+        <span class="own k-own">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Their own product
+        </span>
+
+        <h1 class="pr-h">Brightening serum</h1>
+        <p class="pr-price">&#8377;1,299</p>
+
+        <!-- The channel line survives a missing price, so this block never
+             collapses to a bare title. -->
+        <p class="pr-where">
+          <span class="k-linked"><b class="k-own">Their own product</b><b class="k-affiliate">Affiliate pick</b> &middot; opens Nykaa</span>
+          <span class="k-instore"><b>In-store offer</b> &middot; no link, use the code</span>
+        </p>
+
+        <!-- ── Coupon, ABOVE the button (§5.8) ───────────────────
+             Copy the code, then go. Below the button it would be read by
+             people who had already left. -->
+        <div class="coupon coupon--live" style="margin-top:20px">
+          <span class="coupon-ch ch-online">Online code</span>
+          <span class="coupon-ch ch-instore">In-store code</span>
+          <span class="coupon-ch ch-both">Online &amp; in-store code</span>
+          <div class="coupon-row">
+            <button class="code" type="button" data-code="SAVE30">
+              <b>SAVE30</b><em>Copy</em>
+            </button>
+            <span class="micro ch-online">30% off, applied at checkout</span>
+            <span class="micro ch-instore">30% off at the counter</span>
+            <span class="micro ch-both">30% off, online or in a shop</span>
+          </div>
+          <p class="coupon-note ch-hasstore">Show the code at the counter. In-store redemption is not tracked.</p>
+          <p class="coupon-exp">Valid till 31 Aug 2026</p>
+        </div>
+
+        <!-- An ended offer never takes the product down with it. -->
+        <div class="coupon coupon--dead" style="margin-top:20px">
+          <span class="coupon-ch">Offer ended</span>
+          <p class="coupon-note" style="margin-top:6px">The product is still available below.</p>
+        </div>
+
+        <div class="pr-buy" id="buy">
+          <button class="btn btn--accent k-own" type="button" data-buy>Shop their store</button>
+          <button class="btn btn--accent k-affiliate" type="button" data-buy>Buy</button>
+        </div>
+
+        <div class="pr-instore">
+          <b>The code is the whole thing here.</b>
+          <p>There is no link for this one &mdash; copy the code above and use it in the shop.</p>
+        </div>
+
+        <p class="offplat k-linked">
+          Payment settles off Plugfolio &middot; opens the retailer
+        </p>
+
+        <!-- Where it came from. Absent when a product was tagged straight
+             onto a shelf with no post behind it. -->
+        <a class="src" href="/mayamoves/post/3">
+          <img src="images/posts/skincare.jpg" alt="" width="120" height="120" loading="lazy">
+          <span class="src-t">
+            <span>From this post</span>
+            <b>Two tubes and a gua sha</b>
+          </span>
+          <span class="src-go" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Comments (§5.10) — the product's own thread ─────────── -->
+  <section class="inner cmw" aria-labelledby="cmh">
+    <div class="cmw-h">
+      <h2 id="cmh">Comments <span class="micro" style="font-weight:700">6</span></h2>
+      <a class="cmw-rep" href="#report">Report product</a>
+    </div>
+
+    <ul class="thread">
+      <li class="c">
+        <img src="images/avatars/nia.jpg" alt="" width="72" height="72" loading="lazy">
+        <div class="c-b">
+          <span class="c-who"><b>@niaeveryday</b><span class="c-when">2 days ago</span></span>
+          <p class="c-t">Does the code work on the 50ml too, or only the small one?</p>
+        </div>
+      </li>
+      <li class="c">
+        <img src="images/avatars/maya.jpg" alt="" width="72" height="72" loading="lazy">
+        <div class="c-b">
+          <span class="c-who"><b>@mayamoves</b><span class="c-badge">Creator</span><span class="c-when">2 days ago</span></span>
+          <p class="c-t">Both sizes. It comes off the cart total, not the item.</p>
+        </div>
+      </li>
+      <li class="c">
+        <span class="c-av" aria-hidden="true">R</span>
+        <div class="c-b">
+          <span class="c-who"><b>@rheamakes</b><span class="c-when">1 week ago</span></span>
+          <p class="c-t">Been using this since Maya tagged it in the spring. Third bottle.</p>
+        </div>
+      </li>
+    </ul>
+
+    <!-- Signed in you type; signed out you are told what an account is for,
+         and nothing about buying changes either way. -->
+    <div class="say v-signedin">
+      <img src="images/avatars/nia.jpg" alt="" width="68" height="68">
+      <input type="text" placeholder="Ask about this product…" aria-label="Write a comment">
+      <button class="btn btn--accent" type="button">Post</button>
+    </div>
+    <div class="say v-anon">
+      <span class="c-av" aria-hidden="true">?</span>
+      <p>Comments need an account &mdash; you will appear by a handle you choose, never your email.</p>
+      <a class="btn btn--ghost" href="/join">Create an account</a>
+    </div>
+  </section>
+
+  <!-- ── 404 ───────────────────────────────────────────────── -->
+  <div class="inner gone404">
+    <b>This product isn't here any more.</b>
+    <p>It may have been removed by the creator, or the link was wrong. Everything else
+      they have tagged is still on their page.</p>
+    <a class="btn btn--accent" href="/mayamoves">Go to @mayamoves</a>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/how-it-works">How it works</a>
+      <a class="foot-link" href="/support">Help</a>
+      <span class="micro">Shopping never needs an account &middot; 2026</span>
+    </div>
+  </div>
+</footer>
+
+<div data-chrome="tabs"></div>
+
+<script>
+(function () {
+  /* Follow → inline claim band. Never navigates, never walls the page. */
+  var claim = document.getElementById('claim'), x = document.getElementById('claimX');
+  function setClaim(open) {
+    document.body.dataset.claim = open ? 'open' : '';
+    document.querySelectorAll('[data-follow]').forEach(function (b) { b.setAttribute('aria-expanded', String(open)); });
+    if (open) { claim.scrollIntoView({ block: 'nearest' }); claim.querySelector('input').focus(); }
+  }
+  document.querySelectorAll('[data-follow]').forEach(function (b) {
+    b.addEventListener('click', function () { setClaim(document.body.dataset.claim !== 'open'); });
+  });
+  x.addEventListener('click', function () { setClaim(false); });
+
+  var following = false;
+  function paintFollow() {
+    document.querySelectorAll('[data-toggle-follow]').forEach(function (b) {
+      b.textContent = following ? 'Following' : 'Follow';
+      b.classList.toggle('btn--following', following);
+      b.classList.toggle('btn--accent', !following);
+      b.setAttribute('aria-pressed', String(following));
+    });
+  }
+  document.querySelectorAll('[data-toggle-follow]').forEach(function (b) {
+    b.addEventListener('click', function () { following = !following; paintFollow(); });
+  });
+  paintFollow();
+
+  /* ── Buy (§5.7) ─────────────────────────────────────────────
+     Disable, relabel "Opening…", record the tap in the background, then
+     go. A double tap has to feel absorbed rather than broken, and a
+     failed recording must stay invisible — the shopper still leaves. */
+  document.querySelectorAll('[data-buy]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (b.getAttribute('aria-busy') === 'true') return;
+      var was = b.textContent;
+      b.setAttribute('aria-busy', 'true');
+      b.textContent = 'Opening…';
+      /* stands in for the tracked tap + redirect */
+      setTimeout(function () { b.removeAttribute('aria-busy'); b.textContent = was; }, 1400);
+    });
+  });
+
+
+  /* ── Embeds ─────────────────────────────────────────────────
+     Nothing is requested from YouTube, Instagram or TikTok until the
+     shopper presses play. Until then this is a poster image on our own
+     origin, so a page reached without an account stays that way. */
+  document.querySelectorAll('.embed').forEach(function (box) {
+    var play = box.querySelector('.embed-play');
+    if (!play) return;
+    play.addEventListener('click', function () {
+      var f = document.createElement('iframe');
+      f.src = box.dataset.src;
+      f.title = play.querySelector('b').textContent;
+      f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture';
+      f.setAttribute('allowfullscreen', '');
+      f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+      box.appendChild(f);
+      box.dataset.loaded = '';
+    });
+  });
+
+  /* Copy code (§5.8) — inline confirmation, never a toast: in-app
+     browsers clip them. A clipboard denial stays silent, because the code
+     is printed on the button and can always just be read. */
+  document.querySelectorAll('.code').forEach(function (b) {
+    var label = b.querySelector('em'), original = label.textContent;
+    b.addEventListener('click', function () {
+      navigator.clipboard.writeText(b.dataset.code).then(function () {
+        b.dataset.copied = '';
+        label.textContent = 'Copied';
+        setTimeout(function () { delete b.dataset.copied; label.textContent = original; }, 2000);
+      }).catch(function () {});
+    });
+  });
+})();
+
+window.CHROME = { nav: null, tab: 'shop' };
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: '/[handle]/product/[id]',
+  groups: [
+    { label: 'Product kind', options: [
+      { name: 'Affiliate', note: 'A retailer link · Buy',            set: { kind: 'affiliate' } },
+      { name: 'Their own', note: 'Trust marker · Shop their store',  set: { kind: 'own'       } },
+      { name: 'In-store',  note: 'No link — the code IS the action', set: { kind: 'instore'   } }
+    ]},
+    { label: 'Coupon channel', options: [
+      { name: 'Online',    note: 'Code applies at checkout',      set: { channel: 'online'  } },
+      { name: 'In-store',  note: 'Redemption is not tracked',     set: { channel: 'instore' } },
+      { name: 'Both',      note: 'Works online and at a counter', set: { channel: 'both'    } }
+    ]},
+    { label: 'Coupon', options: [
+      { name: 'Live',  note: 'Code above the button',           set: { coupon: 'live'  } },
+      { name: 'Ended', note: 'Collapses; product survives it',  set: { coupon: 'ended' } },
+      { name: 'None',  note: 'No coupon block at all',          set: { coupon: 'none'  } }
+    ]},
+    { label: 'Media', options: [
+      { name: 'Photo',     note: 'A still from the retailer',   set: { media: 'still'     } },
+      { name: 'YouTube',   note: '16:9 · click to load',        set: { media: 'youtube'   } },
+      { name: 'Instagram', note: '9:16 reel · click to load',   set: { media: 'instagram' } },
+      { name: 'TikTok',    note: '9:16 · click to load',        set: { media: 'tiktok'    } }
+    ]},
+    { label: 'Price', options: [
+      { name: 'Known',   note: 'The number the page exists for', set: { price: 'known' } },
+      { name: 'Unknown', note: 'Line hidden — never “$0”',       set: { price: 'none'  } }
+    ]},
+    { label: 'Source post', options: [
+      { name: 'From a post',  note: 'Thumbnail back to it',        set: { src: 'known' } },
+      { name: 'Tagged direct',note: 'No post behind it',           set: { src: 'none'  } }
+    ]},
+    { label: 'Who is looking', options: [
+      { name: 'Guest',    note: 'Buys freely, no account', set: { viewer: 'anon'     } },
+      { name: 'Shopper',  note: 'Can comment',             set: { viewer: 'shopper'  } },
+      { name: 'Business', note: 'Same buy path',           set: { viewer: 'business' } },
+      { name: 'Owner',    note: 'Taps + code copies',      set: { viewer: 'owner'    } }
+    ]},
+    { label: 'Page state', options: [
+      { name: 'Found',    note: 'The product',   set: { state: 'full' } },
+      { name: 'Not found',note: '404',           set: { state: 'gone' } }
+    ]}
+  ]
+};
+</script>
+<script src="chrome.js" defer></script>
+<script src="creator-prefs.js" defer></script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

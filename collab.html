@@ -1,0 +1,409 @@
+<!doctype html>
+<!--
+  Plugfolio — /collabs/[collabId], the collab thread. Spec: §5.24.
+
+  ONE screen, two roles. The viewer's side is resolved server-side and
+  drives the back link, the attribution and which messages sit right.
+  Building a business version and a creator version would be two screens
+  that have to agree about one conversation forever.
+
+  THE PIN IS THE POINT. A negotiation held only in messages leaves both
+  sides scrolling to find what was actually agreed, and disagreeing about
+  it later. So the live terms sit pinned at the top, and a new proposal
+  CLEARS BOTH ACCEPTANCES — "Agreed" can then only ever mean agreed to
+  the terms currently shown, never to something three messages up.
+
+  v1 handles no money. Price is free text, the thread's job ends at
+  agreed terms, and the agreed banner says payment settles off Plugfolio
+  rather than implying an escrow that does not exist.
+
+  Non-participants get a 404, not a permission error: the thread must not
+  exist for them. Confirming that a thread exists is itself a leak.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fold &amp; Co × @mayamoves — Plugfolio</title>
+<meta name="description" content="One thread, from first message to agreed terms.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.bch { border-bottom: 1px solid var(--line); }
+.bch-in { display: flex; align-items: center; gap: 14px; padding-block: 16px; }
+.bch-in .mark { margin-right: auto; }
+
+.wrap { max-width: 760px; margin-inline: auto; padding-block: clamp(18px, 3vw, 28px) clamp(40px, 6vw, 72px); }
+
+/* ── The terms card, pinned ─────────────────────────────────
+   Sticky, because the whole reason it exists is to be readable without
+   scrolling back through the argument that produced it. */
+.terms { position: sticky; top: 8px; z-index: 20; padding: 18px 20px;
+  border-radius: var(--r-tile); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); }
+.terms-h { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.terms-h b { flex: 1 1 220px; min-width: 0; font-family: Sora, system-ui, sans-serif;
+  font-weight: 800; font-size: var(--t-title); letter-spacing: -.02em; }
+.terms-sub { margin: 4px 0 0; font-size: var(--t-micro); color: var(--ink-3); }
+.terms-live { margin: 14px 0 0; padding: 13px 15px; border-radius: var(--r-image);
+  background: var(--canvas); font-size: var(--t-copy); line-height: 1.55; }
+.terms-live b { font-weight: 700; }
+.terms-none { color: var(--ink-3); }
+
+.agreed-banner { display: none; align-items: center; gap: 10px; margin-top: 12px;
+  padding: 12px 15px; border-radius: var(--r-image);
+  background: var(--lime); color: var(--on-white); font-size: var(--t-copy); font-weight: 700; }
+.agreed-banner svg { width: 17px; height: 17px; flex: none; }
+body[data-state="agreed"] .agreed-banner { display: flex; }
+
+.pill--agreed { background: var(--lime); color: var(--on-white); }
+.pill--negot { background: var(--violet-wash); color: var(--violet-deep); }
+body:not([data-state="agreed"]) .pill--agreed,
+body[data-state="agreed"] .pill--negot { display: none; }
+
+/* ── Messages ───────────────────────────────────────────────
+   Oldest first, and aligned by whose they are. A thread that has to be
+   read top-down to make sense should not also be read bottom-up. */
+.msgs { display: grid; gap: 14px; margin-top: 22px; }
+.msg { max-width: 76%; }
+.msg-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 5px;
+  font-size: var(--t-micro); color: var(--ink-3); }
+.msg-who b { font-size: var(--t-micro); font-weight: 700; color: var(--ink-2); }
+.msg-b { padding: 12px 16px; border-radius: var(--r-tile); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--card-edge); font-size: var(--t-copy); line-height: 1.55; }
+.msg--mine { margin-left: auto; }
+.msg--mine .msg-who { justify-content: flex-end; }
+.msg--mine .msg-b { background: var(--ink); color: var(--surface); box-shadow: none; }
+
+/* A proposal is an event in the thread, not a message — it changed what
+   both sides are agreeing to, so it reads as a marker across the column
+   rather than as something someone said. */
+.evt { display: flex; align-items: center; gap: 12px; margin-block: 4px; }
+.evt::before, .evt::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.evt span { flex: none; font-size: var(--t-micro); font-weight: 700; color: var(--ink-3);
+  text-align: center; }
+
+/* ── Actions ────────────────────────────────────────────────── */
+.acts { margin-top: 24px; display: grid; gap: 12px; }
+.composer { display: flex; flex-wrap: wrap; gap: 8px; }
+.composer input { flex: 1 1 240px; min-width: 0; min-height: 48px; padding: 12px 16px;
+  border-radius: var(--r-chip); border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink); font: inherit; font-size: var(--t-copy); }
+.composer input::placeholder { color: var(--ink-3); }
+.composer input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px;
+  border-color: var(--accent); }
+
+.accept { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 16px;
+  border-radius: var(--r-tile); background: var(--surface); box-shadow: 0 0 0 1px var(--card-edge); }
+.accept p { margin: 0; flex: 1 1 220px; font-size: var(--t-copy); color: var(--ink-2); }
+.accept .btn { flex: none; }
+body:not([data-them="yes"]) .them-yes,
+body[data-them="yes"] .them-no { display: none; }
+
+.alert { display: none; align-items: center; gap: 9px; padding: 12px 15px;
+  border-radius: var(--r-image); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--danger); color: var(--danger-ink);
+  font-size: var(--t-copy); font-weight: 600; }
+.alert svg { width: 16px; height: 16px; flex: none; }
+body[data-err="yes"] .alert { display: flex; }
+
+.warn-line { display: flex; gap: 9px; margin: 12px 0 0; padding: 11px 14px;
+  border-radius: var(--r-image); background: var(--canvas);
+  font-size: var(--t-micro); color: var(--ink-2); line-height: 1.5; }
+.warn-line svg { width: 15px; height: 15px; flex: none; margin-top: 1px; color: var(--ink-3); }
+
+.two { display: grid; gap: 14px; }
+@media (min-width: 620px) { .two { grid-template-columns: 1fr 1fr; } }
+
+/* ── Which side am I ────────────────────────────────────────
+   One attribute. The back link, the attribution and the alignment all
+   read from it, so they cannot disagree. */
+body:not([data-side="business"]) .v-biz,
+body:not([data-side="creator"])  .v-cre { display: none; }
+
+/* ── 404 ────────────────────────────────────────────────────
+   A non-participant is told the thread does not exist, not that they
+   lack permission — "you can't see this" confirms there is something
+   to see. */
+body:not([data-view="gone"]) .gone404,
+body[data-view="gone"] .wrap { display: none; }
+.gone404 { text-align: center; padding: clamp(48px, 9vw, 110px) 24px; }
+.gone404 b { display: block; font-family: Sora, system-ui, sans-serif;
+  font-size: var(--t-title); font-weight: 800; letter-spacing: -.02em; }
+.gone404 p { margin: 10px auto 0; max-width: 42ch; font-size: var(--t-copy); color: var(--ink-2); }
+.gone404 .btn { margin-top: 22px; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body data-page="collab" data-role="business" data-side="business"
+      data-state="negotiating" data-them="no" data-err="no" data-view="ok">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#say">Skip to the composer</a>
+
+<div class="bch">
+  <div class="inner bch-in">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <a class="nav-link" href="/account">Account</a>
+  </div>
+</div>
+
+<main class="inner">
+  <div class="wrap">
+    <!-- The back link goes where the viewer came from, which differs by
+         side. Sending a creator to /collabs would land them on a
+         business surface they cannot use. -->
+    <a class="back v-biz" href="/collabs.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      All collabs
+    </a>
+    <a class="back v-cre" href="/dashboard.html?tab=collabs">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      All collabs
+    </a>
+
+    <!-- ── The pinned terms ── -->
+    <div class="terms" style="margin-top:12px">
+      <div class="terms-h">
+        <b>Fold &amp; Co &times; @mayamoves</b>
+        <span class="pill pill--negot">Negotiating</span>
+        <span class="pill pill--agreed">Agreed</span>
+      </div>
+      <p class="terms-sub">Skincare creators for a spring launch</p>
+
+      <p class="terms-live" id="liveTerms">
+        <b>The terms &middot;</b> Two posts and one story &middot; &#8377;25,000 &middot; by 30 Aug 2026
+      </p>
+
+      <div class="agreed-banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Both sides accepted &mdash; payment settles off Plugfolio.
+      </div>
+    </div>
+
+    <!-- ── The conversation ── -->
+    <div class="msgs">
+      <div class="msg v-biz msg--mine">
+        <span class="msg-who"><b>Fold &amp; Co</b> 12 June</span>
+        <p class="msg-b">Hi Maya — we&rsquo;re launching a serum in the spring and your skin posts are
+          exactly the register we want. Would you be open to it?</p>
+      </div>
+      <div class="msg v-cre">
+        <span class="msg-who"><b>Fold &amp; Co</b> 12 June</span>
+        <p class="msg-b">Hi Maya — we&rsquo;re launching a serum in the spring and your skin posts are
+          exactly the register we want. Would you be open to it?</p>
+      </div>
+
+      <div class="msg v-biz">
+        <span class="msg-who"><b>@mayamoves</b> 12 June</span>
+        <p class="msg-b">Open to it. Two posts and a story &mdash; is that within range?</p>
+      </div>
+      <div class="msg v-cre msg--mine">
+        <span class="msg-who"><b>@mayamoves</b> 12 June</span>
+        <p class="msg-b">Open to it. Two posts and a story &mdash; is that within range?</p>
+      </div>
+
+      <div class="evt"><span>Fold &amp; Co proposed terms &middot; 13 June</span></div>
+
+      <div class="msg v-biz msg--mine">
+        <span class="msg-who"><b>Fold &amp; Co</b> 13 June</span>
+        <p class="msg-b">It is. Proposed above &mdash; shout if the date is tight and we&rsquo;ll move it.</p>
+      </div>
+      <div class="msg v-cre">
+        <span class="msg-who"><b>Fold &amp; Co</b> 13 June</span>
+        <p class="msg-b">It is. Proposed above &mdash; shout if the date is tight and we&rsquo;ll move it.</p>
+      </div>
+
+      <div class="msg v-biz">
+        <span class="msg-who"><b>@mayamoves</b> 14 June</span>
+        <p class="msg-b">Date works. Sending my posting week so we line up.</p>
+      </div>
+      <div class="msg v-cre msg--mine">
+        <span class="msg-who"><b>@mayamoves</b> 14 June</span>
+        <p class="msg-b">Date works. Sending my posting week so we line up.</p>
+      </div>
+    </div>
+
+    <!-- ── Actions ── -->
+    <div class="acts" id="say">
+      <p class="alert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>
+        <span id="errText">That didn&rsquo;t send. Try again.</span>
+      </p>
+
+      <form class="composer" id="sayForm">
+        <input type="text" id="sayInput" placeholder="Write a message…" aria-label="Write a message" autocomplete="off">
+        <button class="btn btn--accent" type="submit">Send</button>
+      </form>
+
+      <!-- The status line is on the left and the button on the right, so
+           "have they accepted" is read before "do I accept", which is the
+           order the decision is actually made in. -->
+      <div class="accept">
+        <p class="them-yes">The other side has accepted.</p>
+        <p class="them-no">The other side hasn&rsquo;t accepted yet.</p>
+        <button class="btn btn--accent" type="button" id="acceptBtn">Accept terms</button>
+      </div>
+
+      <div class="fold">
+        <button class="fold-t" type="button" id="propT" aria-expanded="false" aria-controls="propB">
+          Propose terms
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="fold-b" id="propB">
+          <div class="field">
+            <label for="pWhat">What gets made</label>
+            <input id="pWhat" type="text" value="Two posts and one story">
+          </div>
+          <div class="two">
+            <div class="field">
+              <label for="pPrice">Price <i>&middot; optional</i></label>
+              <input id="pPrice" type="text" value="₹25,000">
+              <span class="note">Free text &mdash; whatever currency and shape you both use.</span>
+            </div>
+            <div class="field">
+              <label for="pBy">Deadline <i>&middot; optional</i></label>
+              <input id="pBy" type="text" value="30 Aug 2026">
+            </div>
+          </div>
+
+          <!-- Stated before the button, not after. This is the one action
+               here that undoes something the other side already did. -->
+          <p class="warn-line">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>
+            A new proposal resets both acceptances, so &ldquo;Agreed&rdquo; always means agreed to
+            the terms shown at the top.
+          </p>
+
+          <div class="card-foot" style="border-top:0;padding-top:12px;margin-top:4px">
+            <button class="btn btn--accent" type="button" id="propBtn">Propose</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="note" style="text-align:center">The thread&rsquo;s job ends at agreed terms.
+        Plugfolio handles no money and takes no cut &mdash; payment settles between you.</p>
+    </div>
+  </div>
+
+  <!-- ── Not a participant ── -->
+  <div class="gone404">
+    <b>This page doesn&rsquo;t exist.</b>
+    <p>If someone sent you here, ask them to check the link.</p>
+    <a class="btn btn--accent" href="/">Go home</a>
+  </div>
+</main>
+
+<script>
+(function () {
+  var body = document.body;
+  var mine = 0;
+
+  /* Send. An empty message is rejected without ceremony — no alert, no
+     shake, the form simply does not submit. */
+  var form = document.getElementById('sayForm'), input = document.getElementById('sayInput');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = input.value.trim();
+    if (!v) { input.focus(); return; }
+    body.dataset.err = 'no';
+    var who = body.dataset.side === 'business' ? 'Fold &amp; Co' : '@mayamoves';
+    var el = document.createElement('div');
+    el.className = 'msg msg--mine';
+    el.innerHTML = '<span class="msg-who"><b>' + who + '</b> just now</span>' +
+                   '<p class="msg-b"></p>';
+    el.querySelector('.msg-b').textContent = v;
+    document.querySelector('.msgs').appendChild(el);
+    input.value = '';
+    el.scrollIntoView({ block: 'nearest' });
+    mine++;
+  });
+
+  /* Accept. Once you have accepted, the button states that rather than
+     offering the action again — an enabled "Accept terms" after you have
+     accepted invites a second press that means nothing. */
+  var acc = document.getElementById('acceptBtn');
+  var iAccepted = false;
+  function paintAccept() {
+    acc.disabled = iAccepted;
+    acc.textContent = iAccepted ? 'You accepted' : 'Accept terms';
+    body.dataset.state = (iAccepted && body.dataset.them === 'yes') ? 'agreed' : 'negotiating';
+  }
+  acc.addEventListener('click', function () {
+    iAccepted = true; paintAccept();
+  });
+
+  /* Propose. The reset is the whole reason this warning exists: after
+     it, "Agreed" can only mean agreed to what is pinned. */
+  var pT = document.getElementById('propT');
+  pT.addEventListener('click', function () {
+    pT.setAttribute('aria-expanded', pT.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+  });
+
+  document.getElementById('propBtn').addEventListener('click', function () {
+    var what = document.getElementById('pWhat').value.trim();
+    if (!what) { document.getElementById('pWhat').focus(); return; }
+    var price = document.getElementById('pPrice').value.trim();
+    var by = document.getElementById('pBy').value.trim();
+    var bits = [what].concat(price ? [price] : [], by ? ['by ' + by] : []);
+
+    var live = document.getElementById('liveTerms');
+    live.classList.remove('terms-none');
+    live.innerHTML = '<b>The terms &middot;</b> ' + bits.join(' &middot; ');
+
+    /* Both acceptances clear — including the other side's. */
+    iAccepted = false;
+    body.dataset.them = 'no';
+    paintAccept();
+
+    var who = body.dataset.side === 'business' ? 'Fold &amp; Co' : '@mayamoves';
+    var evt = document.createElement('div');
+    evt.className = 'evt';
+    evt.innerHTML = '<span>' + who + ' proposed terms &middot; just now</span>';
+    document.querySelector('.msgs').appendChild(evt);
+    pT.setAttribute('aria-expanded', 'false');
+    document.querySelector('.terms').scrollIntoView({ block: 'nearest' });
+  });
+
+  paintAccept();
+})();
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: '/collabs/[id]',
+  groups: [
+    { label: 'Whose view', options: [
+      { name: 'Business', note: 'Back to /collabs',           set: { side: 'business' } },
+      { name: 'Creator',  note: 'Back to the dashboard tab',  set: { side: 'creator'  } }
+    ]},
+    { label: 'The other side', options: [
+      { name: 'Has accepted',  note: 'Yours is all it needs', set: { them: 'yes' } },
+      { name: 'Has not',       note: 'Still negotiating',     set: { them: 'no'  } }
+    ]},
+    { label: 'Terms', options: [
+      { name: 'Negotiating', note: 'Proposed, not both-accepted', set: { state: 'negotiating' } },
+      { name: 'Agreed',      note: 'Banner appears',              set: { state: 'agreed'      } }
+    ]},
+    { label: 'Send error', options: [
+      { name: 'None',   note: 'The everyday case',   set: { err: 'no'  } },
+      { name: 'Failed', note: 'One shared alert',    set: { err: 'yes' } }
+    ]},
+    { label: 'Access', options: [
+      { name: 'Participant', note: 'The thread',              set: { view: 'ok'   } },
+      { name: 'Not a party', note: '404 — never “forbidden”', set: { view: 'gone' } }
+    ]}
+  ]
+};
+</script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

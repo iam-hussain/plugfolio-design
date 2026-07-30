@@ -39,7 +39,7 @@
   ];
 
   var HEADERS = [
-    { id: 'minimal',  name: 'Compact',  note: 'Goods first. Bio and socials stand down.' },
+    { id: 'minimal',  name: 'Compact',  note: 'Goods first. Everything tightens; nothing is dropped.' },
     { id: 'balanced', name: 'Balanced', note: 'Identity, then shelves, then posts.' },
     { id: 'identity', name: 'Centred',  note: 'Big avatar, centred. Reads as a profile.' }
   ];
@@ -50,12 +50,18 @@
     { id: 'list', name: 'List',  note: 'One per row. Easiest to scan on a phone.' }
   ];
 
+  /* The same glyphs the page renders, so the switch looks like the thing
+     it switches. Four word-chips made a creator read four labels to find
+     "the TikTok one"; the icon is recognised without reading. */
   var SOCIALS = [
-    { id: 'instagram', name: 'Instagram' },
-    { id: 'youtube',   name: 'YouTube' },
-    { id: 'tiktok',    name: 'TikTok' },
-    { id: 'site',      name: 'Website' }
+    { id: 'instagram', name: 'Instagram', icon: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>' },
+    { id: 'youtube',   name: 'YouTube',   icon: '<rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/>' },
+    { id: 'tiktok',    name: 'TikTok',    icon: '<path d="M14 3v11a4 4 0 1 1-4-4"/><path d="M14 6.5c1 1.6 2.6 2.5 4.5 2.5"/>' },
+    { id: 'site',      name: 'Website',   icon: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/>' }
   ];
+  function glyph(d) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' + d + '</svg>';
+  }
 
   var p = Object.assign({}, DEFAULTS);
   try {
@@ -91,9 +97,11 @@
   }
   apply();
 
-  /* ── The customiser. Only the owner, only where a mount exists. ── */
-  var mount = document.getElementById('customise');
-  if (!mount) return;
+  /* ── The customiser. Only the owner, only where a trigger exists. ── */
+  var triggers = document.querySelectorAll('[data-customise]');
+  var sheet = document.getElementById('czSheet');
+  var sheetBody = document.getElementById('czBody');
+  if (!triggers.length || !sheet || !sheetBody) return;
 
   function seg(label, items, get, set) {
     var wrap = document.createElement('div');
@@ -101,19 +109,27 @@
     wrap.innerHTML = '<span class="cz-lab">' + label + '</span>';
     var row = document.createElement('div');
     row.className = 'cz-seg';
+    var why = document.createElement('p');
+    why.className = 'cz-why';
+    function explain() {
+      var hit = items.filter(function (i) { return i.id === get(); })[0];
+      why.textContent = hit && hit.note ? hit.note : '';
+    }
     items.forEach(function (it) {
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'cz-opt';
       b.setAttribute('aria-pressed', get() === it.id ? 'true' : 'false');
-      b.innerHTML = '<s>' + it.name + '</s>' + (it.note ? '<em>' + it.note + '</em>' : '');
+      b.innerHTML = '<s>' + it.name + '</s>';
       b.addEventListener('click', function () {
         set(it.id); save(); apply();
         row.querySelectorAll('.cz-opt').forEach(function (o) { o.setAttribute('aria-pressed', 'false'); });
         b.setAttribute('aria-pressed', 'true');
+        explain();
       });
       row.appendChild(b);
     });
-    wrap.appendChild(row);
+    explain();
+    wrap.appendChild(row); wrap.appendChild(why);
     return wrap;
   }
 
@@ -132,9 +148,12 @@
   }
 
   var panel = document.createElement('div');
-  panel.className = 'cz v-owner'; panel.id = 'czPanel'; panel.hidden = true;
+  /* No .v-owner: it lives inside a drawer only an owner can open, and the
+     viewer-visibility rules would otherwise hide it while the review panel
+     is set to a different viewer. */
+  panel.className = 'cz'; panel.id = 'czPanel';
   panel.innerHTML = '<p class="cz-note">Changes save as you type and show on your post and product pages too. ' +
-    'Everything else — username, connections, managers — stays in <a href="/dashboard/settings">Settings</a>.</p>';
+    'Username, connections and managers live in <a href="/dashboard/settings">Settings</a>.</p>';
 
   panel.appendChild(field('Greeting', p.greeting, 'Hi, I\'m Maya — here\'s what I actually use.', false,
     function (v) { p.greeting = v; }));
@@ -168,12 +187,13 @@
   soc.className = 'cz-row';
   soc.innerHTML = '<span class="cz-lab">Show links</span>';
   var socRow = document.createElement('div');
-  socRow.className = 'cz-seg';
+  socRow.className = 'cz-socs';
   SOCIALS.forEach(function (s) {
     var b = document.createElement('button');
-    b.type = 'button'; b.className = 'cz-opt cz-opt--tog';
+    b.type = 'button'; b.className = 'cz-soc';
     b.setAttribute('aria-pressed', p.socials[s.id] ? 'true' : 'false');
-    b.innerHTML = '<s>' + s.name + '</s>';
+    b.innerHTML = '<span class="cz-soc-i">' + glyph(s.icon) + '</span>' +
+                  '<b>' + s.name + '</b><span class="cz-sw-t" aria-hidden="true"></span>';
     b.addEventListener('click', function () {
       p.socials[s.id] = !p.socials[s.id]; save(); apply();
       b.setAttribute('aria-pressed', p.socials[s.id] ? 'true' : 'false');
@@ -187,7 +207,7 @@
   pic.className = 'cz-row';
   pic.innerHTML = '<span class="cz-lab">Profile photo</span>';
   var picRow = document.createElement('div');
-  picRow.className = 'cz-seg';
+  picRow.className = 'cz-pic';
   var file = document.createElement('input');
   file.type = 'file'; file.accept = 'image/*'; file.id = 'czPic'; file.className = 'cz-file';
   var lab = document.createElement('label');
@@ -208,80 +228,53 @@
   picRow.appendChild(file); picRow.appendChild(lab); picRow.appendChild(reset);
   pic.appendChild(picRow); panel.appendChild(pic);
 
-  var band = mount.closest('.band-v') || mount;
-  band.parentNode.insertBefore(panel, band.nextSibling);
+  /* ── One presentation ──────────────────────────────────────────────
+     The panel used to live inline under the owner band on desktop and get
+     moved into a sheet on phones — one node, two homes, and about sixty
+     lines of move/restore/self-heal to stop it being stranded in a dialog
+     that no longer opened at that width.
 
-  /* ── Two presentations, one panel ──────────────────────────────────
-     On a phone the controls arrive as a dragged sheet; on a desktop they
-     open inline under the band. The SAME node moves between the two, so
-     a value edited in one can never disagree with the other. */
-  var sheet = document.getElementById('czSheet');
-  var sheetBody = document.getElementById('czBody');
-  var home = panel.parentNode, anchor = panel.nextSibling;
-  var phone = window.matchMedia('(max-width: 780px)');
+     It is a drawer at every width now. The panel is built into the drawer
+     once and never moves, so all of that goes: there is nothing to strand.
+     A drawer is also the better answer to what this panel is for — it
+     stands beside the page instead of pushing it down, so the thing being
+     edited stays where it was while you edit it. */
+  sheetBody.appendChild(panel);
+  panel.hidden = false;
 
-  function label(open) {
-    mount.setAttribute('aria-expanded', open ? 'true' : 'false');
-    mount.textContent = open ? 'Done customising' : 'Customise page';
+  function setOpen(open) {
+    triggers.forEach(function (t) { t.setAttribute('aria-expanded', String(open)); });
   }
+  function close() { if (sheet.open) sheet.close(); setOpen(false); sheet.style.transform = ''; sheet.style.transition = ''; }
 
-  /* Idempotent: safe to call on close, on Escape, and on a breakpoint
-     change — whichever happens first, the panel ends up back in the page. */
-  function restore() {
-    if (panel.parentNode !== home) home.insertBefore(panel, anchor);
-    panel.hidden = true;
-    if (sheet) { sheet.style.transform = ''; sheet.style.transition = ''; }
-    label(false);
-  }
-
-  function closeSheet() { if (sheet.open) sheet.close(); restore(); }
-
-  mount.addEventListener('click', function () {
-    if (phone.matches && sheet) {
-      if (sheet.open) { closeSheet(); return; }
-      panel.hidden = false;
-      sheetBody.appendChild(panel);
-      sheet.showModal();
-      label(true);
-    } else {
-      /* Self-heal: if a close was ever missed the panel is still parked
-         inside a dialog that no longer opens at this width, so pull it
-         back before deciding what the toggle means. */
-      if (panel.parentNode !== home) { restore(); }
-      panel.hidden = !panel.hidden;
-      label(!panel.hidden);
-    }
+  triggers.forEach(function (t) {
+    t.setAttribute('aria-expanded', 'false');
+    t.addEventListener('click', function () {
+      if (sheet.open) { close(); return; }
+      sheet.showModal(); setOpen(true);
+    });
   });
 
-  if (sheet) {
-    document.getElementById('czClose').addEventListener('click', closeSheet);
-    sheet.addEventListener('click', function (e) { if (e.target === sheet) closeSheet(); });
-    sheet.addEventListener('close', restore);
-    sheet.addEventListener('cancel', function () { setTimeout(restore, 0); });
-    /* Escape is handled natively by <dialog>, but the panel lives outside
-       it — one missed close event would strand the controls in a closed
-       dialog, so the key is handled here too. restore() is idempotent. */
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && panel.parentNode === sheetBody) closeSheet();
-    });
-    /* Rotating a phone or resizing must not strand the panel inside a
-       dialog that no longer opens at this width. */
-    phone.addEventListener('change', function () { if (sheet.open) closeSheet(); else restore(); });
+  document.getElementById('czClose').addEventListener('click', close);
+  sheet.addEventListener('click', function (e) { if (e.target === sheet) close(); });
+  sheet.addEventListener('close', function () { setOpen(false); });
 
-    var grab = document.getElementById('czGrab'), y0 = null;
+  /* Drag down to dismiss, on the phone presentation. */
+  var grab = document.getElementById('czGrab'), y0 = null;
+  if (grab) {
     grab.addEventListener('pointerdown', function (e) { y0 = e.clientY; grab.setPointerCapture(e.pointerId); });
     grab.addEventListener('pointermove', function (e) {
       if (y0 === null) return;
       sheet.style.transition = 'none';
       sheet.style.transform = 'translateY(' + Math.max(0, e.clientY - y0) + 'px)';
     });
-    function release(e) {
+    var release = function (e) {
       if (y0 === null) return;
       var dy = Math.max(0, e.clientY - y0); y0 = null;
       sheet.style.transition = 'transform .26s cubic-bezier(.2,.9,.25,1)';
-      if (dy > 120) { sheet.style.transform = 'translateY(100%)'; setTimeout(closeSheet, 220); }
+      if (dy > 120) { sheet.style.transform = 'translateY(100%)'; setTimeout(close, 220); }
       else { sheet.style.transform = ''; }
-    }
+    };
     grab.addEventListener('pointerup', release);
     grab.addEventListener('pointercancel', release);
   }

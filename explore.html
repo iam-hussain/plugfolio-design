@@ -32,25 +32,23 @@
 /* No max-width on .ex-head itself — it also carries .inner, whose auto
    margins would centre the whole head and knock it out of alignment with
    the content below. Cap the individual blocks instead. */
-.ex-head { padding-block: clamp(18px, 2.4vw, 28px) 0; }
-.ex-head .headline { max-width: 15ch; }
+.ex-head { padding-block: 0; }
+/* Same shape as /following's head: title and a status chip on one baseline,
+   then the controls. */
+.ex-title { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.excount { margin: 0; font-size: var(--t-micro); font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; background: var(--violet-wash); color: var(--violet-deep);
+  border-radius: var(--r-chip); padding: 8px 14px; }
+/* Deepened, not lightened — the shared on-gradient fill. See
+   On-Gradient-Deepens in DESIGN.md. */
+body:not([data-viewer="anon"]) .excount { background: var(--on-grad-fill); color: #FFFFFF; }
+.ex-do { margin-top: clamp(20px, 3vw, 28px); }
 
-/* The honesty label — a product feature, not fine print. Canvas by default,
-   because that is what a signed-out visitor sees; the gradient variants are
-   overrides further down. */
-.guestnote { display: inline-flex; align-items: center; gap: 9px; margin-top: 18px;
-  background: var(--violet-wash); color: var(--violet-deep);
-  border: 1px solid transparent;
-  border-radius: var(--r-chip); padding: 9px 16px;
-  font-size: var(--t-micro); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-.guestnote svg { width: 15px; height: 15px; flex: none; }
-body:not([data-viewer="anon"]) .guestnote {
-  background: rgb(255 255 255 / .16); color: #FFFFFF; border-color: rgb(255 255 255 / .38); }
 
 /* ── search: a plain GET form, works with JS off ───────────── */
 /* Capped: a search field running the full 1200px measure is harder to aim
    at and reads as a page-wide bar rather than a control. */
-.sform { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; max-width: 640px; }
+.sform { display: flex; gap: 10px; flex-wrap: wrap; max-width: 640px; }
 /* .onhero-field in styles.css supplies the translucent fill and white type. */
 .sfield { flex: 1 1 260px; display: flex; align-items: center; gap: 10px;
   border: 1px solid transparent;
@@ -65,37 +63,28 @@ body:not([data-viewer="anon"]) .guestnote {
 body:not([data-viewer="anon"]) .sform .btn { background: #FFFFFF; color: var(--on-white); }
 body:not([data-viewer="anon"]) .sform .btn:hover { background: var(--lime); color: var(--on-white); }
 
-/* ── search scope ──────────────────────────────────────────
-   Browsing and searching want different things. Browsing the wall reaches
-   creators AND products through the content that contains them, so the old
-   Creators/Products tab switch was dead weight — that part of dropping it
-   holds. Searching is the opposite: "maya" wants a person, "keyboard" wants
-   a thing, and one undifferentiated list buries whichever you meant.
+/* ── scope ─────────────────────────────────────────────────
+   ONE control, not two. There used to be a separate "Showing: Everything /
+   Creators / Posts / Things" row that appeared only with a query, sitting
+   directly above the chip row and carrying the same ?tab= param — two
+   controls doing one job, and on a scoped URL both rendered at once.
 
-   So the scope appears only once there is a query, carried in ?tab= exactly
-   as the spec specifies. No query, no control. */
-/* Scrolls, never wraps. Wrapping drops the last chip onto a line of its own
-   where it reads as a stray control rather than the fourth option in a set —
-   the same reason .shelves scrolls. */
-.scope { display: flex; gap: 8px; margin-top: 14px; flex-wrap: nowrap;
-  align-items: center; overflow-x: auto; scrollbar-width: none;
-  scroll-snap-type: x proximity; padding-bottom: 4px; }
-.scope::-webkit-scrollbar { display: none; }
-.scope .shelf { flex: none; scroll-snap-align: start; }
-.scope-l { color: var(--ink-2); margin-right: 2px; flex: none; }
-/* Results reuse the fan and the wall as their Creators and Posts groups —
+   The chip row is now the scope, query or no query, so narrowing works the
+   same way whether you searched or just arrived.
+
+   Results reuse the fan and the wall as their Creators and Posts groups —
    they are already group blocks with a heading, a count and a See-all. Only
    the labelling changes, so a search result and a browse are the same page
    in two states rather than two layouts to keep in step. */
-body:not([data-state="results"]) .scope,
+body:not([data-tab="following"]) .fol,
+body[data-tab="following"] :is(.browse, .res),
 body:not([data-state="results"]) .res { display: none; }
-body[data-state="results"] .shelves,
 body[data-state="results"] .browse { display: none; }
-/* Scoped/searched, the shelf row is gone so the head is much shorter — the
-   102px run-in sized for a browsing page then reads as a void above the
-   first result. */
-body[data-state="results"] .fanhead,
-body[data-state="results"] .wallhead { margin-top: clamp(18px, 2vw, 26px); }
+/* When the wall heading is the FIRST block — scoped to posts or things, so
+   there is no fan above it — its top rule has nothing to separate it from
+   and reads as a stray line under the controls. */
+body:is([data-tab="posts"], [data-tab="things"], [data-tab="following"]) .wallhead,
+body[data-tab="things"] .thingshead { border-top: 0; padding-top: 0; }
 
 /* ?tab= scopes the page to one kind. Creators are the fan; posts and things
    both live in the wall, since a thing is only reachable through the post
@@ -115,6 +104,8 @@ body[data-tab="things"] .fan,
    styling, so hiding .wallhead in this scope was hiding the heading of the
    very view it was switching to. The ad goes too: it was positioned inside
    the wall, so with the wall gone it floats between unrelated things. */
+body[data-tab="following"] .fanhead,
+body[data-tab="following"] .fan,
 body[data-tab="things"] .wallhead:not(.thingshead),
 body[data-tab="things"] .wall,
 body[data-tab="things"] .adslot,
@@ -189,16 +180,23 @@ body[data-tab="creators"] .fc:hover { transform: translateY(-4px); }
 .shelf:hover { border-color: var(--violet); color: var(--violet-deep); }
 .shelf[aria-current="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 /* On the gradient the emphasis inverts: white IS the highlight there. */
+/* Deepened, not lightened — see On-Gradient-Deepens in DESIGN.md. White on
+   the old white-tint fill measured 3.97–4.52 at rest and got WORSE on hover
+   (3.28–3.69): the affordance made the label less readable. */
 body:not([data-viewer="anon"]) .shelf {
-  background: rgb(255 255 255 / .13); border-color: rgb(255 255 255 / .34); color: #FFFFFF; }
+  background: var(--on-grad-fill); border-color: rgb(255 255 255 / .34); color: #FFFFFF; }
 body:not([data-viewer="anon"]) .shelf:hover {
-  background: rgb(255 255 255 / .24); border-color: #FFFFFF; }
+  background: var(--on-grad-fill-hi); border-color: #FFFFFF; }
 body:not([data-viewer="anon"]) .shelf[aria-current="true"] {
   background: #FFFFFF; border-color: #FFFFFF; color: var(--on-white); }
 
 /* ── the fan: creators, tilted and overlapping ─────────────── */
+/* No margin-top: .fanhead is the first block inside .sheet, whose padding-top
+   already sets the run-in. A margin here stacked on top of it and put ~94px
+   between the shelf row and the first heading. Later group heads still get
+   their own space from .wallhead. */
 .fanhead { display: flex; align-items: baseline; justify-content: space-between;
-  gap: 16px; margin-top: clamp(30px, 4vw, 44px); }
+  gap: 16px; }
 .fan { display: flex; overflow-x: auto; scrollbar-width: none;
   padding: 20px 0 26px; scroll-snap-type: x proximity; }
 .fan::-webkit-scrollbar { display: none; }
@@ -256,7 +254,6 @@ body:not([data-viewer="anon"]) .shelf[aria-current="true"] {
 /* Affiliate with no offer gets the neutral anchor dot — lime means a live
    coupon, violet means the creator's own product, and nothing else may
    borrow either colour. */
-.tag-dot--plain { background: var(--ink-3); }
 .wp-by { display: flex; align-items: center; gap: 9px; padding: 12px 6px 4px;
   text-decoration: none; color: inherit; }
 .wp-by .handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -367,20 +364,14 @@ body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adsl
 <!-- The gradient hero, shared with auth and (later) the dashboard. Its colour
      follows the viewer's current MODE, never the page's content. -->
 <div class="rolehero">
+  <!-- The page opens on its controls. No headline, no honesty chip: the
+       "shopping never needs an account" promise still stands and is stated
+       in the footer, so the page keeps it without leading with it. -->
   <div class="inner ex-head">
-   <div class="ex-say">
-    <h1 class="headline">Everything your favourites post.</h1>
-
-    <p class="guestnote v-anon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-      Browsing as a guest — no login needed
-    </p>
-    <p class="guestnote v-signedin">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.3a5 5 0 0 0 0-7.1z"/></svg>
-      Follow a creator to save them
-    </p>
+   <div class="ex-title">
+     <h1 class="headline">Explore</h1>
+     <p class="excount"><span class="browse">240 posts &middot; 36 things</span><span class="res">Results for &ldquo;desk&rdquo;</span><span class="fol">12 creators</span></p>
    </div>
-
    <div class="ex-do">
     <form class="sform" id="search" action="/explore" method="get" role="search">
       <label class="sfield onhero-field">
@@ -393,24 +384,14 @@ body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adsl
       <button class="btn btn--primary" type="submit">Search</button>
     </form>
 
-    <!-- Only with a query. Real links carrying ?tab=, so scoping works
-         without JS and survives being shared or bookmarked. -->
-    <nav class="scope" aria-label="Narrow these results">
-      <span class="micro scope-l">Showing</span>
-      <a class="shelf" href="/explore?q=desk" aria-current="true">Everything</a>
-      <a class="shelf" href="/explore?q=desk&amp;tab=creators">Creators</a>
-      <a class="shelf" href="/explore?q=desk&amp;tab=posts">Posts</a>
-      <a class="shelf" href="/explore?q=desk&amp;tab=things">Things</a>
-    </nav>
-
-    <nav class="shelves" aria-label="Shelves">
+    <!-- The row now scopes by KIND, not by category. Following is hidden
+         for a signed-out visitor: they follow nobody, so the chip would be
+         a control that can only disappoint. -->
+    <nav class="shelves" aria-label="Show">
       <a class="shelf" href="/explore" aria-current="true">All</a>
-      <a class="shelf" href="/explore?shelf=skincare">Skincare</a>
-      <a class="shelf" href="/explore?shelf=desk">Desk setup</a>
-      <a class="shelf" href="/explore?shelf=fitness">Fitness</a>
-      <a class="shelf" href="/explore?shelf=home">Home</a>
-      <a class="shelf" href="/explore?shelf=style">Style</a>
-      <a class="shelf" href="/explore?shelf=tech">Tech</a>
+      <a class="shelf v-signedin" href="/explore?tab=following">Following</a>
+      <a class="shelf" href="/explore?tab=posts">Posts</a>
+      <a class="shelf" href="/explore?tab=things">Products</a>
     </nav>
    </div>
   </div>
@@ -461,13 +442,14 @@ body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adsl
     <!-- Not "Tagged posts": untagged posts appear here too. They are still
          content, they just aren't shoppable, and the heading shouldn't
          promise otherwise. -->
-    <h2 class="title" id="wall"><span class="browse">Latest posts</span><span class="res">Posts &amp; things · 12</span></h2>
+    <h2 class="title" id="wall"><span class="browse">Latest posts</span><span class="res">Posts &amp; things · 12</span><span class="fol">From people you follow · 9</span></h2>
     <!-- The count states what MATCHED, not what happens to be rendered.
          Saying "10 posts" while 240 match is the kind of number this
          product promises not to print. -->
     <p class="micro">
       <span class="browse"><span class="wallend-more">240 posts</span><span class="wallend-done">10 posts</span></span>
       <span class="res">12 match “desk”</span>
+      <span class="fol">from 3 of the 12 you follow</span>
     </p>
   </div>
 
@@ -681,7 +663,7 @@ body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adsl
   <!-- ?tab=things — the products view. Same data, different unit: here a
        thing is the thing, rather than something pinned onto a post. -->
   <div class="wallhead thingshead">
-    <h2 class="title">Things</h2>
+    <h2 class="title">Products</h2>
     <p class="micro">36 tagged across 240 posts</p>
   </div>
   <div class="thingsgrid">
@@ -698,7 +680,7 @@ body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adsl
         <img src="images/products/sneakers.jpg" alt="" width="400" height="400" loading="lazy">
         <span class="thing-own">Their own</span>
       </span>
-      <b>Training mat</b><span class="by">by @niaeveryday</span>
+      <b>Court trainers</b><span class="by">by @niaeveryday</span>
       <span class="thing-c-foot"><span class="price">$32.00</span><span class="go">Shop →</span></span>
     </a>
     <a class="thing-c" href="/arjunbuilds/product/3">
@@ -744,7 +726,7 @@ body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adsl
       <p class="micro wallend-note res" style="margin:10px 0 0">Showing the first 4 of 26 creators</p>
     </div>
     <div class="wallend-done">
-      <p class="micro wallend-note">That's all 10 posts. Try a shelf to see something different.</p>
+      <p class="micro wallend-note">That&rsquo;s all 10 posts. Search to find something specific.</p>
     </div>
   </div>
 
@@ -752,7 +734,7 @@ body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adsl
   <div class="empty empty--q">
     <h2 class="title">Nothing matches that search — try widening it.</h2>
     <p class="copy">Search looks at post captions, creator handles and the things tagged in them.
-      A shelf might get you there faster.</p>
+      Fewer words usually finds more.</p>
     <a class="btn btn--ghost" href="/explore">Clear search</a>
   </div>
 
@@ -809,18 +791,17 @@ body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adsl
   var body = document.body;
   var q = (p.get('q') || '').trim();
   var tab = p.get('tab');
-  var shelf = p.get('shelf');
 
   if (q) {
     body.dataset.state = 'results';
     var input = document.querySelector('.sfield input');
     if (input) input.value = q;
   }
-  if (tab === 'creators' || tab === 'posts' || tab === 'things') {
+  /* Scoping is not searching. ?tab= narrows what is shown; only ?q= turns
+     the page into results. Setting both here made ?tab=things read as a
+     search for nothing. */
+  if (tab === 'creators' || tab === 'posts' || tab === 'things' || tab === 'following') {
     body.dataset.tab = tab;
-    /* A scoped browse is still a results-shaped page: it shows the scope
-       control so there is a way back out to Everything. */
-    body.dataset.state = 'results';
   }
   /* Mark whichever chip the URL actually selected. */
   function mark(sel, test) {
@@ -828,14 +809,21 @@ body[data-state="cold"]    :is(.fanhead, .fan, .wall, .wallhead, .wallend, .adsl
       a.setAttribute('aria-current', String(test(a.getAttribute('href') || '')));
     });
   }
-  mark('.scope a', function (href) {
+  mark('.shelves a', function (href) {
     var t = new URLSearchParams(href.split('?')[1] || '').get('tab');
     return (t || null) === (tab || null);
   });
-  mark('.shelves a', function (href) {
-    var s = new URLSearchParams(href.split('?')[1] || '').get('shelf');
-    return (s || null) === (shelf || null);
-  });
+  /* Scoping from a results page must keep the query. Without this, tapping
+     Products on /explore?q=desk dropped the search and showed every product
+     on the platform. */
+  if (q) {
+    document.querySelectorAll('.shelves a').forEach(function (a) {
+      var parts = (a.getAttribute('href') || '').split('?');
+      var sp = new URLSearchParams(parts[1] || '');
+      sp.set('q', q);
+      a.setAttribute('href', parts[0] + '?' + sp.toString());
+    });
+  }
 })();
 
 window.CHROME = { nav: 'explore', tab: 'shop' };
@@ -845,10 +833,16 @@ window.PROTO = {
   title: '/explore',
   groups: [
     { label: 'Content state', options: [
-      { name: 'Browsing',    note: 'No query — shelves, fan, wall',      set: { state: 'full'    } },
+      { name: 'Browsing',    note: 'No query — fan, then the wall',      set: { state: 'full'    } },
       { name: 'Search results', note: 'Scope chips, grouped counts',     set: { state: 'results' } },
       { name: 'No match',    note: 'A query that finds nothing',         set: { state: 'q-empty' } },
       { name: 'Nothing yet', note: 'No query, no content at all',        set: { state: 'cold'    } }
+    ]},
+    { label: 'Scope', options: [
+      { name: 'All',       note: 'Creators, then the wall',   set: { tab: null       } },
+      { name: 'Following', note: 'Signed in only',            set: { tab: 'following'} },
+      { name: 'Posts',     note: 'The wall alone',            set: { tab: 'posts'    } },
+      { name: 'Products',  note: 'A product grid, not a wall',set: { tab: 'things'   } }
     ]},
     { label: 'Who is looking', options: [
       { name: 'Guest',     note: 'No account — shops freely', set: { viewer: 'anon'    } },

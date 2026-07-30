@@ -1,0 +1,176 @@
+<!doctype html>
+<!--
+  Plugfolio — the error boundary. Spec: design-handoff §5.25.
+
+  The sibling of 404 and deliberately the same screen wearing different
+  words. A product where "not found" and "went wrong" look like they came
+  from different companies has told you something true about how it was
+  built.
+
+  THREE RULES SHAPE THE COPY:
+
+  1. Take the blame. "That's on us, not you." A visitor who thinks they
+     broke something stops trying — and they almost never did.
+  2. Try again FIRST. A refresh genuinely clears most of these, so it is
+     the primary action and support is the second. Offering support first
+     sends people to write an email about something a button would have
+     fixed.
+  3. Never let the machine talk. No stack trace, no exception name, no
+     "500". A reference code instead: something an operator can search
+     and a visitor can read down the phone.
+
+  The mark is the same plug, with the prongs seated and the BODY cracked
+  instead — on 404 the connection was never made, here it was made and
+  something inside failed. Same asset, different fault, and the two
+  screens read as one family.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Something went wrong — Plugfolio</title>
+<meta name="description" content="Something went wrong on our side.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* The same plug, seated — and the body split. The prongs stay where they
+   belong, because the connection was made; what failed is behind it.
+
+   No sparks. Three lime dashes were drawn beside it and cut for a reason
+   worth recording: lime means "there is an offer here" everywhere else
+   in this product. Spending it on "something is broken" would teach the
+   eye two contradictory things about one colour, and the crack already
+   says everything the sparks were saying. */
+.unplug .u-crack { stroke: var(--canvas); stroke-width: 4; stroke-linecap: round; }
+
+/* What a shopper can still do while this is broken. An error on one
+   surface is not an error on the whole product, and saying so keeps
+   someone from assuming Plugfolio is down. */
+.still { display: grid; gap: 10px; margin-top: 26px; text-align: left; }
+.still-i { display: flex; align-items: flex-start; gap: 11px; padding: 13px 15px;
+  border-radius: var(--r-tile); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--card-edge); font-size: var(--t-copy); color: var(--ink-2);
+  line-height: 1.55; }
+.still-i svg { width: 16px; height: 16px; flex: none; margin-top: 3px; color: var(--violet-deep); }
+.still-i b { color: var(--ink); font-weight: 700; }
+</style>
+</head>
+<body data-page="error" data-viewer="anon" data-role="shopper">
+<div class="rolerail" aria-hidden="true"></div>
+
+<div data-chrome="top"></div>
+
+<main>
+  <section class="inner sys">
+    <div class="sys-in">
+      <svg class="unplug" viewBox="0 0 100 100" role="img" aria-label="A plug with a split body">
+        <g stroke-linejoin="round">
+          <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+          <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        </g>
+        <rect class="u-body" x="18" y="43" width="64" height="44" rx="13"/>
+        <!-- The split: a jag cut through the body in the canvas colour, so
+             the shape reads as broken rather than as decorated. -->
+        <path class="u-crack" d="M44 43 L52 58 L42 66 L52 87" fill="none"/>
+      </svg>
+
+      <h1>Something went wrong.</h1>
+      <p class="lede">That&rsquo;s on us, not you. Trying again usually clears it &mdash; if it
+        doesn&rsquo;t, send us the reference below and we&rsquo;ll go and look.</p>
+
+      <div class="sys-acts">
+        <button class="btn btn--primary" type="button" id="retry">Try again</button>
+        <a class="btn btn--ghost" href="/support">Get help</a>
+      </div>
+
+      <span class="sys-ref">
+        Reference <b id="ref">7F2C-91A4</b>
+        <button class="iact" type="button" id="copyRef" aria-label="Copy the reference" title="Copy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </span>
+
+      <!-- One broken surface is not a broken product. Saying what still
+           works stops someone concluding Plugfolio is down and leaving. -->
+      <div class="still">
+        <p class="still-i">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span><b>Creator pages are unaffected.</b> Anything you already have a link to still
+            opens, and every Buy button on it still works.</span>
+        </p>
+        <p class="still-i">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span><b>Nothing was lost.</b> If you were part-way through saving something, it
+            didn&rsquo;t go through &mdash; so nothing was half-written.</span>
+        </p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/support">Help</a>
+    </div>
+  </div>
+</footer>
+
+<div data-chrome="tabs"></div>
+
+<script>
+window.CHROME = { nav: null, tab: null };
+(function () {
+  var b = document.getElementById('retry');
+  b.addEventListener('click', function () {
+    if (b.getAttribute('aria-busy') === 'true') return;
+    b.setAttribute('aria-busy', 'true');
+    b.textContent = 'Trying…';
+    /* Stands in for the reload. A double press has to feel absorbed
+       rather than queue two attempts. */
+    setTimeout(function () { b.removeAttribute('aria-busy'); b.textContent = 'Try again'; }, 900);
+  });
+
+  /* The reference is for a support email, so it has to be copyable —
+     asking someone to retype 7F2C-91A4 correctly is how the wrong code
+     ends up in the ticket. */
+  var c = document.getElementById('copyRef');
+  c.addEventListener('click', function () {
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(document.getElementById('ref').textContent).then(function () {
+      c.setAttribute('title', 'Copied');
+      c.setAttribute('aria-label', 'Reference copied');
+      setTimeout(function () {
+        c.setAttribute('title', 'Copy');
+        c.setAttribute('aria-label', 'Copy the reference');
+      }, 1600);
+    }).catch(function () {});
+  });
+})();
+
+window.PROTO = {
+  title: 'Error boundary',
+  groups: [
+    { label: 'Who is looking', options: [
+      { name: 'Guest',     note: 'The usual case', set: { viewer: 'anon'    } },
+      { name: 'Signed in', note: 'Chrome swaps',   set: { viewer: 'shopper' } }
+    ]}
+  ]
+};
+</script>
+<script src="chrome.js" defer></script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

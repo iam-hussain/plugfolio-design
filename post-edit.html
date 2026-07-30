@@ -1,0 +1,363 @@
+<!doctype html>
+<!--
+  Plugfolio — /dashboard/posts/[postId], and /dashboard/posts/new.
+  Spec: design-handoff §5.20 (tagging editor), §5.14 (post hiding).
+
+  Its own page, not a tab. Tagging is the longest single task a creator
+  does and the one they come back to; sharing a route with the Posts grid
+  meant a browser Back went to the dashboard rather than to the grid, and
+  the URL could not be sent to a Manager.
+
+  CREATE and EDIT are the same screen. The difference is what exists yet:
+  a new post has no id, so it cannot be hidden, viewed as a visitor, or
+  tagged — you cannot pin a product onto something that is not saved.
+  Those controls are absent rather than disabled, because a disabled
+  control on a brand-new post is a promise about a state you have not
+  reached. body[data-mode] switches it.
+
+  Shell and back-room primitives are shared — see dash-chrome.js and the
+  back-room block in styles.css. Nothing about the chrome is written here.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edit post · @mayamoves — Plugfolio</title>
+<meta name="description" content="Tag products onto your post to make it shoppable.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Picking a product to connect ───────────────────────────
+   A row you press, not a form you fill. Everything shown is a fact about
+   the product itself — price, kind, how many posts already carry it — so
+   a creator can tell two similar products apart before connecting one. */
+.picks { display: grid; gap: 8px; }
+.pick { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px;
+  border-radius: var(--r-image); border: 1px solid var(--line); background: var(--canvas);
+  color: inherit; cursor: pointer; font: inherit; text-align: left; }
+.pick:hover { border-color: var(--accent); }
+.pick[data-done] { border-color: var(--accent); background: var(--violet-wash); }
+.pick[hidden] { display: none; }
+.pick img { width: 44px; height: 44px; border-radius: var(--r-image); object-fit: cover; flex: none; }
+.pick-t { flex: 1; min-width: 0; }
+.pick-t b { display: block; font-size: var(--t-label); font-weight: 700; }
+.pick-t span { display: block; margin-top: 2px; font-size: var(--t-micro); color: var(--ink-2); }
+.pick-go { flex: none; font-size: var(--t-micro); font-weight: 700; color: var(--accent); }
+
+/* ── The tagging editor (§5.20) — the core tool ─────────────
+   Publish-free: a tag is live the moment it is added. There is no draft,
+   no Save-and-publish, no preview mode. That is why the form sits under
+   the product list rather than in a dialog — you add, it appears above,
+   and the post is shoppable. */
+.ed { display: grid; gap: 18px; }
+@media (min-width: 940px) { .ed { grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+  align-items: start; gap: 26px; } }
+
+.ed-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }
+.ed-bar .back { margin-right: auto; }
+.ed-media { border-radius: var(--r-tile); overflow: hidden; background: var(--violet-wash);
+  box-shadow: 0 0 0 1px var(--card-edge); }
+.ed-media img { display: block; width: 100%; height: auto; }
+/* Hidden is a state of the whole screen, not a badge in a corner: it
+   changes what a visitor sees, so the editor says so plainly. */
+.ed-hidden { display: none; align-items: center; gap: 10px; margin-bottom: 14px;
+  padding: 13px 16px; border-radius: var(--r-tile);
+  background: var(--ink); color: var(--surface); font-size: var(--t-copy); }
+body[data-hidden="yes"] .ed-hidden { display: flex; }
+body[data-hidden="yes"] .ed-media { opacity: .55; }
+body:not([data-hidden="yes"]) .lbl-show,
+body[data-hidden="yes"] .lbl-hide { display: none; }
+
+.tagged-count { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.tagged-count h2 { margin: 0; font-size: var(--t-title); font-weight: 800; letter-spacing: -.02em; }
+
+/* ── Create vs edit ─────────────────────────────────────────
+   Absent, not disabled. A new post has no id, so hiding it, viewing it as
+   a visitor and tagging onto it are not things you are being denied —
+   they are things that do not exist yet. */
+body[data-mode="new"]  .m-edit,
+body[data-mode="edit"] .m-new { display: none; }
+
+/* The select is the same control as .field input; it just needs the
+   arrow drawn, since appearance:none removes the native one. */
+.sel { width: 100%; min-height: 44px; padding: 11px 40px 11px 14px;
+  border-radius: var(--r-image); border: 1px solid var(--line);
+  background: var(--canvas); color: var(--ink); font: inherit; font-size: var(--t-label);
+  cursor: pointer; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 20px center, right 14px center;
+  background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; }
+.sel:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
+
+body:not([data-content="empty"]) .is-empty,
+body[data-content="empty"]       .is-full { display: none; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body data-page="post-edit" data-role="creator" data-mode="edit"
+      data-content="full" data-hidden="no" data-kind="affiliate">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#tag">Skip to this post&rsquo;s products</a>
+
+<div data-dash="shell"></div>
+
+<main class="inner">
+  <!-- ═══ TAGGING EDITOR (§5.20) — the core tool ═════════════
+       This is where a post stops being a picture and becomes shoppable.
+       Everything about it is publish-free: a tag is live the moment it
+       is added, so there is no draft state to explain and no Publish
+       button to forget. -->
+    <div class="ph">
+      <div class="ph-t">
+        <p class="ph-eyebrow"><a class="back" href="/dashboard.html?tab=posts" style="min-height:0;padding:0">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          All posts</a></p>
+        <h1 class="m-edit">The desk reset</h1>
+        <h1 class="m-new">New post</h1>
+      </div>
+      <div class="ph-act m-edit">
+        <button class="btn btn--ghost" type="button" data-hide>
+          <span class="lbl-hide">Hide from page</span><span class="lbl-show">Show on page</span>
+        </button>
+        <a class="btn btn--ghost" href="/mayamoves/post/4">View as visitor</a>
+      </div>
+    </div>
+
+    <div class="dbody">
+      <div class="ed-hidden">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 3l18 18M10.6 10.7a2 2 0 0 0 2.7 2.7"/><path d="M9.9 4.2A9.9 9.9 0 0 1 12 4c5 0 9 4.5 10 8a15 15 0 0 1-2.6 3.7M6.6 6.6C4.4 8 2.8 10.1 2 12c1 3.5 5 8 10 8a9.7 9.7 0 0 0 4.2-.9"/></svg>
+        Hidden from your public page — visitors can&rsquo;t see this post until you show it again.
+      </div>
+
+      <div class="ed">
+        <!-- ── The post itself ── -->
+        <div>
+          <div class="ed-media"><img src="images/posts/p6.jpg" alt="The desk reset" width="1200" height="800"></div>
+
+          <div class="card" style="margin-top:14px">
+            <!-- A photo is not a fourth kind of social video. It is an
+                 image you own, hosted anywhere, and it can sit alongside a
+                 video rather than instead of it — the still is what a
+                 visitor sees before pressing play, and what a link unfurls
+                 to when it is shared. Two fields, not one select. -->
+            <div class="field">
+              <label for="edphoto">Photo <i>&middot; optional</i></label>
+              <input id="edphoto" type="url" value="https://images.plugfolio.com/posts/p6.jpg"
+                     placeholder="https://…">
+              <span class="note">Shown on its own, or as the still behind a video&rsquo;s play button.
+                Also what your link unfurls to when it is shared.</span>
+            </div>
+
+            <div class="field">
+              <label for="edvideo">Video <i>&middot; optional</i></label>
+              <div class="frow" style="margin-top:0">
+                <select id="edvsrc" class="sel" style="flex:0 1 150px;min-width:0" aria-label="Video source">
+                  <option>None</option>
+                  <option>YouTube</option>
+                  <option>Instagram</option>
+                  <option>TikTok</option>
+                </select>
+                <input id="edvideo" type="url" placeholder="Paste the video link" style="flex:1 1 200px">
+              </div>
+              <span class="note">Shows as a play frame and only loads when a visitor presses it &mdash;
+                nothing reaches YouTube, Instagram or TikTok before that.</span>
+            </div>
+            <div class="field">
+              <label for="edcap">Caption</label>
+              <textarea id="edcap">The desk reset, finally finished. The lamp is the thing that changed the room — everything else I'd had for a year and just moved around.</textarea>
+            </div>
+            <div class="field">
+              <label for="edcat">Shelf</label>
+              <select id="edcat" class="sel">
+                <option>None</option>
+                <option selected>Desk setup</option>
+                <option>Gym</option>
+                <option>Skin</option>
+              </select>
+              <span class="note">A shelf is never required before a post goes live.</span>
+            </div>
+            <button class="btn btn--ghost m-edit" type="button">Save post</button>
+            <button class="btn btn--accent m-new" type="button">Add post</button>
+            <p class="note m-new" style="margin-top:10px">It goes live as soon as you add it.</p>
+          </div>
+        </div>
+
+        <!-- ── What is tagged on it ── -->
+        <!-- On a new post this side is a single line, not a disabled form:
+             there is nothing to pin a product onto until the post exists. -->
+        <div class="m-new">
+          <div class="empty">
+            <b>Save the post first</b>
+            <p>A product connects TO a post, so the post has to exist before there is anything
+              to connect it to. Add it and this side becomes the connector.</p>
+          </div>
+        </div>
+        <div class="m-edit">
+          <!-- ONE card. Connected products and the way to connect another
+               were two cards saying "products"; the list and its add
+               control belong together, the way a list and its ＋ always do.
+               The picker stays folded because most visits here are to
+               check what is on a post, not to add to it. -->
+          <div class="card" id="tag">
+            <div class="card-h">
+              <h2>Products on this post</h2>
+              <span class="micro is-full">3 &middot; live on your page now</span>
+              <span class="micro is-empty">None yet</span>
+            </div>
+
+            <div class="is-full crows">
+            <div class="crow">
+              <img src="images/products/lamp.jpg" alt="" width="120" height="120">
+              <div class="crow-b">
+                <div class="crow-h"><b>Warm-white desk lamp</b><span class="price">&#8377;2,990</span></div>
+                <div class="crow-meta"><span>Affiliate &middot; opens Amazon</span><span>&middot;</span><span>on 2 posts</span></div>
+              </div>
+              <span class="iacts">
+                <a class="iact" href="/product-edit.html?product=7" aria-label="Edit Warm-white desk lamp" title="Edit Warm-white desk lamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+                <button class="iact iact--danger" type="button" aria-label="Disconnect Warm-white desk lamp from this post" title="Disconnect Warm-white desk lamp from this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 15l6-6"/><path d="M10.5 5.5 12 4a5 5 0 0 1 7 7l-1.5 1.5"/><path d="M13.5 18.5 12 20a5 5 0 0 1-7-7l1.5-1.5"/><path d="M3 3l18 18"/></svg></button>
+              </span>
+            </div>
+            <div class="crow">
+              <img src="images/products/keyboard.jpg" alt="" width="120" height="120">
+              <div class="crow-b">
+                <div class="crow-h"><b>Keychron K3 Pro</b><span class="pill pill--none">No price</span></div>
+                <div class="crow-meta"><span>Affiliate &middot; opens Amazon</span><span>&middot;</span><span>on 1 post</span></div>
+              </div>
+              <span class="iacts">
+                <a class="iact" href="/product-edit.html?product=13" aria-label="Edit Keychron K3 Pro" title="Edit Keychron K3 Pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+                <button class="iact iact--danger" type="button" aria-label="Disconnect Keychron K3 Pro from this post" title="Disconnect Keychron K3 Pro from this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 15l6-6"/><path d="M10.5 5.5 12 4a5 5 0 0 1 7 7l-1.5 1.5"/><path d="M13.5 18.5 12 20a5 5 0 0 1-7-7l1.5-1.5"/><path d="M3 3l18 18"/></svg></button>
+              </span>
+            </div>
+            <div class="crow">
+              <img src="images/products/serum.jpg" alt="" width="120" height="120">
+              <div class="crow-b">
+                <div class="crow-h"><b>Brightening serum</b><span class="price">&#8377;1,299</span><span class="pill pill--code">Code SAVE30</span></div>
+                <div class="crow-meta"><span>Affiliate &middot; opens Nykaa</span><span>&middot;</span><span>on 3 posts</span></div>
+              </div>
+              <span class="iacts">
+                <a class="iact" href="/product-edit.html?product=1" aria-label="Edit Brightening serum" title="Edit Brightening serum"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+                <button class="iact iact--danger" type="button" aria-label="Disconnect Brightening serum from this post" title="Disconnect Brightening serum from this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 15l6-6"/><path d="M10.5 5.5 12 4a5 5 0 0 1 7 7l-1.5 1.5"/><path d="M13.5 18.5 12 20a5 5 0 0 1-7-7l1.5-1.5"/><path d="M3 3l18 18"/></svg></button>
+              </span>
+            </div>
+            </div>
+
+            <p class="empty is-empty" style="margin:0">
+              <b>Nothing connected yet</b>
+              Connect a product and this post becomes shoppable.
+            </p>
+
+            <!-- The add control, folded. Open it and you are picking from
+                 products you already have; make a new one and it comes back
+                 here saved. -->
+            <div class="fold" style="margin-top:14px">
+              <button class="fold-t" type="button" id="pickT" aria-expanded="false" aria-controls="pickB">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+                Connect a product
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div class="fold-b" id="pickB">
+                <div class="frow" style="margin:0 0 10px">
+                  <input id="psearch" type="search" placeholder="Search your products…" autocomplete="off">
+                  <a class="btn btn--ghost" href="/product-edit.html?mode=new&amp;from=post">New</a>
+                </div>
+                <div class="picks" id="picks">
+                  <button class="pick" type="button">
+                    <img src="images/products/sneakers.jpg" alt="" loading="lazy">
+                    <span class="pick-t"><b>Court trainers</b>
+                      <span>$32.00 &middot; their own &middot; on 1 post</span></span>
+                    <span class="pick-go">Connect</span>
+                  </button>
+                  <button class="pick" type="button">
+                    <img src="images/products/bottle.jpg" alt="" loading="lazy">
+                    <span class="pick-t"><b>Insulated 750ml bottle</b>
+                      <span>&#8377;890 &middot; in-store code &middot; not on any post</span></span>
+                    <span class="pick-go">Connect</span>
+                  </button>
+                  <button class="pick" type="button">
+                    <img src="images/products/lamp.jpg" alt="" loading="lazy">
+                    <span class="pick-t"><b>Brass task lamp</b>
+                      <span>No price &middot; affiliate &middot; on 2 posts</span></span>
+                    <span class="pick-go">Connect</span>
+                  </button>
+                </div>
+                <p class="note" style="margin-top:10px">Connecting copies nothing &mdash; change a
+                  price once and every post carrying it changes with it.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</main>
+
+<script>
+window.DASH = { tab: 'posts', profile: '@mayamoves' };
+</script>
+<script src="dash-chrome.js" defer></script>
+<script>
+(function () {
+  /* Hide / show (§5.14). Hiding never deletes. */
+  var hideBtn = document.querySelector('[data-hide]');
+  if (hideBtn) hideBtn.addEventListener('click', function () {
+    var now = document.body.dataset.hidden === 'yes';
+    hideBtn.setAttribute('aria-busy', 'true');
+    setTimeout(function () {
+      document.body.dataset.hidden = now ? 'no' : 'yes';
+      hideBtn.removeAttribute('aria-busy');
+    }, 320);
+  });
+
+  /* The picker folds. Most visits here are to check what is on a post,
+     not to add to it, so the add control stays out of the way until it
+     is asked for. */
+  var pT = document.getElementById('pickT');
+  if (pT) pT.addEventListener('click', function () {
+    pT.setAttribute('aria-expanded', pT.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+  });
+
+  /* Connecting is a pick, not a form. The channel rule lives on the
+     product page, because that is where a product is made — asking it
+     here would mean two places could disagree about the same object. */
+  document.querySelectorAll('.pick').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var go = b.querySelector('.pick-go');
+      go.textContent = 'Connected';
+      b.dataset.done = '';
+      setTimeout(function () { go.textContent = 'Connect'; delete b.dataset.done; }, 1600);
+    });
+  });
+
+  var q = document.getElementById('psearch');
+  if (q) q.addEventListener('input', function () {
+    var v = q.value.trim().toLowerCase();
+    document.querySelectorAll('.pick').forEach(function (b) {
+      b.hidden = v !== '' && b.textContent.toLowerCase().indexOf(v) === -1;
+    });
+  });
+})();
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: '/dashboard/posts/[id]',
+  groups: [
+    { label: 'Mode', options: [
+      { name: 'Editing',  note: 'An existing post — tagging is live',   set: { mode: 'edit' } },
+      { name: 'New post', note: 'Nothing to tag onto until it is saved', set: { mode: 'new'  } }
+    ]},
+    { label: 'On your page', options: [
+      { name: 'Visible', note: 'Shoppers can see it',           set: { hidden: 'no'  } },
+      { name: 'Hidden',  note: 'Public URL 404s. Never deleted.', set: { hidden: 'yes' } }
+    ]},
+    { label: 'Tagged', options: [
+      { name: 'Three products', note: 'The everyday case', set: { content: 'full'  } },
+      { name: 'Nothing yet',    note: 'Not shoppable yet', set: { content: 'empty' } }
+    ]}
+  ]
+};
+</script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

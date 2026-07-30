@@ -24,37 +24,46 @@
                Admin from a post to its tagging editor. Flagged, not assumed.
      ═══════════════════════════════════════════════════════════════════ -->
 <style>
-/* ── Back link ────────────────────────────────────────────── */
-.back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
-  font-size: var(--t-label); font-weight: 600; color: var(--ink-2); text-decoration: none; }
-.back:hover { color: var(--accent); }
-.back svg { width: 15px; height: 15px; }
+/* Back link, compact creator header, own marker, coupon block and the
+   off-platform line now live in styles.css — shared with the product page. */
 
-/* ── Compact creator header (§5.5 — identity, not a profile) ── */
-.pc { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-block: 4px 20px; }
-.pc-av { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: none; background: var(--violet-wash); }
-.pc-id { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; }
-.pc-name { font-family: var(--font-display, Sora), system-ui, sans-serif; font-weight: 800;
-  font-size: var(--t-label); letter-spacing: -.02em; color: var(--ink); text-decoration: none; }
-.pc-name:hover { color: var(--accent); }
-.pc-handle { font-size: var(--t-micro); font-weight: 600; color: var(--ink-2); }
-.pc-act { flex: none; display: flex; gap: 8px; }
-.pc-act .btn { padding: 10px 20px; }
+/* The page had no bottom padding: the last product card, and the empty
+   state behind it, both ended flush against the footer's rule with 0px
+   between them. It was an inline `padding-block:20px 0` that only ever
+   set the top. */
+.postwrap { padding-block: 20px clamp(48px, 7vw, 84px); }
 
 /* ── The post itself ──────────────────────────────────────── */
 .media { border-radius: var(--r-bay); overflow: hidden; background: var(--violet-wash);
   box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); }
 .media img { display: block; width: 100%; height: auto; max-height: 62vh; object-fit: cover; }
-.caption { margin: 20px 0 0; font-size: var(--t-copy); color: var(--ink-2); max-width: 62ch; }
+/* The caption belongs to the media, so it sits close to it — 18px — while
+   the next section gets a clear break. Measured, the two gaps were 32 and
+   44: near enough to read as the same, which left the caption floating
+   between two blocks and belonging to neither. */
+.caption { margin: 18px 0 0; font-size: var(--t-copy); color: var(--ink-2); max-width: 62ch; }
+/* A portrait video is a 420px column in the middle of the measure. The
+   caption follows that column instead of running flush left under it,
+   where it read as a stray line beside the frame rather than its text.
+   The words stay left-aligned inside it — centred prose is unreadable. */
+body:is([data-media="instagram"], [data-media="tiktok"]) .caption {
+  max-width: 420px; margin-inline: auto; }
 
 /* ── Tagged products ──────────────────────────────────────── */
 .tagged-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px;
-  margin-top: 44px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  margin-top: clamp(48px, 6vw, 68px); padding-bottom: 14px; border-bottom: 1px solid var(--line); }
 .tagged-h h2 { margin: 0; font-size: var(--t-title); font-weight: 800; letter-spacing: -.02em; }
 .tagged-h .micro { margin-left: auto; }
 
 .plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; margin-top: 20px; }
-@media (min-width: 900px) { .plist { grid-template-columns: 1fr 1fr; align-items: start; } }
+/* No align-items:start. A card with a coupon is ~250px taller than one
+   without, and starting both at the top left the short one floating with a
+   void beneath it — the row is as tall as its tallest card either way, so
+   the only question is whether that height is inside the card or under it.
+   Inside: the cards stretch, and .pcard-act is pushed down so the Buy
+   buttons line up across the row instead of landing wherever the copy
+   above them happened to end. */
+@media (min-width: 900px) { .plist { grid-template-columns: 1fr 1fr; } }
 
 /* One product card. The whole card is not a link — the card holds two
    competing actions (copy a code, leave for the retailer), and nesting
@@ -62,8 +71,11 @@
 .pcard { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: start;
   padding: 16px; border-radius: var(--r-tile); background: var(--surface);
   box-shadow: 0 0 0 1px var(--card-edge), var(--sh-rest); }
+/* The column that can grow. Everything but the thumbnail lives in here so
+   the action can be pushed to the foot of whatever height the row takes. */
+.pcard-main { display: flex; flex-direction: column; min-width: 0; height: 100%; }
 @media (min-width: 560px) { .pcard { grid-template-columns: 120px 1fr; } }
-.pcard-img { grid-row: span 2; width: 100%; aspect-ratio: 1; object-fit: cover;
+.pcard-img { align-self: start; width: 100%; aspect-ratio: 1; object-fit: cover;
   border-radius: var(--r-image); background: var(--violet-wash); }
 .pcard-body { min-width: 0; }
 .pcard-title { margin: 0; font-size: var(--t-label); font-weight: 700; letter-spacing: -.01em; }
@@ -72,32 +84,8 @@
 .pcard-price { margin: 6px 0 0; font-size: var(--t-name); font-weight: 800;
   font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .pcard-where { margin: 4px 0 0; font-size: var(--t-micro); font-weight: 600; color: var(--ink-2); }
-.own { display: inline-flex; align-items: center; gap: 5px; margin-bottom: 6px;
-  padding: 3px 9px; border-radius: var(--r-chip); background: var(--violet-wash);
-  color: var(--violet-deep); font-size: var(--t-micro); font-weight: 700; }
-.pcard-act { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.pcard-act { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 16px; }
 .pcard-act .btn { padding: 12px 22px; }
-
-/* ── Coupon (§5.8) — always above the button: copy, then go ── */
-.coupon { grid-column: 2; margin-top: 12px; padding: 12px 14px;
-  border: 1px dashed var(--card-edge, var(--line)); border-color: var(--line);
-  border-radius: var(--r-image); background: var(--canvas); }
-.coupon-ch { font-size: var(--t-micro); font-weight: 700; letter-spacing: .07em;
-  text-transform: uppercase; color: var(--ink-2); }
-.coupon-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 7px; }
-.code { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 9px 16px;
-  border-radius: var(--r-chip); border: 1px solid var(--line); background: var(--surface);
-  color: var(--ink); cursor: pointer; font: inherit; font-size: var(--t-label); font-weight: 700; }
-.code b { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
-.code em { font-style: normal; font-size: var(--t-micro); font-weight: 700; letter-spacing: .07em;
-  text-transform: uppercase; color: var(--ink-2); }
-.code:hover { border-color: var(--accent); color: var(--accent); }
-.code[data-copied] { border-color: var(--accent); color: var(--accent); }
-.coupon-note { margin: 8px 0 0; font-size: var(--t-micro); color: var(--ink-2); }
-.coupon-exp { margin: 6px 0 0; font-size: var(--t-micro); color: var(--ink-2); }
-/* An ended offer never takes the product down with it. */
-.coupon--dead { border-style: solid; background: transparent; }
-.coupon--dead .coupon-ch { color: var(--ink-2); }
 
 .offplat { grid-column: 2; margin: 10px 0 0; font-size: var(--t-micro); color: var(--ink-2); }
 
@@ -110,9 +98,6 @@ body[data-viewer="anon"]           .v-signedin { display: none; }
 .btn--following { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
 .btn--following:hover { border-color: var(--accent); color: var(--accent); }
 .btn[aria-busy="true"] { opacity: .6; pointer-events: none; }
-.acct { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
-  border: 1px solid var(--line); overflow: hidden; }
-.acct img { width: 100%; height: 100%; object-fit: cover; }
 
 .band-v { display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
   margin-bottom: 20px; padding: 16px 18px; border-radius: var(--r-tile);
@@ -122,6 +107,11 @@ body[data-viewer="anon"]           .v-signedin { display: none; }
 .band-v b span { font-variant-numeric: tabular-nums; }
 
 /* ── Content states ───────────────────────────────────────── */
+/* One media kind at a time, by exclusion. */
+body:not([data-media="still"])     .m-still,
+body:not([data-media="youtube"])   .m-youtube,
+body:not([data-media="instagram"]) .m-instagram,
+body:not([data-media="tiktok"])    .m-tiktok,
 body[data-state="empty"] .plist,
 body[data-state="empty"] .tagged-h .micro { display: none; }
 body:not([data-state="empty"]) .empty--tags { display: none; }
@@ -138,33 +128,14 @@ body:not([data-state="empty"]) .empty--tags { display: none; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
-<body data-page="post" data-viewer="anon" data-state="full" data-role="shopper">
+<body data-page="post" data-viewer="anon" data-state="full" data-media="still" data-role="shopper">
 <div class="rolerail" aria-hidden="true"></div>
 <a class="skip" href="#tagged">Skip to the products</a>
 
-<header class="inner">
-  <nav class="nav" aria-label="Primary">
-    <a class="mark" href="/" aria-label="Plugfolio home">
-      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
-        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
-        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
-        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
-      </g></svg>
-      <span class="mark-name">plugfolio</span>
-    </a>
-    <div class="nav-end">
-      <a class="btn btn--ghost" href="/explore" aria-label="Search creators and products">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
-        <span>Search</span>
-      </a>
-      <a class="btn btn--ghost v-anon" href="/signin">Log in</a>
-      <a class="acct v-signedin" href="/account" aria-label="Your account"><img src="images/avatars/nia.jpg" alt=""></a>
-    </div>
-  </nav>
-</header>
+<div data-chrome="top"></div>
 
 <main>
-  <section class="inner" style="padding-block:20px 0">
+  <section class="inner postwrap">
     <a class="back" href="/mayamoves">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       All of @mayamoves
@@ -201,11 +172,63 @@ body:not([data-state="empty"]) .empty--tags { display: none; }
     <div class="band-v v-owner">
       <p><b><span>312</span> taps tracked from this post</b>
         Counted when someone opens a retailer from here. Editing lives in the header.</p>
-      <a class="btn btn--accent" href="/dashboard">See all Earnings</a>
+      <a class="btn btn--accent" href="/dashboard">See all traffic</a>
     </div>
 
     <figure style="margin:0">
-      <div class="media"><img src="images/posts/p6.jpg" alt="Maya's desk after the reset: a warm-white lamp, keyboard and notebook on a light wood top." width="1200" height="800"></div>
+      <!-- The media slot holds a still OR a video. A post that IS a reel
+           has to show the reel; a photo post shows the photo. One
+           attribute on <body> picks, so the two can never both render. -->
+      <div class="media m-still"><img src="images/posts/p6.jpg" alt="Maya's desk after the reset: a warm-white lamp, keyboard and notebook on a light wood top." width="1200" height="800"></div>
+
+      <div class="m-youtube">
+        <div class="embed" data-embed="youtube" data-src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1">
+        <img class="embed-poster" src="images/posts/p6.jpg" alt="Still from Maya's desk reset video." width="1200" height="800">
+        <span class="embed-scrim" aria-hidden="true"></span>
+        <span class="embed-src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg>YouTube</span>
+        <button class="embed-play" type="button">
+          <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+          <b>Play on YouTube</b>
+        </button>
+      </div>
+      <a class="embed-out" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+        Watch on YouTube instead
+      </a>
+      </div>
+
+      <div class="m-instagram m-portrait">
+        <div class="embed" data-embed="instagram" data-src="https://www.instagram.com/reel/CxAmPl3/embed/">
+        <img class="embed-poster" src="images/posts/desk.jpg" alt="Still from Maya's desk reset reel." width="1200" height="800">
+        <span class="embed-scrim" aria-hidden="true"></span>
+        <span class="embed-src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>Instagram</span>
+        <button class="embed-play" type="button">
+          <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+          <b>Play on Instagram</b>
+        </button>
+      </div>
+      <a class="embed-out" href="https://www.instagram.com/reel/CxAmPl3/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+        Watch on Instagram instead
+      </a>
+      </div>
+
+      <div class="m-tiktok m-portrait">
+        <div class="embed" data-embed="tiktok" data-src="https://www.tiktok.com/embed/v2/7300000000000000000">
+        <img class="embed-poster" src="images/posts/gym.jpg" alt="Still from Maya's gym kit video." width="1200" height="800">
+        <span class="embed-scrim" aria-hidden="true"></span>
+        <span class="embed-src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3v11a4 4 0 1 1-4-4"/><path d="M14 6.5c1 1.6 2.6 2.5 4.5 2.5"/></svg>TikTok</span>
+        <button class="embed-play" type="button">
+          <span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+          <b>Play on TikTok</b>
+        </button>
+      </div>
+      <a class="embed-out" href="https://www.tiktok.com/@mayamoves/video/7300000000000000000" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+        Watch on TikTok instead
+      </a>
+      </div>
+
       <figcaption class="caption">The desk reset, finally finished. The lamp is the thing that changed the room — everything else I'd had for a year and just moved around.</figcaption>
     </figure>
 
@@ -218,6 +241,7 @@ body:not([data-state="empty"]) .empty--tags { display: none; }
       <!-- Affiliate, no coupon — the plain case -->
       <li class="pcard">
         <img class="pcard-img" src="images/products/keyboard.jpg" alt="A low-profile mechanical keyboard.">
+        <div class="pcard-main">
         <div class="pcard-body">
           <h3 class="pcard-title"><a href="/mayamoves/product/1">Keychron K3 Pro low-profile keyboard</a></h3>
           <p class="pcard-price">₹8,499</p>
@@ -226,12 +250,13 @@ body:not([data-state="empty"]) .empty--tags { display: none; }
         <div class="pcard-act">
           <button class="btn btn--accent" type="button" data-buy data-href="https://amazon.in">Buy</button>
         </div>
-        <p class="offplat">Payment settles off-platform · opens the retailer</p>
+        <p class="offplat">Payment settles off-platform · opens the retailer</p></div>
       </li>
 
       <!-- Affiliate + online coupon — copy, then go -->
       <li class="pcard">
         <img class="pcard-img" src="images/products/sneakers.jpg" alt="A pair of white low-top trainers.">
+        <div class="pcard-main">
         <div class="pcard-body">
           <h3 class="pcard-title"><a href="/mayamoves/product/2">Everyday white trainers</a></h3>
           <p class="pcard-price">₹4,299</p>
@@ -248,12 +273,13 @@ body:not([data-state="empty"]) .empty--tags { display: none; }
         <div class="pcard-act">
           <button class="btn btn--accent" type="button" data-buy data-href="https://myntra.com">Buy</button>
         </div>
-        <p class="offplat">Payment settles off-platform · opens the retailer</p>
+        <p class="offplat">Payment settles off-platform · opens the retailer</p></div>
       </li>
 
       <!-- The creator's own product — marked, and the label changes -->
       <li class="pcard">
         <img class="pcard-img" src="images/products/serum.jpg" alt="A glass serum bottle with a dropper.">
+        <div class="pcard-main">
         <div class="pcard-body">
           <span class="own">
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="m5 13 4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -266,13 +292,14 @@ body:not([data-state="empty"]) .empty--tags { display: none; }
         <div class="pcard-act">
           <button class="btn btn--accent" type="button" data-buy data-href="https://mayarao.co">Shop their store</button>
         </div>
-        <p class="offplat">Payment settles off-platform · opens their store</p>
+        <p class="offplat">Payment settles off-platform · opens their store</p></div>
       </li>
 
       <!-- In-store only: no link, so no button. The code IS the action —
            this must not read as a broken card. Price unknown, so no price. -->
       <li class="pcard">
         <img class="pcard-img" src="images/products/bottle.jpg" alt="An insulated steel water bottle.">
+        <div class="pcard-main">
         <div class="pcard-body">
           <h3 class="pcard-title"><a href="/mayamoves/product/4">Insulated 750ml bottle</a></h3>
           <p class="pcard-where">in-store offer</p>
@@ -285,12 +312,13 @@ body:not([data-state="empty"]) .empty--tags { display: none; }
           </div>
           <p class="coupon-note">Show this code at the counter at any Decathlon store.</p>
         </div>
-        <p class="offplat">Copies are counted · redemption not tracked</p>
+        <p class="offplat">Copies are counted · redemption not tracked</p></div>
       </li>
 
       <!-- Expired coupon: the offer collapses, the product survives it -->
       <li class="pcard">
         <img class="pcard-img" src="images/products/lamp.jpg" alt="A white table lamp on a wooden desk.">
+        <div class="pcard-main">
         <div class="pcard-body">
           <h3 class="pcard-title"><a href="/mayamoves/product/5">Warm-white desk lamp</a></h3>
           <p class="pcard-price">₹2,990</p>
@@ -303,7 +331,7 @@ body:not([data-state="empty"]) .empty--tags { display: none; }
         <div class="pcard-act">
           <button class="btn btn--accent" type="button" data-buy data-href="https://amazon.in">Buy</button>
         </div>
-        <p class="offplat">Payment settles off-platform · opens the retailer</p>
+        <p class="offplat">Payment settles off-platform · opens the retailer</p></div>
       </li>
     </ul>
 
@@ -315,24 +343,7 @@ body:not([data-state="empty"]) .empty--tags { display: none; }
   </section>
 </main>
 
-<nav class="tabs" aria-label="Sections">
-  <a class="tab" href="/">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z" stroke-linejoin="round"/></svg>
-    <span>Home</span>
-  </a>
-  <a class="tab" href="/explore" aria-current="page">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
-    <span>Shop</span>
-  </a>
-  <a class="tab" href="/following">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20s-7-4.4-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.6-7 9-7 9z" stroke-linejoin="round"/></svg>
-    <span>Following</span>
-  </a>
-  <a class="tab" href="/account">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.2-3.4 4-5 7-5s5.8 1.6 7 5" stroke-linecap="round"/></svg>
-    <span>Account</span>
-  </a>
-</nav>
+<div data-chrome="tabs"></div>
 
 <footer class="foot">
   <div class="inner foot-inner">
@@ -417,6 +428,26 @@ body:not([data-state="empty"]) .empty--tags { display: none; }
     });
   });
 
+
+  /* ── Embeds ─────────────────────────────────────────────────
+     Nothing is requested from YouTube, Instagram or TikTok until the
+     shopper presses play. Until then this is a poster image on our own
+     origin, so a page reached without an account stays that way. */
+  document.querySelectorAll('.embed').forEach(function (box) {
+    var play = box.querySelector('.embed-play');
+    if (!play) return;
+    play.addEventListener('click', function () {
+      var f = document.createElement('iframe');
+      f.src = box.dataset.src;
+      f.title = play.querySelector('b').textContent;
+      f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture';
+      f.setAttribute('allowfullscreen', '');
+      f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+      box.appendChild(f);
+      box.dataset.loaded = '';
+    });
+  });
+
   /* Copy code (§5.8) — inline confirmation, never a toast: in-app
      browsers clip them. A clipboard denial stays silent; the code is
      printed on the button, so the shopper can always read it. */
@@ -432,6 +463,8 @@ body:not([data-state="empty"]) .empty--tags { display: none; }
   });
 })();
 </script>
+<script>window.CHROME = { nav: null, tab: 'shop' };</script>
+<script src="chrome.js" defer></script>
 <script src="creator-prefs.js" defer></script>
 <script src="tweaks.js" defer></script>
 </body>

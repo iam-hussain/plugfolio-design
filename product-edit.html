@@ -1,0 +1,372 @@
+<!doctype html>
+<!--
+  Plugfolio — /dashboard/products/[productId], and /dashboard/products/new.
+  Spec: design-handoff §5.21 (library), §5.9 (the kind + coupon matrix).
+
+  Its own page, because a product is not owned by the post it was tagged
+  on. It can sit on several posts, or on none once its post is deleted,
+  and every one of them shows the same title, price, link and coupon.
+  Editing it from inside one post's editor made a shared object look like
+  that post's property; here it is plainly its own thing, with the posts
+  using it listed as a consequence rather than a container.
+
+  CREATE and EDIT are the same screen — §5.9's variant matrix is the same
+  set of decisions either way. What differs is the preview (nothing to
+  fetch yet), the usage list, and the taps, which a new product has none
+  of. body[data-mode] switches it.
+
+  Shell and back-room primitives are shared: dash-chrome.js and the back
+  room block in styles.css.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edit product · @mayamoves — Plugfolio</title>
+<meta name="description" content="Edit a product's link, price and coupon.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.pe { display: grid; gap: 18px; }
+@media (min-width: 940px) { .pe { grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
+  align-items: start; gap: 26px; } }
+
+/* ── What a shopper will actually see ───────────────────────
+   The preview is the point of this column. Every field on the right
+   changes one line of it, and a creator editing a coupon should be able
+   to see the chip appear rather than imagine it. */
+.pe-prev { position: sticky; top: 128px; }
+.pe-card { border-radius: var(--r-tile); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--card-edge); padding: 14px; }
+.pe-card > img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover;
+  border-radius: var(--r-image); background: var(--violet-wash); }
+.pe-noimg { display: grid; place-items: center; width: 100%; aspect-ratio: 1;
+  border-radius: var(--r-image); background: var(--canvas); color: var(--ink-3);
+  border: 1px dashed var(--line); font-size: var(--t-micro); text-align: center; padding: 20px; }
+.pe-t { margin: 12px 0 0; font-size: var(--t-label); font-weight: 700; }
+.pe-p { margin: 6px 0 0; font-family: Sora, system-ui, sans-serif; font-weight: 800;
+  font-size: var(--t-title); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.pe-w { margin: 4px 0 0; font-size: var(--t-micro); color: var(--ink-2); }
+.pe-marks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pe-lab { display: block; margin: 0 0 8px; font-size: var(--t-micro); font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
+
+/* ── Kind toggle ────────────────────────────────────────────
+   Relabels the link field rather than adding a second one — a creator
+   has exactly one URL in their clipboard, and asking which box it goes
+   in is a question this toggle already answered. */
+.seg2 { display: flex; gap: 3px; padding: 3px; border-radius: var(--r-image);
+  border: 1px solid var(--line); background: var(--canvas); }
+.seg2 button { flex: 1; min-height: 40px; border: 0; border-radius: var(--r-nest);
+  background: none; color: var(--ink-2); cursor: pointer; font: inherit;
+  font-size: var(--t-micro); font-weight: 700; }
+.seg2 button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+
+.sel { width: 100%; min-height: 44px; padding: 11px 40px 11px 14px;
+  border-radius: var(--r-image); border: 1px solid var(--line);
+  background: var(--canvas); color: var(--ink); font: inherit; font-size: var(--t-label);
+  cursor: pointer; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 20px center, right 14px center;
+  background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; }
+.sel:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
+
+.rule { display: flex; gap: 9px; margin: 14px 0 0; padding: 12px 14px;
+  border-radius: var(--r-image); background: var(--canvas);
+  font-size: var(--t-micro); color: var(--ink-2); line-height: 1.5; }
+.rule svg { width: 15px; height: 15px; flex: none; margin-top: 1px; color: var(--ink-3); }
+.rule[data-ok="yes"] { background: var(--violet-wash); color: var(--violet-deep); }
+.rule[data-ok="yes"] svg { color: var(--violet-deep); }
+
+/* Where it is used. A consequence of the product, never a container for
+   it — the same product can sit on five posts or on none. */
+.uses { display: grid; gap: 8px; }
+.use { display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+  border-radius: var(--r-image); background: var(--canvas); border: 1px solid var(--line);
+  text-decoration: none; color: inherit; }
+.use:hover { border-color: var(--accent); }
+.use img { width: 40px; height: 40px; border-radius: var(--r-image); object-fit: cover; flex: none; }
+.use b { flex: 1; min-width: 0; font-size: var(--t-label); font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.use .n { font-size: var(--t-micro); font-weight: 700; color: var(--ink-3); }
+
+/* The row a card ends on: one primary action left, the destructive one
+   pushed to the far edge and wearing no fill at all. */
+.card-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.card-foot .mini--danger { margin-left: auto; }
+.card-foot .mini svg { width: 14px; height: 14px; }
+
+/* ── Create vs edit ─────────────────────────────────────────
+   Absent, not disabled: a product that does not exist has no posts using
+   it and no taps to lose, so those blocks are not there rather than
+   greyed out. */
+body[data-mode="new"]  .m-edit,
+body[data-mode="edit"] .m-new { display: none; }
+
+/* ── Variant, live in the preview (§5.9) ────────────────────── */
+body:not([data-kind="own"])      .v-own,
+body:not([data-kind="affiliate"]) .v-aff,
+body[data-kind="instore"]        .v-linked,
+body:not([data-coupon="yes"])    .v-coupon,
+body:not([data-price="none"])    .v-noprice,
+body[data-price="none"]          .v-price { display: none; }
+body:not([data-kind="own"]) .lbl-own,
+body[data-kind="own"] .lbl-aff { display: none; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body data-page="product-edit" data-role="creator" data-mode="edit"
+      data-kind="affiliate" data-coupon="yes" data-price="known">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#form">Skip to the form</a>
+
+<div data-dash="shell"></div>
+
+<main class="inner">
+  <div class="ph">
+    <div class="ph-t">
+      <p class="ph-eyebrow"><a class="back" href="/dashboard.html?tab=products" style="min-height:0;padding:0">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        All products</a></p>
+      <h1 class="m-edit">Brightening serum</h1>
+      <h1 class="m-new">New product</h1>
+    </div>
+    <div class="ph-act m-edit">
+      <a class="btn btn--ghost" href="/mayamoves/product/1">View as visitor</a>
+    </div>
+  </div>
+
+  <div class="dbody">
+    <div class="pe">
+
+      <!-- ── The preview ── -->
+      <div class="pe-prev">
+        <span class="pe-lab">What a shopper sees</span>
+        <div class="pe-card">
+          <img class="m-edit" src="images/products/serum.jpg" alt="" width="600" height="600">
+          <span class="pe-noimg m-new">The image is fetched from the product URL when you save.</span>
+          <p class="pe-t m-edit">Brightening serum</p>
+          <p class="pe-t m-new" style="color:var(--ink-3)">Title comes from the page you paste</p>
+          <p class="pe-p v-price m-edit">&#8377;1,299</p>
+          <p class="pe-w">
+            <span class="v-own">Their own product</span><span class="v-aff">Affiliate pick</span>
+            <span class="v-linked"> &middot; opens Nykaa</span>
+          </p>
+          <span class="pe-marks">
+            <span class="pill pill--own v-own">Their own</span>
+            <span class="pill pill--code v-coupon">Code SAVE30</span>
+            <span class="pill pill--none v-noprice">No price</span>
+          </span>
+        </div>
+
+        <!-- Two figures, two provenances. They were one line reading
+             "221 Tracked / Plus 71 code copies — redemption is not
+             tracked", which buried the second number in a sentence and
+             attached its caveat to nothing in particular. Each stands on
+             its own now and carries its own label. -->
+        <div class="card m-edit" style="margin-top:14px">
+          <div class="stat stat--solo">
+            <span class="stat-l">Taps</span>
+            <b>221</b>
+            <span class="tracked">Tracked</span>
+            <p>Someone left for Nykaa from this product.</p>
+          </div>
+          <div class="stat stat--solo">
+            <span class="stat-l">Code copies</span>
+            <b>71</b>
+            <span class="untracked">Redemption not tracked</span>
+            <p>We count the copy. What happens at the checkout is the
+              retailer&rsquo;s side.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── The form ── -->
+      <div id="form">
+        <div class="card">
+          <div class="card-h"><h2>The product</h2></div>
+
+          <div class="field">
+            <label for="purl">Product URL</label>
+            <input id="purl" type="url" value="https://nykaa.com/brightening-serum" data-req>
+            <span class="note">We grab the title, image and price from it. If a page won&rsquo;t
+              read, the product is titled by its site — never an error, and you can still tag it.</span>
+          </div>
+
+          <div class="field">
+            <label>Kind</label>
+            <div class="seg2" role="group" aria-label="Product kind">
+              <button type="button" data-k="affiliate" aria-pressed="true">Affiliate product</button>
+              <button type="button" data-k="own" aria-pressed="false">My own product</button>
+            </div>
+            <span class="note">Own products carry a quiet trust marker and their button reads
+              &ldquo;Shop their store&rdquo;. Nothing else differs.</span>
+          </div>
+
+          <div class="field">
+            <label for="plink">
+              <span class="lbl-aff">Your affiliate link</span>
+              <span class="lbl-own">Your store / product link</span>
+            </label>
+            <input id="plink" type="url" value="https://nykaa.com/aff/brightening-serum" data-link>
+          </div>
+
+          <div class="field">
+            <label for="pcat">Shelf</label>
+            <select id="pcat" class="sel">
+              <option>None</option><option selected>Skin</option>
+              <option>Desk setup</option><option>Gym</option>
+            </select>
+          </div>
+
+            <!-- The offer is part of the product, not a second subject. It
+                 had its own card and its own heading, which made one
+                 optional field look like a separate thing to manage. -->
+            <div class="fold" style="margin-top:4px">
+              <button class="fold-t" type="button" id="cpnT" aria-expanded="true" aria-controls="cpnB">
+                Coupon
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div class="fold-b" id="cpnB">
+                <div class="field">
+                  <label for="pcode">Code</label>
+                  <input id="pcode" type="text" value="SAVE30" data-code>
+                  <span class="note">Clearing the code removes the whole offer.</span>
+                </div>
+                <div class="pair">
+                  <div class="field">
+                    <label for="pexp">Valid till <i>&middot; optional</i></label>
+                    <input id="pexp" type="text" value="31 Aug 2026">
+                  </div>
+                  <div class="field">
+                    <label for="pnote">In-store note <i>&middot; optional</i></label>
+                    <input id="pnote" type="text" placeholder="Show at the counter" data-note>
+                  </div>
+                </div>
+                <p class="note" style="margin:0">An in-store note makes this an in-store offer: copies
+                  are counted, redemption is not. A product with a note and no link has no Buy button
+                  at all — the code is the whole action.</p>
+              </div>
+            </div>
+
+          <p class="rule" id="pRule" data-ok="yes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>
+            <span id="pRuleT">Ready &mdash; tapping Buy will open your link.</span>
+          </p>
+
+          <!-- One primary action, and the destructive one kept quiet and
+               far from it. A red button sitting level with Save is an
+               invitation to mis-click. -->
+          <div class="card-foot">
+            <button class="btn btn--accent m-edit" type="button" id="pSave">Save product</button>
+            <button class="btn btn--accent m-new" type="button" id="pAdd">Add product</button>
+            <button class="mini mini--danger m-edit" type="button" id="pDel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12"/></svg> Remove</button>
+          </div>
+        </div>
+
+        <!-- Used by, not owned by. -->
+        <div class="card m-edit">
+          <div class="card-h">
+            <h2>On these posts</h2>
+            <span class="micro">2 &middot; editing here changes all of them</span>
+          </div>
+          <div class="uses">
+            <a class="use" href="/dashboard.html?tab=editor">
+              <img src="images/posts/skincare.jpg" alt="" loading="lazy">
+              <b>Two tubes and a gua sha</b><span class="n">190 taps</span></a>
+            <a class="use" href="/dashboard.html?tab=editor">
+              <img src="images/posts/beauty.jpg" alt="" loading="lazy">
+              <b>Everyday face, five things</b><span class="n">144 taps</span></a>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+window.DASH = { tab: 'products', profile: '@mayamoves' };
+</script>
+<script src="dash-chrome.js" defer></script>
+<script>
+(function () {
+  document.querySelectorAll('.seg2 [data-k]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.body.dataset.kind = b.dataset.k;
+      b.closest('.seg2').querySelectorAll('button').forEach(function (o) {
+        o.setAttribute('aria-pressed', String(o === b));
+      });
+    });
+  });
+
+  var cT = document.getElementById('cpnT');
+  cT.addEventListener('click', function () {
+    cT.setAttribute('aria-expanded', cT.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+  });
+
+  /* The same channel rule as the tagging editor (§5.20): a product needs
+     a link, or a code with an in-store note, or both. It is the same rule
+     because it is the same object — a product edited here and a product
+     tagged there are one row in one table. */
+  var url  = document.querySelector('[data-req]');
+  var link = document.querySelector('[data-link]');
+  var code = document.querySelector('[data-code]');
+  var note = document.querySelector('[data-note]');
+  var rule = document.getElementById('pRule'), ruleT = document.getElementById('pRuleT');
+  var save = document.getElementById('pSave'), add = document.getElementById('pAdd');
+
+  function gate() {
+    var hasUrl   = url.value.trim() !== '';
+    var hasLink  = link.value.trim() !== '';
+    var hasCode  = code.value.trim() !== '';
+    var hasStore = hasCode && note.value.trim() !== '';
+    var ok = hasUrl && (hasLink || hasStore);
+    [save, add].forEach(function (b) { if (b) b.disabled = !ok; });
+    rule.dataset.ok = ok ? 'yes' : 'no';
+    ruleT.textContent = ok
+      ? (hasLink && hasStore ? 'Ready — it opens the retailer and the code works in a shop.'
+        : hasLink ? 'Ready — tapping Buy will open your link.'
+        : 'Ready — the code is the action; there is no Buy button on this one.')
+      : !hasUrl ? 'Paste the product URL to start.'
+      : 'A product needs somewhere to go: a link, or a code with an in-store note, or both. ' +
+        'Without one it could take no taps and no copies.';
+
+    /* The preview is the point of the left column, so it tracks the
+       fields rather than waiting for a save. */
+    document.body.dataset.coupon = hasCode ? 'yes' : 'no';
+    document.body.dataset.kind = hasLink || !hasStore ? document.body.dataset.kind : 'instore';
+  }
+  [url, link, code, note].forEach(function (el) { el.addEventListener('input', gate); });
+  gate();
+})();
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: '/dashboard/products/[id]',
+  groups: [
+    { label: 'Mode', options: [
+      { name: 'Editing',     note: 'Preview, usage and taps',       set: { mode: 'edit' } },
+      { name: 'New product', note: 'Nothing fetched or used yet',   set: { mode: 'new'  } }
+    ]},
+    { label: 'Kind', options: [
+      { name: 'Affiliate', note: 'A retailer link · Buy',           set: { kind: 'affiliate' } },
+      { name: 'Their own', note: 'Trust marker · Shop their store', set: { kind: 'own'       } },
+      { name: 'In-store',  note: 'No link — the code is it',        set: { kind: 'instore'   } }
+    ]},
+    { label: 'Price', options: [
+      { name: 'Known',   note: 'Read from the page',      set: { price: 'known' } },
+      { name: 'Unknown', note: 'Hidden — never “$0”',     set: { price: 'none'  } }
+    ]}
+  ]
+};
+</script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

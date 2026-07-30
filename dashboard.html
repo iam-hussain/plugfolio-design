@@ -1,0 +1,978 @@
+<!doctype html>
+<!--
+  Plugfolio — /dashboard/*. Spec: design-handoff §5.17 (shell + switcher),
+  §5.18 (Home + Earnings), §5.19 (Posts), §5.21 (Products),
+  §5.22 (Categories), §5.23 (Settings + Managers), §5.15 (Connections).
+
+  Mode: OPERATE. This is the back room. Nothing here is for a shopper, so
+  it optimises for scanning and editing in place rather than for
+  expression: dense rows, visible labels, edits that save where you made
+  them instead of behind a modal.
+
+  ONE file, all six tabs — the point of the shell is that every screen
+  renders inside it, and separate files is how a shell quietly forks. The
+  tab is ?tab= on the URL and data-tab on <body>.
+
+  Role colour is CREATOR here (sky), not shopper: /dashboard is only ever
+  seen by someone wearing the creator hat. Public pages stay shopper-
+  coloured because four viewers read them at once — see DESIGN.md's
+  Role-Colour-Is-Chrome-Only rule.
+
+  ⚠ NEW SCOPE — not in the spec, needs backend:
+    · nothing. Every number here is one the spec says is tracked.
+  DELIBERATELY ABSENT (§5.18): any "estimated" figure. v1 has no
+  conversion source, so every number is a measured tap or copy.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard · @mayamoves — Plugfolio</title>
+<meta name="description" content="Manage your posts, products, shelves and profile.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* Shell, cards, fields, rows, empty states — all shared, in styles.css
+   under THE BACK ROOM. This file styles only what is unique to it. */
+
+/* ── Home: the active profile ───────────────────────────────── */
+.act-prof { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.act-prof img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; flex: none;
+  background: var(--violet-wash); }
+.act-prof-t { min-width: 0; flex: 1 1 220px; }
+.act-prof-t b { display: block; font-family: Sora, system-ui, sans-serif; font-weight: 800;
+  font-size: var(--t-title); letter-spacing: -.02em; }
+.act-prof-t span { display: block; margin-top: 3px; font-size: var(--t-copy); color: var(--ink-2); }
+
+/* The nudge. It only exists when it has something to say, and it says the
+   number rather than a general encouragement. */
+.nudge { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 14px;
+  padding: 14px 16px; border-radius: var(--r-tile);
+  background: var(--violet-wash); border: 1px solid var(--accent); }
+.nudge p { margin: 0; flex: 1 1 240px; font-size: var(--t-copy); color: var(--ink-2); }
+.nudge b { color: var(--ink); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pchip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+  padding: 7px 14px 7px 7px; border-radius: var(--r-chip); border: 1px solid var(--line);
+  background: var(--canvas); color: var(--ink); text-decoration: none;
+  font-size: var(--t-label); font-weight: 600; }
+.pchip:hover { border-color: var(--accent); }
+.pchip img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.pchip[aria-current="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.pchip em { font-style: normal; font-size: var(--t-micro); font-weight: 700; color: var(--ink-3); }
+
+/* ── Connections (§5.15) ────────────────────────────────────── */
+.conns { display: grid; gap: 12px; }
+@media (min-width: 720px) { .conns { grid-template-columns: 1fr 1fr; } }
+.conn { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 15px 16px;
+  border-radius: var(--r-tile); border: 1px solid var(--line); background: var(--canvas); }
+.conn-i { display: grid; place-items: center; width: 40px; height: 40px; flex: none;
+  border-radius: 50%; background: var(--surface); box-shadow: 0 0 0 1px var(--line); color: var(--ink-2); }
+.conn-i svg { width: 19px; height: 19px; }
+.conn-t { flex: 1 1 160px; min-width: 0; }
+.conn-t b { display: block; font-size: var(--t-label); font-weight: 700; }
+.conn-t span { display: block; margin-top: 2px; font-size: var(--t-micro); color: var(--ink-2); }
+.conn .btn { flex: none; padding: 10px 16px; min-height: 40px; font-size: var(--t-micro); }
+/* A connected provider lists what it exposes — a Google account can carry
+   several YouTube channels, and that pool is what usernames come from. */
+.conn-ch { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px; padding-top: 12px;
+  margin-top: 2px; border-top: 1px solid var(--line); }
+.conn-ch span { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px;
+  border-radius: var(--r-chip); background: var(--surface); box-shadow: 0 0 0 1px var(--line);
+  font-size: var(--t-micro); font-weight: 600; color: var(--ink-2); }
+.ok { display: inline-flex; align-items: center; gap: 6px; color: var(--ink);
+  font-size: var(--t-micro); font-weight: 700; }
+.ok::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--lime); }
+
+.earn-cols { display: grid; gap: 14px; margin-top: 18px; }
+@media (min-width: 860px) { .earn-cols { grid-template-columns: 1fr 1fr; } }
+.rank { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 2px; }
+.rank li { display: flex; align-items: center; gap: 12px; padding: 9px 10px;
+  border-radius: var(--r-image); }
+.rank li:nth-child(odd) { background: var(--canvas); }
+.rank .t { flex: 1; min-width: 0; font-size: var(--t-label); font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank .n { flex: none; font-size: var(--t-label); font-weight: 800; font-variant-numeric: tabular-nums;
+  min-width: 3.5ch; text-align: right; }
+/* Views sit beside taps in the same row, quieter — the tap is what the
+   list is ranked on, the view is its denominator. */
+.rank .n2 { flex: none; font-size: var(--t-micro); font-weight: 600; color: var(--ink-3);
+  font-variant-numeric: tabular-nums; min-width: 5ch; text-align: right; }
+.rank .gone { color: var(--ink-3); font-style: italic; }
+
+/* ── Posts, as a list (§5.19) ───────────────────────────────
+   The grid showed the photograph, which the creator already recognises.
+   What they open this tab to check is in words: is it on the page, which
+   shelf, how many products. So it is rows, and the switch is right there
+   rather than two screens away in the editor. */
+.plist2 { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.prow2 { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 14px 10px 10px;
+  border-radius: var(--r-tile); background: var(--surface); box-shadow: 0 0 0 1px var(--card-edge); }
+.prow2:hover { box-shadow: 0 0 0 1px var(--accent); }
+/* A hidden post is dimmed, not removed: it is still yours, still listed,
+   still editable — only its public URL is gone. */
+.prow2[data-off] { background: var(--canvas); }
+.prow2[data-off] .prow2-a { opacity: .55; }
+.prow2-a { display: flex; align-items: center; gap: 14px; flex: 1 1 280px; min-width: 0;
+  text-decoration: none; color: inherit; }
+.prow2-a img { width: 54px; height: 54px; border-radius: var(--r-image); object-fit: cover;
+  flex: none; background: var(--violet-wash); }
+.prow2-t { min-width: 0; }
+.prow2-t b { display: block; font-size: var(--t-label); font-weight: 700; }
+.prow2-m { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 5px; }
+.prow2-n { display: inline-flex; align-items: center; gap: 6px; font-size: var(--t-micro);
+  font-weight: 600; color: var(--ink-2); }
+.prow2-n svg { width: 12px; height: 12px; color: var(--accent); }
+.pill--shelf { background: var(--violet-wash); color: var(--violet-deep); }
+.pill--untagged { background: var(--lime); color: var(--on-white); }
+/* A fact worth noticing, not an error — the product still works. */
+.crow-meta .warn { color: var(--ink); font-weight: 700; }
+.prow2-act { display: flex; align-items: center; gap: 10px; flex: none; margin-left: auto; }
+
+/* A real switch. "Hide from page" as a button made you read the label to
+   learn the current state; a switch shows it. */
+.switch { width: 42px; height: 24px; flex: none; padding: 0; border: 0; border-radius: 999px;
+  background: var(--line); cursor: pointer; position: relative;
+  transition: background-color .18s var(--ease); }
+.switch i { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--surface); box-shadow: var(--sh-rest);
+  transition: transform .18s var(--ease); }
+.switch[aria-checked="true"] { background: var(--accent); }
+.switch[aria-checked="true"] i { transform: translateX(18px); }
+.switch-l { font-size: var(--t-micro); font-weight: 700; color: var(--ink-3); min-width: 6ch; }
+.prow2:not([data-off]) .switch-l .off,
+.prow2[data-off] .switch-l .on { display: none; }
+@media (prefers-reduced-motion: reduce) { .switch, .switch i { transition: none; } }
+
+/* ── Collabs ────────────────────────────────────────────────
+   The list, not the thread. Payment is never shown here because it never
+   happens here. */
+.cols { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.col { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px;
+  border-radius: var(--r-tile); background: var(--surface); box-shadow: 0 0 0 1px var(--card-edge); }
+.col[data-off] { background: var(--canvas); }
+.col[data-off] .col-t { opacity: .6; }
+.col img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: none; }
+.col-t { flex: 1 1 260px; min-width: 0; }
+.col-t b { display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  font-size: var(--t-label); font-weight: 700; }
+.col-t > span { display: block; margin-top: 4px; font-size: var(--t-copy); color: var(--ink-2); }
+.col-m { font-size: var(--t-micro) !important; color: var(--ink-3) !important; }
+.pill--new { background: var(--lime); color: var(--on-white); }
+.pill--agreed { background: var(--violet-wash); color: var(--violet-deep); }
+.pill--closed { background: var(--line); color: var(--ink-2); }
+
+/* ── Posts grid (§5.19) ─────────────────────────────────────── */
+.filters { display: flex; gap: 8px; margin-bottom: 16px; }
+.fbtn { min-height: 40px; padding: 9px 16px; border-radius: var(--r-chip);
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+  text-decoration: none; font-size: var(--t-micro); font-weight: 700; display: inline-flex;
+  align-items: center; }
+.fbtn:hover { border-color: var(--accent); color: var(--accent); }
+.fbtn[aria-current="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+
+.pgrid { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px;
+  grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 640px)  { .pgrid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1000px) { .pgrid { grid-template-columns: repeat(4, 1fr); } }
+.ptile { position: relative; display: block; aspect-ratio: 1; border-radius: var(--r-image);
+  overflow: hidden; background: var(--surface); box-shadow: 0 0 0 1px var(--card-edge); }
+.ptile img { width: 100%; height: 100%; object-fit: cover; }
+.ptile:hover { box-shadow: 0 0 0 2px var(--accent); }
+/* The overlay answers the only question this grid is asked: is this one
+   shoppable yet. Untagged is the state that needs the work, so it is the
+   one that carries colour. */
+.pmark { position: absolute; right: 8px; top: 8px; display: inline-flex; align-items: center;
+  gap: 5px; padding: 5px 10px; border-radius: var(--r-chip);
+  font-size: var(--t-micro); font-weight: 700; box-shadow: var(--sh-tag); }
+.pmark--tagged { background: #FFFFFF; color: var(--on-white); }
+.pmark--tagged svg { width: 11px; height: 11px; color: var(--accent); }
+.pmark--untagged { background: var(--lime); color: var(--on-white); }
+.pmark--hidden { position: absolute; left: 8px; top: 8px; right: auto;
+  background: var(--ink); color: var(--surface); }
+
+/* ── Categories (§5.22) ─────────────────────────────────────── */
+.cats { display: grid; gap: 8px; }
+.cat { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 14px;
+  border-radius: var(--r-tile); background: var(--surface); box-shadow: 0 0 0 1px var(--card-edge); }
+.cat-drag { display: grid; place-items: center; width: 32px; height: 32px; flex: none;
+  color: var(--ink-3); cursor: grab; background: none; border: 0; }
+.cat-drag svg { width: 16px; height: 16px; }
+.cat-t { flex: 1 1 200px; min-width: 0; }
+.cat-t b { display: block; font-size: var(--t-label); font-weight: 700; }
+.cat-t span { display: block; margin-top: 2px; font-size: var(--t-micro); color: var(--ink-2); }
+.cat-n { font-size: var(--t-micro); font-weight: 700; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.cat-act { display: flex; gap: 6px; }
+
+/* ── Tab switching, by exclusion ────────────────────────────── */
+body:not([data-tab="home"])       .t-home,
+body:not([data-tab="posts"])      .t-posts,
+body:not([data-tab="products"])   .t-products,
+body:not([data-tab="categories"]) .t-categories,
+body:not([data-tab="collabs"])    .t-collabs,
+body:not([data-tab="settings"])   .t-settings { display: none; }
+
+/* ── Role: Admin vs Manager (§5.23) ─────────────────────────── */
+body:not([data-role2="admin"])   .r-admin,
+body:not([data-role2="manager"]) .r-manager { display: none; }
+
+/* ── Content states ─────────────────────────────────────────── */
+body:not([data-content="empty"]) .is-empty,
+body[data-content="empty"]       .is-full { display: none; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body data-page="dashboard" data-tab="home" data-role="creator" data-role2="admin"
+      data-content="full" data-viewer="owner" data-hidden="no" data-kind="affiliate">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#body">Skip to the page</a>
+
+<div data-dash="shell"></div>
+
+<main class="inner" id="body">
+
+  <!-- ═══ HOME (§5.18) ═══════════════════════════════════════ -->
+  <div class="t-home">
+    <div class="ph">
+      <div class="ph-t">
+        <p class="ph-eyebrow">maya@email.com</p>
+        <h1>Dashboard</h1>
+      </div>
+    </div>
+
+    <div class="dbody">
+      <div class="card">
+        <div class="act-prof">
+          <img src="images/avatars/maya.jpg" alt="" width="120" height="120">
+          <span class="act-prof-t">
+            <b>@mayamoves</b>
+            <span>plugfolio.com/mayamoves</span>
+          </span>
+          <a class="btn btn--ghost" href="/mayamoves">View page</a>
+        </div>
+
+        <!-- Only when there is something to tag. A nudge that is always
+             there is wallpaper; this one carries the count. -->
+        <div class="nudge">
+          <p><b>3 posts have no products tagged.</b>
+            Tag them to make those posts shoppable.</p>
+          <a class="btn btn--accent" href="?tab=posts&amp;filter=untagged">Tag them</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <h2>Profiles</h2>
+          <span class="micro">3 of 5</span>
+          <span class="act"><button class="btn btn--ghost" type="button">New profile</button></span>
+        </div>
+        <div class="chips">
+          <a class="pchip" href="?profile=maya" aria-current="true"><img src="images/avatars/maya.jpg" alt="">@mayamoves</a>
+          <a class="pchip" href="?profile=fit"><img src="images/avatars/nia.jpg" alt="">@mayamoves.fit</a>
+          <a class="pchip" href="?profile=rhea"><img src="images/avatars/rhea.jpg" alt="">@rheamakes <em>manager</em></a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Connections</h2></div>
+        <p class="hint">Connect at least one to create a profile. This is how a username stays
+          yours — you can only connect an account you own.</p>
+        <div class="conns">
+          <div class="conn">
+            <span class="conn-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg></span>
+            <span class="conn-t"><b>Google &middot; YouTube</b><span class="ok">Connected as Maya Rao</span></span>
+            <button class="btn btn--ghost" type="button">Disconnect</button>
+            <span class="conn-ch">
+              <span>@mayamoves &middot; 48.2K</span>
+              <span>@mayamovesfit &middot; 6.1K</span>
+            </span>
+          </div>
+          <div class="conn">
+            <span class="conn-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></span>
+            <span class="conn-t"><b>Meta &middot; Instagram</b><span>Coming next — no gateway yet</span></span>
+            <button class="btn btn--ghost" type="button" disabled>Connect</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Traffic ──────────────────────────────────────────
+           Called "Earnings" until it was pointed out that it earns
+           nothing: Plugfolio handles no money and sees no sale, so the
+           word promised a number this product cannot produce. What it
+           actually holds is two measured counts — who looked, and who
+           left for a retailer — so it is named for those.
+
+           Views and taps sit side by side because either alone misleads.
+           1,284 taps sounds enormous until you see 20,410 views; 20,410
+           views sounds like reach until you see how few moved. The rate
+           between them is the number a creator can act on. -->
+      <div class="card">
+        <div class="card-h">
+          <h2>Traffic &middot; @mayamoves</h2>
+          <span class="micro">All time</span>
+        </div>
+
+        <div class="is-full">
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-l">Views</span>
+              <b>20,410</b>
+              <span class="tracked">Tracked</span>
+              <p>Your page, posts and product pages opening.</p>
+            </div>
+            <div class="stat">
+              <span class="stat-l">Taps</span>
+              <b>1,284</b>
+              <span class="tracked">Tracked</span>
+              <p>Someone leaving for a retailer.</p>
+            </div>
+            <div class="stat">
+              <span class="stat-l">Tap-through</span>
+              <b>6.3<i>%</i></b>
+              <span class="micro" style="color:var(--ink-3)">taps &divide; views</span>
+              <p>Of everyone who looked, this many went to buy.</p>
+            </div>
+          </div>
+
+          <p class="hint" style="margin-top:16px">Both counts are measured directly. Nothing on this
+            page is estimated, and none of it is money &mdash; Plugfolio never sees a sale, so it
+            never guesses at one.</p>
+
+          <div class="earn-cols">
+            <div>
+              <div class="card-h" style="margin-bottom:0"><h2 style="font-size:var(--t-label)">By post</h2>
+                <span class="micro" style="margin-left:auto">views &middot; taps</span></div>
+              <ul class="rank">
+                <li><span class="t">The desk reset</span><span class="n2">4,880</span><span class="n">312</span></li>
+                <li><span class="t">Gym kit that lasted a year</span><span class="n2">4,101</span><span class="n">268</span></li>
+                <li><span class="t">Two tubes and a gua sha</span><span class="n2">3,442</span><span class="n">190</span></li>
+                <li><span class="t">Everyday face, five things</span><span class="n2">2,986</span><span class="n">144</span></li>
+                <li><span class="t gone">Untitled post</span><span class="n2">1,900</span><span class="n">96</span></li>
+              </ul>
+            </div>
+            <div>
+              <div class="card-h" style="margin-bottom:0"><h2 style="font-size:var(--t-label)">By product</h2>
+                <span class="micro" style="margin-left:auto">views &middot; taps</span></div>
+              <ul class="rank">
+                <li><span class="t">Warm-white desk lamp</span><span class="n2">3,120</span><span class="n">274</span></li>
+                <li><span class="t">Brightening serum</span><span class="n2">2,740</span><span class="n">221</span></li>
+                <li><span class="t">Keychron K3 Pro</span><span class="n2">2,510</span><span class="n">183</span></li>
+                <li><span class="t">Everyday white trainers</span><span class="n2">2,090</span><span class="n">150</span></li>
+                <li><span class="t">Court trainers</span><span class="n2">1,460</span><span class="n">98</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-top:22px">
+            <div class="stat" style="max-width:none">
+              <span class="stat-l">Code copies</span>
+              <b>146</b>
+              <span class="untracked">Redemption not tracked</span>
+              <p>Copies are counted here. Whether a code was used at a checkout or a counter
+                happens on the retailer&rsquo;s side, where Plugfolio cannot see it &mdash; so this
+                page never claims it did.</p>
+            </div>
+            <ul class="rank" style="margin-top:12px">
+              <li><span class="t">SAVE30 &middot; Brightening serum</span><span class="n">71</span></li>
+              <li><span class="t">MAYA15 &middot; Court trainers</span><span class="n">44</span></li>
+              <li><span class="t">DESK15 &middot; Insulated bottle <em class="micro">in-store only</em></span><span class="n">31</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="is-empty">
+          <div class="stats">
+            <div class="stat"><span class="stat-l">Views</span><b>0</b><span class="tracked">Tracked</span></div>
+            <div class="stat"><span class="stat-l">Taps</span><b>0</b><span class="tracked">Tracked</span></div>
+          </div>
+          <p class="hint" style="margin-top:16px">Share your link and both numbers start moving.
+            Views count the moment someone opens your page; taps count when they leave for a shop.</p>
+          <a class="btn btn--accent" href="/mayamoves">View your page</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ POSTS (§5.19) ══════════════════════════════════════ -->
+  <div class="t-posts">
+    <div class="ph">
+      <div class="ph-t">
+        <p class="ph-eyebrow">@mayamoves</p>
+        <h1>Posts</h1>
+      </div>
+      <div class="ph-act"><a class="btn btn--accent" href="/post-edit.html?mode=new">Add post</a></div>
+    </div>
+
+    <div class="dbody">
+      <div class="filters">
+        <a class="fbtn" href="?tab=posts" aria-current="true">All</a>
+        <a class="fbtn" href="?tab=posts&amp;filter=tagged">Tagged</a>
+        <a class="fbtn" href="?tab=posts&amp;filter=untagged">Untagged</a>
+      </div>
+
+      <!-- A list, not a grid. The grid showed the photograph, which the
+           creator already recognises; what they came to check is whether a
+           post is on the page, which shelf it sits on, and how many
+           products it carries. Those are words, and words want rows. -->
+      <ul class="plist2 is-full">
+        <li class="prow2">
+          <a class="prow2-a" href="/post-edit.html?post=4">
+            <img src="images/posts/p6.jpg" alt="" loading="lazy">
+            <span class="prow2-t">
+              <b>The desk reset</b>
+              <span class="prow2-m">
+                <span class="pill pill--shelf">Desk setup</span>
+                <span class="prow2-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>5 products</span>
+              </span>
+            </span>
+          </a>
+          <span class="prow2-act">
+            <button class="switch" type="button" role="switch" aria-checked="true"
+                    aria-label="Show The desk reset on your page"><i></i></button>
+            <span class="switch-l"><span class="on">On page</span><span class="off">Hidden</span></span>
+            <a class="iact" href="/post-edit.html?post=4" aria-label="Edit this post" title="Edit this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+          </span>
+        </li>
+        <li class="prow2">
+          <a class="prow2-a" href="/post-edit.html?post=1">
+            <img src="images/posts/gym.jpg" alt="" loading="lazy">
+            <span class="prow2-t">
+              <b>Gym kit that lasted a year</b>
+              <span class="prow2-m">
+                <span class="pill pill--shelf">Gym</span>
+                <span class="prow2-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>4 products</span>
+              </span>
+            </span>
+          </a>
+          <span class="prow2-act">
+            <button class="switch" type="button" role="switch" aria-checked="true"
+                    aria-label="Show Gym kit that lasted a year on your page"><i></i></button>
+            <span class="switch-l"><span class="on">On page</span><span class="off">Hidden</span></span>
+            <a class="iact" href="/post-edit.html?post=1" aria-label="Edit this post" title="Edit this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+          </span>
+        </li>
+        <li class="prow2">
+          <a class="prow2-a" href="/post-edit.html?post=9">
+            <img src="images/posts/p10.jpg" alt="" loading="lazy">
+            <span class="prow2-t">
+              <b>Living room corner</b>
+              <span class="prow2-m">
+                <span class="pill pill--shelf">No shelf</span>
+                <span class="pill pill--untagged">No products</span>
+              </span>
+            </span>
+          </a>
+          <span class="prow2-act">
+            <button class="switch" type="button" role="switch" aria-checked="true"
+                    aria-label="Show Living room corner on your page"><i></i></button>
+            <span class="switch-l"><span class="on">On page</span><span class="off">Hidden</span></span>
+            <a class="iact" href="/post-edit.html?post=9" aria-label="Edit this post" title="Edit this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+          </span>
+        </li>
+        <li class="prow2">
+          <a class="prow2-a" href="/post-edit.html?post=2">
+            <img src="images/posts/desk.jpg" alt="" loading="lazy">
+            <span class="prow2-t">
+              <b>The white desk flat-lay</b>
+              <span class="prow2-m">
+                <span class="pill pill--shelf">Desk setup</span>
+                <span class="prow2-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>3 products</span>
+              </span>
+            </span>
+          </a>
+          <span class="prow2-act">
+            <button class="switch" type="button" role="switch" aria-checked="true"
+                    aria-label="Show The white desk flat-lay on your page"><i></i></button>
+            <span class="switch-l"><span class="on">On page</span><span class="off">Hidden</span></span>
+            <a class="iact" href="/post-edit.html?post=2" aria-label="Edit this post" title="Edit this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+          </span>
+        </li>
+        <li class="prow2" data-off>
+          <a class="prow2-a" href="/post-edit.html?post=11">
+            <img src="images/posts/p11.jpg" alt="" loading="lazy">
+            <span class="prow2-t">
+              <b>Soft daylight living room</b>
+              <span class="prow2-m">
+                <span class="pill pill--shelf">No shelf</span>
+                <span class="pill pill--untagged">No products</span>
+              </span>
+            </span>
+          </a>
+          <span class="prow2-act">
+            <button class="switch" type="button" role="switch" aria-checked="false"
+                    aria-label="Show Soft daylight living room on your page"><i></i></button>
+            <span class="switch-l"><span class="on">On page</span><span class="off">Hidden</span></span>
+            <a class="iact" href="/post-edit.html?post=11" aria-label="Edit this post" title="Edit this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+          </span>
+        </li>
+        <li class="prow2">
+          <a class="prow2-a" href="/post-edit.html?post=3">
+            <img src="images/posts/skincare.jpg" alt="" loading="lazy">
+            <span class="prow2-t">
+              <b>Two tubes and a gua sha</b>
+              <span class="prow2-m">
+                <span class="pill pill--shelf">Skin</span>
+                <span class="prow2-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>3 products</span>
+              </span>
+            </span>
+          </a>
+          <span class="prow2-act">
+            <button class="switch" type="button" role="switch" aria-checked="true"
+                    aria-label="Show Two tubes and a gua sha on your page"><i></i></button>
+            <span class="switch-l"><span class="on">On page</span><span class="off">Hidden</span></span>
+            <a class="iact" href="/post-edit.html?post=3" aria-label="Edit this post" title="Edit this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+          </span>
+        </li>
+        <li class="prow2">
+          <a class="prow2-a" href="/post-edit.html?post=14">
+            <img src="images/posts/p14.jpg" alt="" loading="lazy">
+            <span class="prow2-t">
+              <b>Morning coffee setup</b>
+              <span class="prow2-m">
+                <span class="pill pill--shelf">No shelf</span>
+                <span class="pill pill--untagged">No products</span>
+              </span>
+            </span>
+          </a>
+          <span class="prow2-act">
+            <button class="switch" type="button" role="switch" aria-checked="true"
+                    aria-label="Show Morning coffee setup on your page"><i></i></button>
+            <span class="switch-l"><span class="on">On page</span><span class="off">Hidden</span></span>
+            <a class="iact" href="/post-edit.html?post=14" aria-label="Edit this post" title="Edit this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+          </span>
+        </li>
+        <li class="prow2">
+          <a class="prow2-a" href="/post-edit.html?post=5">
+            <img src="images/posts/beauty.jpg" alt="" loading="lazy">
+            <span class="prow2-t">
+              <b>Everyday face, five things</b>
+              <span class="prow2-m">
+                <span class="pill pill--shelf">Skin</span>
+                <span class="prow2-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"/></svg>6 products</span>
+              </span>
+            </span>
+          </a>
+          <span class="prow2-act">
+            <button class="switch" type="button" role="switch" aria-checked="true"
+                    aria-label="Show Everyday face, five things on your page"><i></i></button>
+            <span class="switch-l"><span class="on">On page</span><span class="off">Hidden</span></span>
+            <a class="iact" href="/post-edit.html?post=5" aria-label="Edit this post" title="Edit this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+          </span>
+        </li>
+      </ul>
+
+      <div class="empty is-empty">
+        <b>No posts yet</b>
+        <p>Add your first post — then tag products onto it to make it shoppable.</p>
+        <a class="btn btn--accent" href="/post-edit.html?mode=new">Add a post</a>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ PRODUCTS (§5.21) ═══════════════════════════════════ -->
+  <div class="t-products">
+    <div class="ph">
+      <div class="ph-t">
+        <p class="ph-eyebrow">@mayamoves</p>
+        <h1>Products</h1>
+      </div>
+      <div class="ph-act"><a class="btn btn--accent" href="/product-edit.html?mode=new">New product</a></div>
+    </div>
+
+    <div class="dbody">
+      <form class="frow is-full" action="" method="get" role="search" style="margin:0 0 18px">
+        <input type="search" name="q" placeholder="Search your products…" aria-label="Search products">
+        <button class="btn btn--ghost" type="submit">Search</button>
+      </form>
+
+      <!-- The library LISTS; the product page edits. Inline link, coupon
+           and shelf editors lived here before the product page existed,
+           and leaving them meant two screens could each claim to be where
+           a product is changed. A list you scan is also the thing §5.21
+           asks for — a CRM is what it says this must not become. -->
+      <div class="is-full">
+        <div class="crow">
+          <img src="images/products/serum.jpg" alt="" width="120" height="120">
+          <div class="crow-b">
+            <div class="crow-h"><b>Brightening serum</b><span class="price">&#8377;1,299</span>
+              <span class="pill pill--code">Code SAVE30</span></div>
+            <div class="crow-meta"><span>Affiliate &middot; opens Nykaa</span><span>&middot;</span>
+              <span>Skin</span><span>&middot;</span><span>on 2 posts</span><span>&middot;</span>
+              <span>221 taps</span></div>
+          </div>
+          <span class="iacts"><a class="iact" href="/product-edit.html?product=1" aria-label="Edit this product" title="Edit this product"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a></span>
+        </div>
+
+        <div class="crow">
+          <img src="images/products/sneakers.jpg" alt="" width="120" height="120">
+          <div class="crow-b">
+            <div class="crow-h"><b>Court trainers</b><span class="price">$32.00</span>
+              <span class="pill pill--own">Their own</span>
+              <span class="pill pill--code">Code MAYA15</span></div>
+            <div class="crow-meta"><span>Own store &middot; opens mayarao.co</span><span>&middot;</span>
+              <span>No shelf</span><span>&middot;</span><span>on 1 post</span><span>&middot;</span>
+              <span>98 taps</span></div>
+          </div>
+          <span class="iacts"><a class="iact" href="/product-edit.html?product=11" aria-label="Edit this product" title="Edit this product"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a></span>
+        </div>
+
+        <div class="crow">
+          <img src="images/products/bottle.jpg" alt="" width="120" height="120">
+          <div class="crow-b">
+            <div class="crow-h"><b>Insulated 750ml bottle</b><span class="price">&#8377;890</span>
+              <span class="pill pill--code">In-store DESK15</span></div>
+            <!-- Outlived the post it was tagged on. Still a product; it just
+                 has nowhere pointing at it right now. -->
+            <div class="crow-meta"><span>In-store only &middot; no link</span><span>&middot;</span>
+              <span>Gym</span><span>&middot;</span><span class="warn">not on any post</span><span>&middot;</span>
+              <span>31 copies</span></div>
+          </div>
+          <span class="iacts"><a class="iact" href="/product-edit.html?product=21" aria-label="Edit this product" title="Edit this product"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a></span>
+        </div>
+
+        <div class="crow">
+          <img src="images/products/keyboard.jpg" alt="" width="120" height="120">
+          <div class="crow-b">
+            <div class="crow-h"><b>Keychron K3 Pro</b><span class="pill pill--none">No price</span></div>
+            <div class="crow-meta"><span>Affiliate &middot; opens Amazon</span><span>&middot;</span>
+              <span>Desk setup</span><span>&middot;</span><span>on 1 post</span><span>&middot;</span>
+              <span>183 taps</span></div>
+          </div>
+          <span class="iacts"><a class="iact" href="/product-edit.html?product=13" aria-label="Edit this product" title="Edit this product"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a></span>
+        </div>
+      </div>
+
+      <div class="empty is-empty">
+        <b>No products yet</b>
+        <p>Add one here, or connect one while editing a post. Either way it lands in this list.</p>
+        <a class="btn btn--accent" href="/product-edit.html?mode=new">Add a product</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CATEGORIES (§5.22) ═════════════════════════════════ -->
+  <div class="t-categories">
+    <div class="ph">
+      <div class="ph-t">
+        <p class="ph-eyebrow">@mayamoves</p>
+        <h1>Categories</h1>
+      </div>
+    </div>
+
+    <div class="dbody">
+      <p class="hint">Your shelves. They group this profile's posts and products, and they are
+        yours alone — there is no shared list of categories across Plugfolio. A post or product
+        sits on one shelf, or none.</p>
+
+      <div class="card">
+        <div class="card-h"><h2>Add a shelf</h2></div>
+        <div class="frow" style="margin-top:0">
+          <input type="text" placeholder="Title — e.g. Desk setup" aria-label="Shelf title">
+          <input type="text" placeholder="Description (optional)" aria-label="Shelf description">
+          <button class="btn btn--accent" type="button">Add</button>
+        </div>
+      </div>
+
+      <div class="cats is-full" style="margin-top:14px">
+        <div class="cat">
+          <button class="iact" type="button" aria-label="Reorder Desk setup" title="Reorder" style="cursor:grab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" stroke-linecap="round"/></svg></button>
+          <span class="cat-t"><b>Desk setup</b><span>Everything on and around the desk</span></span>
+          <span class="cat-n">6 posts &middot; 11 products</span>
+          <span class="iacts"><button class="iact" type="button" aria-label="Rename this shelf" title="Rename this shelf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="iact iact--danger" type="button" aria-label="Delete this shelf" title="Delete this shelf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12"/></svg></button></span>
+        </div>
+        <div class="cat">
+          <button class="iact" type="button" aria-label="Reorder Gym" title="Reorder" style="cursor:grab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" stroke-linecap="round"/></svg></button>
+          <span class="cat-t"><b>Gym</b><span>Kit that survived a year</span></span>
+          <span class="cat-n">3 posts &middot; 7 products</span>
+          <span class="iacts"><button class="iact" type="button" aria-label="Rename this shelf" title="Rename this shelf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="iact iact--danger" type="button" aria-label="Delete this shelf" title="Delete this shelf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12"/></svg></button></span>
+        </div>
+        <div class="cat">
+          <button class="iact" type="button" aria-label="Reorder Skin" title="Reorder" style="cursor:grab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" stroke-linecap="round"/></svg></button>
+          <span class="cat-t"><b>Skin</b></span>
+          <span class="cat-n">2 posts &middot; 5 products</span>
+          <span class="iacts"><button class="iact" type="button" aria-label="Rename this shelf" title="Rename this shelf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button><button class="iact iact--danger" type="button" aria-label="Delete this shelf" title="Delete this shelf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12"/></svg></button></span>
+        </div>
+      </div>
+
+      <div class="empty is-empty" style="margin-top:14px">
+        <b>Group your posts and products into shelves</b>
+        <p>A shelf is a title and an optional line of description. Shoppers use them as the chip
+          row on your page.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ COLLABS (§5.24) ════════════════════════════════════
+       The threads themselves are specified separately; what belongs in
+       the dashboard is the list, so a creator can see at a glance who is
+       waiting on them. Payment is never here — it settles off-platform,
+       and this surface says so rather than implying an escrow. -->
+  <div class="t-collabs">
+    <div class="ph">
+      <div class="ph-t">
+        <p class="ph-eyebrow">@mayamoves</p>
+        <h1>Collabs</h1>
+      </div>
+      <div class="ph-act"><a class="btn btn--ghost" href="/collabs">Open the board</a></div>
+    </div>
+
+    <div class="dbody">
+      <div class="filters">
+        <a class="fbtn" href="?tab=collabs" aria-current="true">All <b style="margin-left:6px">4</b></a>
+        <a class="fbtn" href="?tab=collabs&amp;s=new">Needs a reply <b style="margin-left:6px">2</b></a>
+        <a class="fbtn" href="?tab=collabs&amp;s=agreed">Agreed</a>
+      </div>
+
+      <ul class="cols is-full">
+        <li class="col">
+          <img src="images/avatars/nia.jpg" alt="" loading="lazy">
+          <span class="col-t">
+            <b>Fold &amp; Co <span class="pill pill--new">Needs a reply</span></b>
+            <span>Two posts and a story for a spring launch. Budget discussed in the thread.</span>
+            <span class="col-m">Direct request &middot; 2 days ago</span>
+          </span>
+          <a class="iact" href="/collabs/1" aria-label="Open this collab thread" title="Open this collab thread"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></a>
+        </li>
+        <li class="col">
+          <img src="images/avatars/rhea.jpg" alt="" loading="lazy">
+          <span class="col-t">
+            <b>Studio Lane <span class="pill pill--new">Needs a reply</span></b>
+            <span>Looking for desk-setup creators. One reel, one carousel.</span>
+            <span class="col-m">From the brief board &middot; 4 days ago</span>
+          </span>
+          <a class="iact" href="/collabs/2" aria-label="Open this collab thread" title="Open this collab thread"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></a>
+        </li>
+        <li class="col">
+          <img src="images/avatars/maya.jpg" alt="" loading="lazy">
+          <span class="col-t">
+            <b>Hearth Home <span class="pill pill--agreed">Terms agreed</span></b>
+            <span>One post, launch week. Agreed on dates and scope.</span>
+            <span class="col-m">Direct request &middot; agreed 1 week ago &middot; payment settles off-platform</span>
+          </span>
+          <a class="iact" href="/collabs/3" aria-label="Open this collab thread" title="Open this collab thread"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></a>
+        </li>
+        <li class="col" data-off>
+          <img src="images/avatars/nia.jpg" alt="" loading="lazy">
+          <span class="col-t">
+            <b>Northline <span class="pill pill--closed">Closed</span></b>
+            <span>Couldn&rsquo;t agree on timing. No hard feelings.</span>
+            <span class="col-m">From the brief board &middot; 3 weeks ago</span>
+          </span>
+          <a class="iact" href="/collabs/4" aria-label="Open this collab thread" title="Open this collab thread"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></a>
+        </li>
+      </ul>
+
+      <div class="empty is-empty">
+        <b>No collabs yet</b>
+        <p>Brands can request you directly from your page, or you can answer briefs on the open
+          board. Either way it becomes one thread.</p>
+        <a class="btn btn--accent" href="/collabs">See the brief board</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SETTINGS (§5.23) ═══════════════════════════════════ -->
+  <div class="t-settings">
+    <div class="ph">
+      <div class="ph-t">
+        <p class="ph-eyebrow">@mayamoves</p>
+        <h1>Settings</h1>
+      </div>
+      <div class="ph-act"><a class="btn btn--ghost" href="/mayamoves">View page</a></div>
+    </div>
+
+    <div class="dbody">
+      <!-- Both roles see this card. Only the picture is a Manager's to change. -->
+      <div class="card">
+        <div class="card-h"><h2>Public profile</h2></div>
+        <p class="hint">Your page lives at <b>plugfolio.com/mayamoves</b>. The username is fixed for
+          now — choosing and renaming it lands with the social APIs.</p>
+
+        <div class="pair">
+          <div>
+            <div class="field">
+              <label for="pic">Picture URL</label>
+              <input id="pic" type="url" value="https://images.plugfolio.com/maya.jpg">
+              <span class="note">Paste an image URL. Uploads are not in v1.</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <img src="images/avatars/maya.jpg" alt="Current profile picture" width="120" height="120"
+                 style="width:64px;height:64px;border-radius:50%;object-fit:cover">
+            <span class="micro" style="color:var(--ink-3)">Preview</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="dname">Display name <i>&middot; Admin only</i></label>
+          <input id="dname" type="text" value="Maya Rao" class="r-admin">
+          <input type="text" value="Maya Rao" class="r-manager" disabled>
+        </div>
+        <div class="field">
+          <label for="dbio">Bio <i>&middot; Admin only</i></label>
+          <textarea id="dbio" class="r-admin">Everyday things that actually work — desk, gym, skin, home.</textarea>
+          <textarea class="r-manager" disabled>Everyday things that actually work — desk, gym, skin, home.</textarea>
+        </div>
+        <button class="btn btn--accent" type="button">Save profile</button>
+      </div>
+
+      <!-- A Manager is told what they cannot do and why, rather than
+           finding a shorter page and guessing. -->
+      <div class="card r-manager">
+        <div class="card-h"><h2>Admin-only</h2></div>
+        <p class="hint" style="margin:0">Links, connections and Managers are the Admin's. You manage
+          this profile's content — posts, products and shelves — and you can change its picture above.</p>
+      </div>
+
+      <div class="r-admin">
+        <div class="card">
+          <div class="card-h"><h2>Your links</h2></div>
+          <p class="hint">These become the row of icons on your page. Saving replaces all five —
+            an empty field removes that link.</p>
+          <div class="pair">
+            <div class="field"><label for="l1">Instagram</label><input id="l1" type="url" value="https://instagram.com/mayamoves"></div>
+            <div class="field"><label for="l2">YouTube</label><input id="l2" type="url" value="https://youtube.com/@mayamoves"></div>
+            <div class="field"><label for="l3">TikTok</label><input id="l3" type="url" value="https://tiktok.com/@mayamoves"></div>
+            <div class="field"><label for="l4">Facebook</label><input id="l4" type="url" value=""></div>
+          </div>
+          <div class="field"><label for="l5">Website</label><input id="l5" type="url" value="https://mayarao.co"></div>
+          <button class="btn btn--accent" type="button">Save links</button>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><h2>Connections</h2></div>
+          <div class="conns">
+            <div class="conn">
+              <span class="conn-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg></span>
+              <span class="conn-t"><b>Google &middot; YouTube</b><span class="ok">Connected as Maya Rao</span></span>
+              <button class="btn btn--ghost" type="button" disabled>Disconnect</button>
+              <span class="conn-ch"><span>Two profiles depend on this — delete them first to disconnect</span></span>
+            </div>
+            <div class="conn">
+              <span class="conn-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></span>
+              <span class="conn-t"><b>Meta &middot; Instagram</b><span>Coming next — no gateway yet</span></span>
+              <button class="btn btn--ghost" type="button" disabled>Connect</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h">
+            <h2>Managers</h2>
+            <span class="micro">2 of 3</span>
+          </div>
+          <p class="hint">Up to 3 people who can post and tag on this profile. Settings and
+            connections stay yours.</p>
+
+          <div class="is-full">
+            <div class="mgr">
+              <span class="mgr-t"><b>Nia Okafor</b><span>nia@email.com</span></span>
+              <button class="iact iact--danger" type="button" aria-label="Remove this Manager" title="Remove this Manager"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12"/></svg></button>
+            </div>
+            <div class="mgr">
+              <span class="mgr-t"><b>Arjun Mehta</b><span>arjun@email.com</span></span>
+              <button class="iact iact--danger" type="button" aria-label="Remove this Manager" title="Remove this Manager"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12"/></svg></button>
+            </div>
+          </div>
+          <div class="empty is-empty" style="padding:28px 20px">
+            <b>No Managers yet</b>
+            <p>Invite up to 3 people to help post.</p>
+          </div>
+
+          <div class="frow" style="margin-top:14px">
+            <input type="email" placeholder="their@email.com" aria-label="Invite by email">
+            <button class="btn btn--accent" type="button">Invite</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="zone">
+            <b class="danger">Delete this profile</b>
+            <p>The page, its posts, products and traffic history disappear. This can't be undone,
+              and it frees one of your five profile slots.</p>
+            <button class="btn btn--danger" type="button">Delete @mayamoves</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Adding a post is its own page now, not a dialog. The dialog held a
+     URL and a caption; the real screen also picks the media kind and the
+     shelf, and leads straight into tagging — none of which fits a box
+     over the grid. -->
+
+<script>
+window.DASH = { profile: '@mayamoves' };
+(function () {
+  /* ?tab= drives the body attribute, and the tab row marks itself from the
+     same value — one source, so the row can never disagree with the page. */
+  var tab = new URLSearchParams(location.search).get('tab') || 'home';
+  var known = ['home', 'posts', 'products', 'categories', 'collabs', 'settings'];
+  if (known.indexOf(tab) === -1) tab = 'home';
+  document.body.dataset.tab = tab;
+
+  /* The row marks itself FROM body[data-tab], not from the URL it was
+     built with. Set once on load it went stale the moment anything else
+     changed the tab — the review panel switched the page and left Home
+     underlined. aria-current is what a screen reader reads, so it has to
+     track the real state, not the state at first paint. */
+  /* dash-chrome.js renders the row; this page owns which one is lit,
+     because the tab is switchable here without a navigation. */
+  window.DASH.tab = tab;
+  function markTabs() {
+    var now = document.body.dataset.tab;
+    document.querySelectorAll('.dtab').forEach(function (a) {
+      if (a.dataset.t === now) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+  }
+  document.querySelectorAll('.switch').forEach(function (sw) {
+    sw.addEventListener('click', function () {
+      var on = sw.getAttribute('aria-checked') === 'true';
+      sw.setAttribute('aria-checked', String(!on));
+      sw.closest('.prow2').toggleAttribute('data-off', on);
+    });
+  });
+
+  new MutationObserver(markTabs).observe(document.body, {
+    attributes: true, attributeFilter: ['data-tab']
+  });
+  document.addEventListener('DOMContentLoaded', markTabs);
+
+})();
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: '/dashboard',
+  groups: [
+    { label: 'Tab', options: [
+      { name: 'Home',       note: 'Profile, connections, Earnings', set: { tab: 'home'       } },
+      { name: 'Posts',      note: 'Tagged / untagged / hidden',     set: { tab: 'posts'      } },
+      { name: 'Products',   note: 'Fix links and coupons in place', set: { tab: 'products'   } },
+      { name: 'Categories', note: 'Shelves — this profile only',    set: { tab: 'categories' } },
+      { name: 'Collabs',    note: 'Its own surface',                set: { tab: 'collabs'    } },
+      { name: 'Settings',   note: 'Identity, links, Managers',      set: { tab: 'settings'   } }
+    ]},
+    { label: 'Your role', options: [
+      { name: 'Admin',   note: 'Owns the profile outright',   set: { role2: 'admin'   } },
+      { name: 'Manager', note: 'Content and picture only',    set: { role2: 'manager' } }
+    ]},
+    { label: 'Content', options: [
+      { name: 'Populated', note: 'The everyday case',          set: { content: 'full'  } },
+      { name: 'Empty',     note: 'A profile on day one',       set: { content: 'empty' } }
+    ]}
+  ]
+};
+</script>
+<script src="dash-chrome.js" defer></script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

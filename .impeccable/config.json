@@ -3,7 +3,8 @@
     "ignoreRules": [],
     "ignoreFiles": [
       "variants/tweaks.js",
-      "tweaks.js"
+      "tweaks.js",
+      "wireframes.html"
     ],
     "ignoreValues": []
   }

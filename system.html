@@ -1,0 +1,231 @@
+<!doctype html>
+<!--
+  Plugfolio — system screens. Spec: design-handoff §5.25.
+
+  The four screens nobody designs until they ship, and which every user
+  meets eventually. They are collected in one file because they share one
+  job: fail without frightening anyone, and always leave a way forward.
+
+  THE RULE THAT SHAPES ALL FOUR: never blame the visitor, never expose
+  the machine, always offer the next step. A 404 that says "invalid
+  resource identifier" and a 500 that prints a stack trace are the same
+  failure — the product talking to itself in front of a customer.
+
+  THE 404 CARRIES A SECURITY JOB TOO (§5.25, §5.24). Unknown, hidden and
+  foreign handles, posts, products and threads all land here — the same
+  screen, the same words. "You don't have permission" would confirm the
+  thing exists, which is exactly what a stranger probing for a private
+  thread wants to learn. Not-found and not-yours must be indistinguishable.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Something went wrong — Plugfolio</title>
+<meta name="description" content="System screens.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.sys { display: grid; place-items: center; min-height: 72vh;
+  padding-block: clamp(40px, 8vw, 96px); text-align: center; }
+.sys-in { max-width: 46ch; }
+/* The glyph is quiet on purpose. A huge sad face or a broken-robot
+   illustration makes a routine mistyped URL feel like a catastrophe. */
+.sys-mark { display: grid; place-items: center; width: 64px; height: 64px;
+  margin: 0 auto 22px; border-radius: 50%; background: var(--violet-wash);
+  color: var(--violet-deep); }
+.sys-mark svg { width: 26px; height: 26px; }
+.sys h1 { margin: 0; font-family: Sora, system-ui, sans-serif; font-weight: 800;
+  font-size: var(--t-name); line-height: 1.12; letter-spacing: -.03em; }
+.sys p { margin: 12px auto 0; font-size: var(--t-copy); color: var(--ink-2); line-height: 1.6; }
+.sys-acts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 26px; }
+/* A reference for whoever gets the support email. Never a stack trace,
+   never a class name — a code the operator can look up and the visitor
+   can read aloud. */
+.sys-ref { display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
+  padding: 7px 14px; border-radius: var(--r-chip); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--card-edge); font-size: var(--t-micro);
+  color: var(--ink-3); font-weight: 600; }
+.sys-ref b { color: var(--ink-2); font-weight: 700; letter-spacing: .06em; }
+
+/* ── Loading ────────────────────────────────────────────────
+   Content-shaped, not a spinner. A spinner says "wait"; a shape says
+   "here is what is arriving", and the page does not jump when it does.
+   Shopper surfaces mostly render whole, so this is for the few that
+   cannot — the dashboard's tables and the analytics chart. */
+.skel { display: grid; gap: 12px; }
+.sk { border-radius: var(--r-tile); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--card-edge); padding: 16px; }
+.sk-row { display: flex; align-items: center; gap: 14px; }
+.bone { border-radius: var(--r-image); background: var(--line); }
+.bone--av { width: 46px; height: 46px; border-radius: 50%; flex: none; }
+.bone--l { height: 12px; }
+.bone--sm { height: 10px; opacity: .6; }
+.sk-t { flex: 1; display: grid; gap: 8px; }
+/* One shimmer for the whole page, so the bones move together rather
+   than each animating on its own beat. */
+.shimmer { position: relative; overflow: hidden; }
+.shimmer::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(var(--violet-rgb) / .10), transparent);
+  animation: sweep 1.4s linear infinite; }
+@keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .shimmer::after { animation: none; } }
+
+/* ── Redirect ───────────────────────────────────────────────
+   A gated page bounces to sign-in with NO flash of protected content.
+   That is the whole design: this screen exists so there is something to
+   render that is not the thing being protected. */
+.redir { display: grid; place-items: center; min-height: 72vh; text-align: center; }
+
+/* ── Which screen ───────────────────────────────────────────── */
+body:not([data-screen="404"])     .s-404,
+body:not([data-screen="error"])   .s-error,
+body:not([data-screen="loading"]) .s-loading,
+body:not([data-screen="redirect"]) .s-redirect { display: none; }
+</style>
+</head>
+<body data-page="system" data-role="shopper" data-screen="404">
+<div class="rolerail" aria-hidden="true"></div>
+
+<div data-chrome="top"></div>
+
+<main class="inner">
+
+  <!-- ═══ 404 ═════════════════════════════════════════════════
+       One screen for four different truths: it never existed, it was
+       deleted, it is hidden, or it is not yours. Telling them apart is a
+       leak, so the copy never tries. -->
+  <section class="sys s-404">
+    <div class="sys-in">
+      <span class="sys-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </span>
+      <h1>This page doesn&rsquo;t exist.</h1>
+      <p>It may have been removed, or the link might be wrong. Nothing you did caused this.</p>
+      <div class="sys-acts">
+        <a class="btn btn--primary" href="/">Go home</a>
+        <a class="btn btn--ghost" href="/explore">Browse creators</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Error boundary ══════════════════════════════════════
+       "Try again" first, because a refresh genuinely fixes most of
+       these. Support is second, and carries a reference the operator can
+       actually search. -->
+  <section class="sys s-error">
+    <div class="sys-in">
+      <span class="sys-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5h.01"/><circle cx="12" cy="12" r="9"/></svg>
+      </span>
+      <h1>Something went wrong.</h1>
+      <p>That&rsquo;s on us, not you. Trying again usually clears it &mdash; if it doesn&rsquo;t,
+        send us the reference below and we&rsquo;ll look.</p>
+      <div class="sys-acts">
+        <button class="btn btn--primary" type="button" id="retry">Try again</button>
+        <a class="btn btn--ghost" href="/support">Get help</a>
+      </div>
+      <span class="sys-ref">Reference <b>7F2C-91A4</b></span>
+    </div>
+  </section>
+
+  <!-- ═══ Loading ═════════════════════════════════════════════ -->
+  <section class="s-loading" style="padding-block:clamp(24px,4vw,40px)">
+    <div class="ph">
+      <div class="ph-t">
+        <p class="ph-eyebrow">Loading</p>
+        <h1>Content-shaped, not a spinner</h1>
+      </div>
+    </div>
+    <p class="hint" style="max-width:60ch">A spinner says &ldquo;wait&rdquo;. A shape says what is
+      arriving, and the page does not jump when it does. Most surfaces render whole; these are for
+      the few that cannot &mdash; a table, a chart, a list.</p>
+
+    <div class="skel" aria-hidden="true">
+      <div class="sk shimmer">
+        <div class="sk-row">
+          <span class="bone bone--av"></span>
+          <span class="sk-t">
+            <span class="bone bone--l" style="width:44%"></span>
+            <span class="bone bone--sm" style="width:66%"></span>
+          </span>
+        </div>
+      </div>
+      <div class="sk shimmer">
+        <div class="sk-row">
+          <span class="bone bone--av"></span>
+          <span class="sk-t">
+            <span class="bone bone--l" style="width:56%"></span>
+            <span class="bone bone--sm" style="width:38%"></span>
+          </span>
+        </div>
+      </div>
+      <div class="sk shimmer">
+        <div class="sk-row">
+          <span class="bone bone--av"></span>
+          <span class="sk-t">
+            <span class="bone bone--l" style="width:34%"></span>
+            <span class="bone bone--sm" style="width:52%"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:14px">One sweep across the whole group, so the bones move
+      together instead of each on its own beat. It stops entirely under reduced motion.</p>
+  </section>
+
+  <!-- ═══ Redirect ════════════════════════════════════════════
+       The point is what is NOT here. A gated page must never paint its
+       protected content and then replace it — one frame of someone
+       else's dashboard is a leak, and it is the kind that screenshots. -->
+  <section class="redir s-redirect">
+    <div class="sys-in">
+      <span class="sys-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5M15 12H3"/></svg>
+      </span>
+      <h1>Taking you to sign in&hellip;</h1>
+      <p>This page needs an account. You&rsquo;ll come straight back here once you&rsquo;re in.</p>
+      <div class="sys-acts">
+        <a class="btn btn--primary" href="/signin">Sign in</a>
+      </div>
+      <p class="note" style="margin-top:22px">Shopping never needs an account &mdash; only pages
+        where you act as yourself do.</p>
+    </div>
+  </section>
+
+</main>
+
+<div data-chrome="tabs"></div>
+
+<script>
+window.CHROME = { nav: null, tab: null };
+document.getElementById('retry').addEventListener('click', function (b) {
+  var el = document.getElementById('retry');
+  el.setAttribute('aria-busy', 'true');
+  el.textContent = 'Trying…';
+  setTimeout(function () { el.removeAttribute('aria-busy'); el.textContent = 'Try again'; }, 900);
+});
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: 'System screens',
+  groups: [
+    { label: 'Screen', options: [
+      { name: '404',        note: 'Also hidden and foreign things', set: { screen: '404'      } },
+      { name: 'Error',      note: 'Try again · reference code',     set: { screen: 'error'    } },
+      { name: 'Loading',    note: 'Content-shaped placeholders',    set: { screen: 'loading'  } },
+      { name: 'Redirect',   note: 'Gated page → sign in',           set: { screen: 'redirect' } }
+    ]},
+    { label: 'Who is looking', options: [
+      { name: 'Guest',     note: 'Signed out', set: { viewer: 'anon'    } },
+      { name: 'Signed in', note: 'Has chrome', set: { viewer: 'shopper' } }
+    ]}
+  ]
+};
+</script>
+<script src="chrome.js" defer></script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

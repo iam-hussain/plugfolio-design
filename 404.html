@@ -1,0 +1,137 @@
+<!doctype html>
+<!--
+  Plugfolio — 404. Spec: design-handoff §5.25.
+
+  A real route, because a 404 is a page the server actually serves.
+
+  IT CARRIES A SECURITY JOB. Unknown, deleted, hidden and foreign things
+  all land here — an unknown handle, a hidden post, someone else's collab
+  thread — and they get identical words. "You don't have permission"
+  confirms the thing exists, which is precisely what someone probing for
+  a private thread wants to learn. Not-found and not-yours have to be
+  indistinguishable, so this page never tries to be helpful about which
+  one happened.
+
+  IT IS ALSO THE ONE MOMENT to hand a lost visitor back to the product.
+  Shopping here never needs an account, so someone who mistyped a handle
+  can be put straight back into browsing rather than parked at a front
+  door. That is the difference between a dead end and a wrong turn.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found — Plugfolio</title>
+<meta name="description" content="This page doesn't exist.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="404" data-viewer="anon" data-role="shopper">
+<div class="rolerail" aria-hidden="true"></div>
+
+<div data-chrome="top"></div>
+
+<main>
+  <section class="inner sys">
+    <div class="sys-in">
+      <!-- The mark, pulled apart. Plugfolio's glyph is a plug; a page
+           that is not there is that plug unplugged. Nothing is drawn
+           broken — the two halves are simply apart, which is the right
+           register for "wrong link", not "catastrophe". -->
+      <svg class="unplug" viewBox="0 0 100 100" role="img" aria-label="An unplugged plug">
+        <!-- The body stays exactly as the brand mark draws it. -->
+        <rect class="u-body" x="18" y="43" width="64" height="44" rx="13"/>
+        <!-- The two sockets the prongs left behind. -->
+        <rect class="u-socket" x="35" y="50" width="9" height="13" rx="3"/>
+        <rect class="u-socket" x="56" y="50" width="9" height="13" rx="3"/>
+        <!-- And the prongs, lifted clear. -->
+        <g class="u-prongs" stroke-linejoin="round">
+          <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+          <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        </g>
+      </svg>
+
+      <h1>This page doesn&rsquo;t exist.</h1>
+      <p class="lede">It may have been removed, or the link might be wrong.
+        Nothing you did caused this.</p>
+
+      <div class="sys-acts">
+        <a class="btn btn--primary" href="/explore">Browse creators</a>
+        <a class="btn btn--ghost" href="/">Go home</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Somewhere to actually go. Four real creators rather than a link
+       list — the page a visitor was aiming for was probably one of
+       these, and they can shop from any of them without an account. -->
+  <section class="inner sys-on">
+    <div class="sys-on-h">
+      <h2>While you&rsquo;re here</h2>
+      <a class="nav-link" href="/explore">See all creators</a>
+    </div>
+    <div class="sys-row">
+      <a class="sys-c" href="/mayamoves">
+        <img src="images/posts/skincare.jpg" alt="" width="300" height="300" loading="lazy">
+        <span class="sys-c-id"><img src="images/avatars/maya.jpg" alt="" width="60" height="60"><b>@mayamoves</b></span>
+        <span class="sys-c-n">18 posts &middot; 42 things</span>
+      </a>
+      <a class="sys-c" href="/arjunbuilds">
+        <img src="images/posts/desk.jpg" alt="" width="300" height="300" loading="lazy">
+        <span class="sys-c-id"><img src="images/avatars/arjun.jpg" alt="" width="60" height="60"><b>@arjunbuilds</b></span>
+        <span class="sys-c-n">24 posts &middot; 51 things</span>
+      </a>
+      <a class="sys-c" href="/niaeveryday">
+        <img src="images/posts/gym.jpg" alt="" width="300" height="300" loading="lazy">
+        <span class="sys-c-id"><img src="images/avatars/nia.jpg" alt="" width="60" height="60"><b>@niaeveryday</b></span>
+        <span class="sys-c-n">6 posts &middot; 9 things</span>
+      </a>
+      <a class="sys-c" href="/rheamakes">
+        <img src="images/posts/shelf.jpg" alt="" width="300" height="300" loading="lazy">
+        <span class="sys-c-id"><img src="images/avatars/rhea.jpg" alt="" width="60" height="60"><b>@rheamakes</b></span>
+        <span class="sys-c-n">11 posts &middot; 20 things</span>
+      </a>
+    </div>
+    <p class="note" style="margin-top:18px">Shopping never needs an account &mdash; tap anything.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="inner foot-inner">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <div class="foot-links">
+      <a class="foot-link" href="/explore">Explore</a>
+      <a class="foot-link" href="/how-it-works">How it works</a>
+      <a class="foot-link" href="/support">Help</a>
+    </div>
+  </div>
+</footer>
+
+<div data-chrome="tabs"></div>
+
+<script>
+window.CHROME = { nav: null, tab: null };
+window.PROTO = {
+  title: '404',
+  groups: [
+    { label: 'Who is looking', options: [
+      { name: 'Guest',     note: 'The usual case', set: { viewer: 'anon'    } },
+      { name: 'Signed in', note: 'Chrome swaps',   set: { viewer: 'shopper' } }
+    ]}
+  ]
+};
+</script>
+<script src="chrome.js" defer></script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

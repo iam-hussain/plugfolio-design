@@ -88,6 +88,15 @@
           '</div>' +
         '</nav>' +
       '</header>';
+
+    /* A page may own one element inside the shared bar — /[handle] puts the
+       creator's avatar and Follow button there once you scroll past the
+       header. It is authored in the page (it carries page state and page
+       behaviour) and moved in here, so adopting the shared chrome never
+       costs a page its one bespoke affordance. */
+    var slot = document.querySelector('[data-chrome-slot]');
+    var mark = document.querySelector('header.inner .mark');
+    if (slot && mark) mark.parentNode.insertBefore(slot, mark.nextSibling);
   }
 
   /* ── bottom tabs (phones) ────────────────────────────────

@@ -1,0 +1,374 @@
+<!doctype html>
+<!--
+  Plugfolio — /collabs, the business home. Spec: design-handoff §5.24.
+
+  Mode: OPERATE. A brand arrives to do one of three things: sign up, see
+  who is waiting on them, or post a brief. Everything else stands down.
+
+  THE MONEY LINE, held throughout: v1 handles no money. Budget and price
+  are free text and are never validated as currency — a brand in Mumbai
+  and a brand in Ohio type what they mean. The thread's job ends at
+  "terms agreed"; payment settles off Plugfolio. No escrow is implied
+  anywhere on this page, because implying one is how a product gets
+  blamed for a payment it never touched.
+
+  Light chrome, not the creator dashboard's: a business has no profiles,
+  no shelves and no posts, so the tab row would be six links to places
+  it cannot go.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Collabs — Plugfolio</title>
+<meta name="description" content="Post a brief or approach a creator directly. One thread each, terms agreed in it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Light chrome ───────────────────────────────────────────
+   Brand → home, and a way out. A business has no profile switcher and no
+   section tabs, so it gets neither rather than getting them disabled. */
+.bch { border-bottom: 1px solid var(--line); }
+.bch-in { display: flex; align-items: center; gap: 14px; padding-block: 16px; }
+.bch-in .mark { margin-right: auto; }
+
+/* ── Business identity ──────────────────────────────────────── */
+.biz { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.biz-logo { width: 56px; height: 56px; border-radius: var(--r-image); object-fit: cover;
+  flex: none; background: var(--violet-wash); }
+.biz-fallback { display: grid; place-items: center; width: 56px; height: 56px; flex: none;
+  border-radius: var(--r-image); background: var(--violet-wash); color: var(--violet-deep);
+  font-family: Sora, system-ui, sans-serif; font-weight: 800; font-size: var(--t-title); }
+.biz-t { flex: 1 1 240px; min-width: 0; }
+.biz-t b { display: block; font-family: Sora, system-ui, sans-serif; font-weight: 800;
+  font-size: var(--t-title); letter-spacing: -.02em; }
+.biz-t span { display: block; margin-top: 3px; font-size: var(--t-copy); color: var(--ink-2); }
+
+/* ── Threads ────────────────────────────────────────────────
+   The counterparty and the state, nothing else. Whether a thread needs
+   you is the only question this list answers; the thread answers the rest. */
+.thr { display: grid; gap: 8px; }
+.th { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px;
+  border-radius: var(--r-tile); background: var(--surface); box-shadow: 0 0 0 1px var(--card-edge);
+  text-decoration: none; color: inherit; }
+.th:hover { box-shadow: 0 0 0 1px var(--accent); }
+.th img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex: none; }
+.th-t { flex: 1 1 220px; min-width: 0; }
+.th-t b { display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  font-size: var(--t-label); font-weight: 700; }
+.th-t span { display: block; margin-top: 4px; font-size: var(--t-copy); color: var(--ink-2); }
+.th-when { flex: none; font-size: var(--t-micro); color: var(--ink-3); font-weight: 600; }
+.pill--agreed { background: var(--lime); color: var(--on-white); }
+.pill--negot { background: var(--violet-wash); color: var(--violet-deep); }
+.pill--closed { background: var(--line); color: var(--ink-2); }
+
+/* ── Requirements ───────────────────────────────────────────
+   A brief a brand posted, with the one number that matters: how many
+   creators came to it. "no approaches yet" is stated rather than shown
+   as 0, because a zero next to a brief you just posted reads as failure
+   when it means "give it a day". */
+.req { padding: 16px; border-radius: var(--r-tile); background: var(--surface);
+  box-shadow: 0 0 0 1px var(--card-edge); }
+.req + .req { margin-top: 10px; }
+.req[data-closed] { background: var(--canvas); }
+.req[data-closed] .req-h b, .req[data-closed] .req-body { opacity: .6; }
+.req-h { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.req-h b { flex: 1 1 200px; min-width: 0; font-size: var(--t-label); font-weight: 700; }
+.req-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px;
+  font-size: var(--t-micro); color: var(--ink-2); }
+.req-meta b { color: var(--ink); font-weight: 700; }
+.req-body { margin: 10px 0 0; font-size: var(--t-copy); color: var(--ink-2); line-height: 1.55;
+  max-width: 62ch; }
+
+.two { display: grid; gap: 14px; }
+@media (min-width: 720px) { .two { grid-template-columns: 1fr 1fr; } }
+
+/* ── State switching ────────────────────────────────────────── */
+body:not([data-biz="none"]) .s-none,
+body[data-biz="none"]       .s-has { display: none; }
+body:not([data-content="empty"]) .is-empty,
+body[data-content="empty"]       .is-full { display: none; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body data-page="collabs" data-role="business" data-biz="has" data-content="full">
+<div class="rolerail" aria-hidden="true"></div>
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="bch">
+  <div class="inner bch-in">
+    <a class="mark" href="/" aria-label="Plugfolio home">
+      <svg class="mark-glyph" viewBox="0 0 100 100" aria-hidden="true"><g stroke-linejoin="round">
+        <polygon points="33,53 33,27 39.5,15 46,27 46,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <polygon points="54,53 54,27 60.5,15 67,27 67,53" fill="currentColor" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="43" width="64" height="44" rx="13" fill="#7C3AED" stroke="#7C3AED" stroke-width="3"/>
+      </g></svg>
+      <span class="mark-name">plugfolio</span>
+    </a>
+    <a class="nav-link" href="/account">Account</a>
+    <button class="btn btn--ghost" type="button">Sign out</button>
+  </div>
+</div>
+
+<main class="inner" id="main">
+
+  <!-- ═══ STATE A · no business yet ═══════════════════════════
+       Two required fields and one optional. A brand should be able to
+       post a brief in the same sitting they arrived in, so sign-up asks
+       for the two things a creator needs to judge them by and nothing a
+       form designer would enjoy adding. -->
+  <div class="s-none">
+    <div class="ph">
+      <div class="ph-t">
+        <p class="ph-eyebrow">Business</p>
+        <h1>Create your business</h1>
+      </div>
+    </div>
+    <div class="dbody" style="max-width:560px">
+      <p class="hint">A name and what you sell &mdash; that&rsquo;s the whole sign-up.</p>
+      <div class="card">
+        <div class="field">
+          <label for="bname">Business name</label>
+          <input id="bname" type="text" placeholder="Fold &amp; Co">
+        </div>
+        <div class="field">
+          <label for="bwhat">What do you sell?</label>
+          <input id="bwhat" type="text" placeholder="Small-batch homeware, mostly ceramics">
+          <span class="note">Creators see this when you approach them, so write it for them.</span>
+        </div>
+        <div class="field">
+          <label for="blogo">Logo URL <i>&middot; optional</i></label>
+          <input id="blogo" type="url" placeholder="https://…">
+          <span class="note">Paste an image URL. Uploads are not in v1.</span>
+        </div>
+        <div class="card-foot">
+          <button class="btn btn--accent" type="button" id="mkBiz">Create business</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STATE B · business exists ═══════════════════════════ -->
+  <div class="s-has">
+    <div class="ph">
+      <div class="ph-t">
+        <p class="ph-eyebrow">Business</p>
+        <h1>Collabs</h1>
+      </div>
+      <div class="ph-act"><a class="btn btn--ghost" href="/explore">Browse creators</a></div>
+    </div>
+
+    <div class="dbody">
+      <div class="card">
+        <div class="biz">
+          <img class="biz-logo" src="images/avatars/rhea.jpg" alt="" width="112" height="112">
+          <span class="biz-t">
+            <b>Fold &amp; Co</b>
+            <span>Small-batch homeware, mostly ceramics</span>
+          </span>
+          <button class="mini" type="button">Edit business</button>
+        </div>
+      </div>
+
+      <!-- ── Threads ── -->
+      <div class="card">
+        <div class="card-h">
+          <h2>Threads</h2>
+          <span class="micro is-full">3 &middot; 1 agreed</span>
+        </div>
+
+        <div class="thr is-full">
+          <a class="th" href="/collab.html">
+            <img src="images/avatars/maya.jpg" alt="" loading="lazy">
+            <span class="th-t">
+              <b>@mayamoves <span class="pill pill--negot">Negotiating</span></b>
+              <span>Two posts and a story &mdash; is that within range?</span>
+            </span>
+            <span class="th-when">2 days ago</span>
+          </a>
+          <a class="th" href="/collab.html">
+            <img src="images/avatars/nia.jpg" alt="" loading="lazy">
+            <span class="th-t">
+              <b>@niaeveryday <span class="pill pill--agreed">Agreed</span></b>
+              <span>One post, launch week. Terms agreed &mdash; payment settles off Plugfolio.</span>
+            </span>
+            <span class="th-when">1 week ago</span>
+          </a>
+          <a class="th" href="/collab.html">
+            <img src="images/avatars/rhea.jpg" alt="" loading="lazy">
+            <span class="th-t">
+              <b>@rheamakes <span class="pill pill--negot">Negotiating</span></b>
+              <span>Sending dates now.</span>
+            </span>
+            <span class="th-when">3 weeks ago</span>
+          </a>
+        </div>
+
+        <div class="empty is-empty">
+          <b>No threads yet</b>
+          <p>Post a requirement below and creators will approach you &mdash; or browse creator pages
+            and reach out first.</p>
+          <a class="btn btn--accent" href="/explore">Browse creators</a>
+        </div>
+      </div>
+
+      <!-- ── Requirements ── -->
+      <div class="card">
+        <div class="card-h">
+          <h2>Your requirements</h2>
+          <span class="micro is-full">2 open &middot; 1 closed</span>
+        </div>
+
+        <div class="is-full">
+          <div class="req">
+            <div class="req-h">
+              <b>Skincare creators for a spring launch</b>
+              <button class="mini" type="button" data-close>Close</button>
+            </div>
+            <div class="req-meta">
+              <span>Budget <b>discussed in the thread</b></span>
+              <span>By <b>30 Aug 2026</b></span>
+              <span><b>4 approached</b></span>
+            </div>
+            <p class="req-body">Two posts and one story. We&rsquo;ll send product ahead of time.
+              Happy to work around your posting schedule.</p>
+          </div>
+
+          <div class="req">
+            <div class="req-h">
+              <b>Desk-setup creators, one reel</b>
+              <button class="mini" type="button" data-close>Close</button>
+            </div>
+            <div class="req-meta">
+              <span>Budget <b>&#8377;20,000&ndash;30,000</b></span>
+              <span><b>no approaches yet</b></span>
+            </div>
+            <p class="req-body">One reel showing the desk mat in a real setup. No script, no
+              approval round &mdash; make what you'd make anyway.</p>
+          </div>
+
+          <div class="req" data-closed>
+            <div class="req-h">
+              <b>Gym creators, winter campaign</b>
+              <span class="pill pill--closed">Closed</span>
+            </div>
+            <div class="req-meta">
+              <span><b>2 approached</b></span>
+              <span>Existing threads continue</span>
+            </div>
+            <p class="req-body">Filled from the two who approached. Thanks, everyone.</p>
+          </div>
+        </div>
+
+        <div class="empty is-empty">
+          <b>Nothing posted yet</b>
+          <p>Creators who fit can approach the moment you post one.</p>
+        </div>
+      </div>
+
+      <!-- ── Post a requirement ── -->
+      <div class="card">
+        <div class="card-h"><h2>Post a requirement</h2></div>
+        <p class="hint">It goes on the open board where creators can find and approach it. You can
+          close it any time.</p>
+
+        <div class="field">
+          <label for="rq1">What do you need?</label>
+          <input id="rq1" type="text" placeholder="Skincare creators for a spring launch">
+        </div>
+        <div class="field">
+          <label for="rq2">The brief</label>
+          <textarea id="rq2" placeholder="What gets made, roughly when, and anything a creator should know before approaching."></textarea>
+        </div>
+        <div class="two">
+          <div class="field">
+            <label for="rq3">Budget <i>&middot; optional</i></label>
+            <input id="rq3" type="text" placeholder="₹20,000–30,000, or “discussed in the thread”">
+            <!-- Free text, deliberately. A currency-validated field would
+                 force one market's format onto every brand, and v1 never
+                 does arithmetic on this number anyway. -->
+            <span class="note">Free text &mdash; write it in whatever currency and shape you use.</span>
+          </div>
+          <div class="field">
+            <label for="rq4">Deadline <i>&middot; optional</i></label>
+            <input id="rq4" type="date">
+          </div>
+        </div>
+        <div class="card-foot">
+          <button class="btn btn--accent" type="button" id="postReq">Post it</button>
+        </div>
+      </div>
+
+      <!-- ── Find creators ──
+           There is no bespoke browse screen and there should not be:
+           vetting a creator means reading their public page, which is the
+           same page a shopper reads. A separate "for brands" view of a
+           creator would be a second version of the truth. -->
+      <div class="card">
+        <div class="card-h"><h2>Find creators</h2></div>
+        <p class="hint" style="margin:0 0 14px">Vetting a creator means reading their page &mdash;
+          the same page their shoppers read. Their posts, what they tag, and how they write about it
+          are the whole story.</p>
+        <a class="btn btn--ghost" href="/explore">Explore creators</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  var mk = document.getElementById('mkBiz');
+  if (mk) mk.addEventListener('click', function () {
+    mk.setAttribute('aria-busy', 'true'); mk.textContent = 'Creating…';
+    setTimeout(function () {
+      document.body.dataset.biz = 'has';
+      mk.removeAttribute('aria-busy'); mk.textContent = 'Create business';
+      window.scrollTo(0, 0);
+    }, 700);
+  });
+
+  var pr = document.getElementById('postReq');
+  if (pr) pr.addEventListener('click', function () {
+    pr.setAttribute('aria-busy', 'true'); pr.textContent = 'Posting…';
+    setTimeout(function () {
+      pr.removeAttribute('aria-busy'); pr.textContent = 'Post it';
+      /* Submit clears the fields — the next brief starts empty rather
+         than as an edit of the last one. */
+      ['rq1', 'rq2', 'rq3', 'rq4'].forEach(function (id) { document.getElementById(id).value = ''; });
+    }, 700);
+  });
+
+  /* Closing confirms, because a closed requirement leaves the board and
+     creators lose the way in — but it never touches threads that already
+     exist, and the confirm says so. */
+  document.querySelectorAll('[data-close]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (!window.confirm('Close this requirement? It leaves the open board; existing threads continue.')) return;
+      var req = b.closest('.req');
+      req.setAttribute('data-closed', '');
+      b.outerHTML = '<span class="pill pill--closed">Closed</span>';
+    });
+  });
+})();
+
+/* Review chrome only — never ships. */
+window.PROTO = {
+  title: '/collabs',
+  groups: [
+    { label: 'Business', options: [
+      { name: 'Exists',  note: 'Threads, requirements, board', set: { biz: 'has'  } },
+      { name: 'Not yet', note: 'The create-business form',     set: { biz: 'none' } }
+    ]},
+    { label: 'Content', options: [
+      { name: 'Active',  note: 'Threads and requirements', set: { content: 'full'  } },
+      { name: 'Day one', note: 'Both empty states',        set: { content: 'empty' } }
+    ]}
+  ]
+};
+</script>
+<script src="proto-panel.js" defer></script>
+</body>
+</html>

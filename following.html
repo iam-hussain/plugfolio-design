@@ -36,8 +36,8 @@
 .since svg { width: 15px; height: 15px; flex: none; }
 
 /* ── controls ──────────────────────────────────────────────
-   Search, then filter, then sort — narrowing before ordering, because
-   ordering a set you have not narrowed is the less common intent. */
+   Search then sort. Filter chips were tried and cut: with grouping
+   already splitting new from quiet, the chips restated the headings. */
 .ctrl { display: grid; gap: 14px; margin-top: clamp(20px, 3vw, 28px); }
 @media (min-width: 780px) { .ctrl { grid-template-columns: minmax(0,1fr) auto; align-items: center; } }
 .fsearch { display: flex; align-items: center; gap: 10px; background: var(--surface);
@@ -62,18 +62,6 @@
   background-size: 6px 6px, 6px 6px; background-repeat: no-repeat; }
 .sortwrap select:focus-visible { outline: 0; border-color: var(--violet);
   box-shadow: 0 0 0 3px rgb(var(--violet-rgb) / .16); }
-
-.fchips { display: flex; gap: 8px; margin-top: 14px; overflow-x: auto; scrollbar-width: none;
-  padding-bottom: 4px; scroll-snap-type: x proximity; }
-.fchips::-webkit-scrollbar { display: none; }
-.fchip { flex: none; scroll-snap-align: start; text-decoration: none; cursor: pointer;
-  background: var(--surface); border: 1px solid var(--line); color: var(--ink-2);
-  border-radius: var(--r-chip); padding: 11px 18px; min-height: 44px;
-  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
-  font: inherit; font-size: var(--t-label); font-weight: 600; }
-.fchip:hover { border-color: var(--violet); color: var(--violet-deep); }
-.fchip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
-.fchip b { font-variant-numeric: tabular-nums; }
 
 /* ── the list ──────────────────────────────────────────────
    Rows, not cards in a grid. A follow list is scanned down a column of
@@ -109,34 +97,6 @@
   font-size: var(--t-micro); font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
   white-space: nowrap; }
 
-/* ── what's actually new ───────────────────────────────────
-   A count says "4 new posts"; it does not say whether they are worth
-   opening. These are the posts the count is counting, with their tags on,
-   so the row shows its evidence instead of asserting a number.
-
-   Still not a feed: a strip belongs to ONE creator's row, tapping goes to
-   that creator's page or that product, and nothing here merges people
-   together into a stream. */
-.strip { display: flex; gap: 8px; width: 100%; overflow-x: auto; scrollbar-width: none;
-  scroll-snap-type: x proximity; padding: 2px 0 2px; margin-top: 12px; }
-.strip::-webkit-scrollbar { display: none; }
-.strip > * { flex: 0 0 auto; scroll-snap-align: start; }
-.strip .shot { width: 108px; }
-.strip .shot img { width: 108px; height: 108px; object-fit: cover;
-  border-radius: var(--r-image); background: var(--line); display: block; }
-.strip .tag { left: var(--x); top: var(--y); padding: 4px 9px; min-height: 30px; }
-.strip .tag .tag-price { font-size: var(--t-micro); }
-.strip .tag .tag-dot { width: 6px; height: 6px; }
-.tag-dot--plain { background: var(--ink-3); }
-/* The last tile is the way in, so a strip never dead-ends. */
-.strip-more { width: 108px; height: 108px; display: grid; place-items: center; text-align: center;
-  border: 1px dashed var(--line); border-radius: var(--r-image); text-decoration: none;
-  color: var(--ink-2); font-size: var(--t-micro); font-weight: 700; padding: 8px; }
-.strip-more:hover { border-color: var(--violet); color: var(--violet-deep); }
-/* Only rows with something new carry a strip — a quiet creator showing
-   three old thumbnails would be padding, not information. */
-.frow[data-gone="yes"] .strip { display: none; }
-
 /* ── unfollow: undo, not "are you sure?" ───────────────────
    A confirm dialog taxes every deliberate unfollow to protect the rare
    accidental one, and on a phone it is a modal over the thing you were
@@ -165,8 +125,7 @@
 
 /* ── scale ─────────────────────────────────────────────────
    A follow list is the one place a shopper accumulates without pruning, so
-   hundreds is the normal case, not the edge. Search and the filter counts
-   do the narrowing; this pages the remainder rather than rendering it all. */
+   hundreds is the normal case, not the edge. Search does the narrowing; this pages the remainder rather than rendering it all. */
 .more { display: grid; justify-items: center; gap: 10px; padding: clamp(26px,3vw,36px) 0 0;
   text-align: center; }
 .more .btn { min-width: 220px; }
@@ -179,10 +138,10 @@
 .empty .btn { margin-top: 24px; }
 
 /* One rule, one declaration block. An empty state takes the controls with
-   it — there is nothing to search, filter or sort. */
+   it — there is nothing to search or sort. */
 body:not([data-state="none"])   .empty--none,
 body:not([data-state="nomatch"]) .empty--nomatch,
-body[data-state="none"]    :is(.ctrl, .fchips, .grp, .since),
+body[data-state="none"]    :is(.ctrl, .grp, .since),
 body[data-state="nomatch"] :is(.grp),
 body[data-state="caught"]  .grp--new,
 body:not([data-state="caught"]) .caughtline { display: none; }
@@ -229,12 +188,6 @@ body:not([data-state="caught"]) .caughtline { display: none; }
     </span>
   </div>
 
-  <div class="fchips" role="group" aria-label="Filter">
-    <button class="fchip" type="button" aria-pressed="true">All <b>12</b></button>
-    <button class="fchip" type="button" aria-pressed="false">New this week <b>3</b></button>
-    <button class="fchip" type="button" aria-pressed="false">Has an offer <b>2</b></button>
-    <button class="fchip" type="button" aria-pressed="false">Quiet a while <b>4</b></button>
-  </div>
 
   <div id="list">
 
@@ -256,15 +209,6 @@ body:not([data-state="caught"]) .caughtline { display: none; }
         <button class="unfollow" type="button">Following</button>
         <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
 
-        <span class="strip">
-          <a class="shot" href="/mayamoves/post/1"><img src="images/posts/skincare.jpg" alt="" width="216" height="216" loading="lazy">
-            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot tag-dot--offer"></span><span class="tag-price">₹1,299</span></span></a>
-          <a class="shot" href="/mayamoves/post/5"><img src="images/posts/beauty.jpg" alt="" width="216" height="216" loading="lazy">
-            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot tag-dot--plain"></span><span class="tag-price">$36</span></span></a>
-          <a class="shot" href="/mayamoves/post/9"><img src="images/posts/p9.jpg" alt="" width="216" height="216" loading="lazy">
-            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot"></span><span class="tag-price">₹1,450</span></span></a>
-          <a class="strip-more" href="/mayamoves">1 more →</a>
-        </span>
             </div>
 
       <div class="frow">
@@ -277,12 +221,6 @@ body:not([data-state="caught"]) .caughtline { display: none; }
         <button class="unfollow" type="button">Following</button>
         <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
 
-        <span class="strip">
-          <a class="shot" href="/arjunbuilds/post/2"><img src="images/posts/desk.jpg" alt="" width="216" height="216" loading="lazy">
-            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot tag-dot--plain"></span><span class="tag-price">$48</span></span></a>
-          <a class="shot" href="/arjunbuilds/post/10"><img src="images/posts/p10.jpg" alt="" width="216" height="216" loading="lazy">
-            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot tag-dot--offer"></span><span class="tag-price">$19</span></span></a>
-        </span>
             </div>
 
       <div class="frow">
@@ -295,10 +233,6 @@ body:not([data-state="caught"]) .caughtline { display: none; }
         <button class="unfollow" type="button">Following</button>
         <span class="gone"><span class="micro">Unfollowed</span><button type="button" data-undo>Undo</button></span>
 
-        <span class="strip">
-          <a class="shot" href="/rheamakes/post/4"><img src="images/posts/shelf.jpg" alt="" width="216" height="216" loading="lazy">
-            <span class="tag" style="--x:8%; --y:58%"><span class="tag-dot"></span><span class="tag-price">£38</span></span></a>
-        </span>
             </div>
     </section>
 
@@ -352,7 +286,7 @@ body:not([data-state="caught"]) .caughtline { display: none; }
       </div>
       <div class="more">
         <a class="btn btn--ghost" href="/following?page=2" rel="next">Load 20 more</a>
-        <p class="micro">Showing 6 of 128 · search or filter to narrow instead</p>
+        <p class="micro">Showing 6 of 128 · search to narrow instead</p>
       </div>
     </section>
 
@@ -413,16 +347,6 @@ document.addEventListener('click', function (e) {
     r.dataset.gone = 'no';
     r.querySelector('.unfollow').focus();
   }
-});
-
-/* Filter chips are single-select here; the counts stay visible either way
-   so the shape of the list is legible before you narrow it. */
-document.querySelectorAll('.fchip').forEach(function (c) {
-  c.addEventListener('click', function () {
-    document.querySelectorAll('.fchip').forEach(function (x) {
-      x.setAttribute('aria-pressed', String(x === c));
-    });
-  });
 });
 
 window.CHROME = { nav: 'following', tab: 'following' };

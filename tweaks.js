@@ -18,6 +18,15 @@
     { id: 'no-comments',    name: 'No comments',      note: 'Empty thread plus the signed-out claim band.' }
   ];
 
+  /* What the post IS. A creator's post is often a reel rather than a
+     still, so the media slot has to be reviewable in every form it takes. */
+  var MEDIA = [
+    { id: 'still',     name: 'Photo',     note: 'A single image. The original case.' },
+    { id: 'youtube',   name: 'YouTube',   note: '16:9 · loads only when you press play.' },
+    { id: 'instagram', name: 'Instagram', note: '9:16 reel · same click-to-load rule.' },
+    { id: 'tiktok',    name: 'TikTok',    note: '9:16 · same click-to-load rule.' }
+  ];
+
   /* The post page has no header treatments and its own two states. */
   var POST_STATES = [
     { id: 'full',  name: 'Products tagged', note: 'Five products — every kind and coupon variant.' },
@@ -110,7 +119,7 @@
   ];
 
   var KEY = 'plugfolio-tweaks';
-  var state = { viewer: 'anon', view: 'full', font: 'sora', theme: 'violet', mode: 'light' };
+  var state = { viewer: 'anon', view: 'full', media: 'still', font: 'sora', theme: 'violet', mode: 'light' };
   try { Object.assign(state, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
@@ -147,6 +156,7 @@
   function applyPage() {
     document.body.dataset.state = state[VIEWKEY];
     document.body.dataset.viewer = state.viewer;
+    if (PAGE === 'post') document.body.dataset.media = state.media;
   }
   function apply() { applyTheme(); applyFont(state.font); applyPage(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
@@ -218,6 +228,7 @@
 
   panel.appendChild(section('Who is looking', VIEWERS, 'viewer', applyPage));
   panel.appendChild(section('Content state', STATES, VIEWKEY, applyPage));
+  if (PAGE === 'post') panel.appendChild(section('Media', MEDIA, 'media', applyPage));
   panel.appendChild(section('Appearance', MODES, 'mode', applyTheme));
   panel.appendChild(section('Palette', PALETTES, 'theme', applyTheme, function (t) { return t.swatch; }));
   panel.appendChild(section('Type pairing', FONTS, 'font', function () { applyFont(state.font); }));
