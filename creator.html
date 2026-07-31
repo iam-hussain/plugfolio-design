@@ -57,11 +57,21 @@ body[data-ctx="on"] .ctx { opacity: 1; transform: none; pointer-events: auto; }
 @media (prefers-reduced-motion: reduce) { .ctx { transition: none; } }
 
 /* ── Cover ────────────────────────────────────────────────── */
-.cover { position: relative; height: 168px; overflow: hidden; background: var(--violet-wash); }
+/* The band carries the creator's accent. It was a flat violet wash — one
+   hue for every creator, and pale enough on a white canvas that the page
+   read as opening on nothing. Tinting it with THEIR accent makes it the
+   first thing on the page that is theirs, and costs no new decision:
+   they already picked the accent (§5.4). */
+.cover { position: relative; height: 168px; overflow: hidden;
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--accent) 22%, var(--canvas)) 0%,
+    color-mix(in srgb, var(--accent) 7%, var(--canvas)) 55%,
+    var(--canvas) 100%); }
 @media (max-width: 640px) { .cover { height: 112px; } }
 .cover img { width: 100%; height: 100%; object-fit: cover; }
-/* the canvas fades up, so the header never sits on unpredictable pixels */
-.cover::after { content: ""; position: absolute; inset: 0;
+/* With a photo behind it the canvas still has to fade up, so the header
+   never sits on unpredictable pixels. */
+.cover:has(img)::after { content: ""; position: absolute; inset: 0;
   background: linear-gradient(to bottom, rgb(var(--shadow-ink) / .10) 0%, transparent 45%, var(--canvas) 100%); }
 
 /* ── Operate type: fixed steps, no fluid display ──────────── */
@@ -69,35 +79,48 @@ body[data-ctx="on"] .ctx { opacity: 1; transform: none; pointer-events: auto; }
 .sec-h { font-size: var(--t-title); font-weight: 800; letter-spacing: -.02em; margin: 0; }
 
 /* ── Creator header ───────────────────────────────────────── */
-.ch { padding-block: 0 20px; margin-top: -44px; position: relative; z-index: 1; }
-@media (max-width: 640px) { .ch { margin-top: -34px; } }
-.ch-top { display: flex; align-items: flex-start; gap: 16px; }
+/* THE IDENTITY ROW IS CENTRED ON THE AVATAR.
+   The name column used to be pushed 48px down so it cleared the avatar's
+   overlap and never sat on the cover. That worked, and it left the
+   avatar's whole top half staring at empty canvas — a hole big enough
+   that the header read as badly assembled rather than as deliberate.
+   Centring closes it, and the overlap shrinks from half the avatar to a
+   third so the words still land on canvas rather than on the band. */
+.ch { padding-block: 0 20px; margin-top: -32px; position: relative; z-index: 1; }
+@media (max-width: 640px) { .ch { margin-top: -24px; } }
+.ch-top { display: flex; align-items: center; gap: 16px; }
 .ch-av { border-radius: 50%; object-fit: cover; flex: none; background: var(--violet-wash);
   width: 88px; height: 88px; box-shadow: 0 0 0 4px var(--canvas); }
 @media (max-width: 640px) { .ch-av { width: 68px; height: 68px; box-shadow: 0 0 0 3px var(--canvas); } }
-.ch-id { min-width: 0; flex: 1; padding-top: 48px; }
-@media (max-width: 640px) { .ch-id { padding-top: 38px; } }
+.ch-id { min-width: 0; flex: 1; }
 .ch-name { font-size: var(--t-name); }
-.ch-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 4px; }
+.ch-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 3px; }
 .ch-handle { font-size: var(--t-label); font-weight: 600; color: var(--ink-2); }
 .ch-dot { color: var(--ink-3); }
 .ch-count { font-size: var(--t-label); font-weight: 700; font-variant-numeric: tabular-nums; }
 .ch-count span { font-weight: 500; color: var(--ink-2); }
-.ch-bio { margin: 12px 0 0; font-size: var(--t-copy); color: var(--ink-2); max-width: 58ch; }
-.ch-act { flex: none; padding-top: 48px; }
+.ch-act { flex: none; margin-left: auto; }
 /* On phones the actions take their own row. .ch-act never shrinks, so left
    beside the name it eats the identity column — one word per line once a
    viewer has two buttons. */
 @media (max-width: 640px) {
   .ch-top { flex-wrap: wrap; }
-  .ch-act { flex: 1 0 100%; padding-top: 14px; }
+  .ch-act { flex: 1 0 100%; margin-top: 14px; }
   .ch-act > .btn { width: 100%; }
   .owner-tools { display: flex; width: 100%; }
   .owner-tools > .btn { flex: 1; }
 }
 .ch-act .btn { padding: 12px 24px; }
 
-.socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+/* ── Everything that isn't the name ───────────────────────────
+   Bio, socials and share start at the avatar's left edge, not indented
+   under the name. They are all wider than the column they were sitting
+   in, so the indent bought nothing and left a gutter with nothing in it
+   running down the whole header. */
+.ch-rest { margin-top: 14px; }
+.ch-bio { margin: 0; font-size: var(--t-copy); color: var(--ink-2); max-width: 58ch; }
+
+.socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 /* Outbound identity links. Circular and icon-only, so they can never be
    mistaken for the rectangular text chips that filter the grid below. */
 .social { display: grid; place-items: center; width: 40px; height: 40px;
@@ -112,7 +135,7 @@ body[data-ctx="on"] .ctx { opacity: 1; transform: none; pointer-events: auto; }
    guess what would happen; Link and QR each say it. Quieter than the
    socials above them — passing the page on is a secondary act next to
    following it. */
-.pshare { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+.pshare { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
 .pshare-l { color: var(--ink-3); margin-right: 2px; }
 .pshare-b { display: inline-flex; align-items: center; gap: 7px; min-height: 36px;
   padding: 8px 14px; border-radius: var(--r-chip); border: 1px solid var(--line);
@@ -634,9 +657,9 @@ body[data-viewer="anon"] .composer { display: none !important; }
 /* ═══ Header treatments — switched from the Tweaks panel ═══ */
 /* Minimal: goods above the fold. Bio and socials stand down. */
 body[data-header="minimal"] .cover { height: 96px; }
-body[data-header="minimal"] .ch { margin-top: -30px; padding-bottom: 12px; }
-body[data-header="minimal"] .ch-id, body[data-header="minimal"] .ch-act { padding-top: 32px; }
+body[data-header="minimal"] .ch { margin-top: -22px; padding-bottom: 12px; }
 body[data-header="minimal"] .ch-av { width: 58px; height: 58px; }
+body[data-header="minimal"] .ch-rest { margin-top: 10px; }
 body[data-header="minimal"] .ch-name { font-size: var(--t-title); }
 /* Compact TIGHTENS, it never deletes. Hiding .ch-bio and .socials outright
    meant a creator who had just switched Instagram on in the customiser
@@ -647,7 +670,7 @@ body[data-header="minimal"] .ch-name { font-size: var(--t-title); }
    The bio clamps to a line and the socials shrink instead. The header still
    comes down by roughly the same amount, because most of its height was the
    cover and the avatar, not these. */
-body[data-header="minimal"] .ch-bio { margin-top: 8px; font-size: var(--t-micro);
+body[data-header="minimal"] .ch-bio { font-size: var(--t-micro);
   display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
   overflow: hidden; }
 body[data-header="minimal"] .socials { margin-top: 10px; gap: 6px; }
@@ -660,8 +683,9 @@ body[data-header="minimal"] .pshare { margin-top: 10px; }
 /* Identity-forward: the creator leads. */
 body[data-header="identity"] .cover { height: 220px; }
 body[data-header="identity"] .ch { margin-top: -60px; padding-bottom: 26px; text-align: center; }
-body[data-header="identity"] .ch-id, body[data-header="identity"] .ch-act { padding-top: 0; }
 body[data-header="identity"] .ch-top { flex-direction: column; align-items: center; gap: 18px; }
+body[data-header="identity"] .ch-act { margin-left: 0; }
+body[data-header="identity"] .pshare { justify-content: center; }
 body[data-header="identity"] .ch-av { width: 128px; height: 128px; }
 body[data-header="identity"] .ch-name { font-size: var(--t-name-lg); }
 body[data-header="identity"] .ch-meta { justify-content: center; }
@@ -718,8 +742,23 @@ body[data-state="empty-category"] .chip-f[data-c="under"] { background: var(--ac
           <span class="ch-dot" aria-hidden="true">·</span>
           <span class="ch-count">48.2K <span>followers</span></span>
         </div>
-        <p class="ch-bio">Everyday things that actually work — desk, gym, skin, home. Everything in my posts is tagged, so you can just tap it.</p>
-        <div class="socials">
+      </div>
+      <div class="ch-act">
+        <button class="btn btn--accent v-anon" type="button" data-follow aria-expanded="false">Follow</button>
+        <button class="btn btn--accent v-shopper" type="button" data-toggle-follow>Follow</button>
+        <button class="btn btn--accent v-business" type="button" data-toggle-follow>Follow</button>
+        <span class="owner-tools v-owner">
+          <a class="btn btn--ghost" href="/dashboard">Dashboard</a>
+          <button class="btn btn--accent" type="button" data-customise>Customise</button>
+        </span>
+      </div>
+    </div>
+
+    <!-- Bio, socials and share start at the avatar's edge, not indented
+         under the name — all three are wider than that column. -->
+    <div class="ch-rest">
+      <p class="ch-bio">Everyday things that actually work — desk, gym, skin, home. Everything in my posts is tagged, so you can just tap it.</p>
+      <div class="socials">
           <a class="social" href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram" data-social="instagram">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
           <a class="social" href="https://youtube.com" target="_blank" rel="noopener" aria-label="YouTube" data-social="youtube">
@@ -741,17 +780,7 @@ body[data-state="empty-category"] .chip-f[data-c="under"] { background: var(--ac
             Link</button>
           <button class="pshare-b" type="button" data-share="qr">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/></svg>
-            QR</button>
-        </div>
-      </div>
-      <div class="ch-act">
-        <button class="btn btn--accent v-anon" type="button" data-follow aria-expanded="false">Follow</button>
-        <button class="btn btn--accent v-shopper" type="button" data-toggle-follow>Follow</button>
-        <button class="btn btn--accent v-business" type="button" data-toggle-follow>Follow</button>
-        <span class="owner-tools v-owner">
-          <a class="btn btn--ghost" href="/dashboard">Dashboard</a>
-          <button class="btn btn--accent" type="button" data-customise>Customise</button>
-        </span>
+          QR</button>
       </div>
     </div>
 
